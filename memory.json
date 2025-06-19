@@ -1,0 +1,26 @@
+[
+  {
+    "topic": "manual test",
+    "type": "SkillDrill",
+    "input": "testing Replit Worf URL",
+    "output": "manual POST test",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "test",
+    "reviewed": false,
+    "timestamp": "2025-06-19T16:47:39.913233+00:00"
+  },
+  {
+    "topic": "Backend Logging Test",
+    "type": "General",
+    "input": "Testing live backend logging from GPT.",
+    "output": "Memory entry logged: Testing live backend logging from GPT.",
+    "score": 10,
+    "maxScore": 10,
+    "success": true,
+    "category": "system",
+    "reviewed": false,
+    "timestamp": "2025-06-19T16:51:01.651550+00:00"
+  }
+]

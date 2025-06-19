@@ -1,0 +1,80 @@
+import os
+from flask import Flask, request, jsonify, abort
+import json
+import datetime
+import logging
+
+app = Flask(__name__)
+
+logging.basicConfig(level=logging.INFO)
+
+MEMORY_FILE = 'memory.json'
+
+@app.before_request
+def require_api_key():
+    if request.endpoint == 'add_memory':
+        key = request.headers.get('X-API-KEY')
+        if key != os.getenv('JAVLIN_API_KEY'):
+            logging.warning(f"Unauthorized access attempt with key: {key}")
+            abort(401, description="Unauthorized: Invalid or missing API key.")
+
+@app.route('/memory', methods=['POST'])
+def add_memory():
+    try:
+        data = request.get_json()
+        logging.info(f"Received memory entry: {data}")
+
+        required_fields = [
+            "topic", "type", "input", "output",
+            "score", "maxScore", "success", "category", "reviewed"
+        ]
+        missing = [field for field in required_fields if field not in data]
+        if missing:
+            logging.warning(f"Missing fields: {missing}")
+            return jsonify({
+                "error": "Missing required fields.",
+                "missing": missing
+            }), 400
+
+        if not isinstance(data["score"], int) or not isinstance(data["maxScore"], int):
+            logging.warning("Score or maxScore not integer")
+            return jsonify({"error": "Score and maxScore must be integers."}), 400
+
+        if not isinstance(data["success"], bool) or not isinstance(data["reviewed"], bool):
+            logging.warning("Success or reviewed not boolean")
+            return jsonify({"error": "Success and reviewed must be booleans."}), 400
+
+        if 'timestamp' not in data:
+            data['timestamp'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            logging.info(f"Added timestamp: {data['timestamp']}")
+
+        abs_path = os.path.abspath(MEMORY_FILE)
+        logging.info(f"Writing to file: {abs_path}")
+
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
+            memory = []
+            logging.info("Initialized empty memory list")
+
+        memory.append(data)
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+
+        logging.info(f"Memory entry saved. Total entries: {len(memory)}")
+        return jsonify({"status": "✅ Memory saved", "entry": data}), 200
+
+    except Exception as e:
+        logging.error(f"Exception in add_memory: {e}")
+        return jsonify({"status": "❌ Failed", "error": str(e)}), 500
+
+@app.route('/')
+def home():
+    return 'Javlin Memory API is live!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
+
+
+
