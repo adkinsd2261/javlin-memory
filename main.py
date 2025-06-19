@@ -1523,10 +1523,15 @@ def get_autolog_trace():
 
 @app.route('/')
 def home():
-    return 'Javlin Memory API is live!'
+    return {'status': 'healthy', 'service': 'Javlin Memory API'}, 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    try:
+        app.run(host='0.0.0.0', port=80, debug=False)
+    except Exception as e:
+        logging.error(f'Application failed to start: {e}')
+        import sys
+        sys.exit(1)
 
 
 
