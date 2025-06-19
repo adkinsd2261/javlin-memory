@@ -336,5 +336,66 @@
     "reviewed": false,
     "timestamp": "2025-06-19T22:57:06.453451+00:00",
     "auto_generated": true
+  },
+  {
+    "topic": "Trusted Autologging Activated",
+    "type": "SystemUpdate",
+    "input": "Updated memory system to fully trust the Javlin Builder Agent via config.json flags and header detection. Enables autonomous logging with enhanced scoring, agent recognition, and audit trail.",
+    "output": "Javlin Builder Agent can now post structured memory logs autonomously via /autolog without needing user confirmation. Logs are trusted, scored adaptively, and tracked in autolog_trace.json.",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "system",
+    "reviewed": false,
+    "tags": [
+      "builder",
+      "config",
+      "updated",
+      "javlin"
+    ],
+    "related_to": [],
+    "timestamp": "2025-06-19T22:59:03.009977+00:00",
+    "context": "Working on: Trusted Autologging Activated."
+  },
+  {
+    "topic": "Javlin Memory API Deployed (Autoscale)",
+    "type": "BuildLog",
+    "input": "Deployed the memory API using Replit's Autoscale configuration with 1 machine and tuned compute settings. Domain now live with 24/7 uptime and trusted autologging enabled.",
+    "output": "Javlin Builder Agent now has persistent external access to the memory engine with no confirmation required. All logs, digests, and reflections are now continuous.",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "Infrastructure",
+    "reviewed": false,
+    "tags": [
+      "config",
+      "scale",
+      "deployed",
+      "replit",
+      "api"
+    ],
+    "related_to": [],
+    "timestamp": "2025-06-19T23:21:23.099855+00:00",
+    "context": "Deploying application changes."
+  },
+  {
+    "topic": "Tool Misuse Safeguards for User Context",
+    "type": "Insight",
+    "input": "A mistake occurred where a /memory command was routed through the web search tool instead of the user's memory API. This surfaced the need for tool context awareness.",
+    "output": "Outlined a design for scoped tool routing, memory-aware config flags, and internal vs external context modes to ensure correct tool usage for future users of Javlin.",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "system",
+    "reviewed": false,
+    "tags": [
+      "this",
+      "api",
+      "a",
+      "config"
+    ],
+    "related_to": [],
+    "timestamp": "2025-06-19T23:24:57.773744+00:00",
+    "context": "Working on: Tool Misuse Safeguards for User Context."
   }
 ]
