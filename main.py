@@ -298,6 +298,13 @@ def get_digest():
             'follow_up': unreviewed_data
         }
         
+        # Debug output - print to console
+        print("Digest data:", digest)
+        
+        # Debug output - write to file for easy access
+        with open("digest_output.json", "w") as f:
+            json.dump(digest, f, indent=2)
+        
         return jsonify(digest)
         
     except Exception as e:
