@@ -22,5 +22,17 @@
     "category": "system",
     "reviewed": false,
     "timestamp": "2025-06-19T16:51:01.651550+00:00"
+  },
+  {
+    "topic": "manual test with key",
+    "type": "SkillDrill",
+    "input": "testing api key auth",
+    "output": "manual test passed",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "test",
+    "reviewed": false,
+    "timestamp": "2025-06-19T17:46:01.443718+00:00"
   }
 ]
