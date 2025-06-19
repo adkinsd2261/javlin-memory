@@ -1,12 +1,20 @@
 
 {
   "urls": [
-    "https://raw.githubusercontent.com/replit/replit-py/main/README.md"
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/README.md",
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/main.py",
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/doc_watcher.py",
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/pyproject.toml",
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/watchlist.json",
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/.replit"
   ],
-  "description": "List of URLs to monitor for content changes",
+  "description": "List of URLs to monitor for content changes in MemoryOS project",
   "notes": [
-    "Add raw GitHub URLs for monitoring documentation changes",
-    "Use raw.githubusercontent.com URLs for GitHub files",
+    "Monitoring key MemoryOS project files for changes",
+    "README.md - Project documentation",
+    "main.py - Flask API backend",
+    "doc_watcher.py - Document monitoring script",
+    "Configuration and project files",
     "The script will check these URLs and detect content changes using SHA256 hashing"
   ]
 }
