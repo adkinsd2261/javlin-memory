@@ -776,6 +776,52 @@ def run_insight_analysis():
     except Exception as e:
         logging.error(f"Error running insight analysis: {e}")
 
+def get_infrastructure_health():
+    """Get infrastructure health summary"""
+    try:
+        # Look for recent audit reports
+        audit_files = [f for f in os.listdir(BASE_DIR) if f.startswith('infrastructure_audit_') and f.endswith('.json')]
+        
+        if not audit_files:
+            return {
+                'health_score': 100,
+                'unregistered_components': 0,
+                'architecture_mismatches': 0,
+                'priority_improvements': [],
+                'last_audit': 'Never'
+            }
+        
+        # Load most recent audit
+        latest_audit = sorted(audit_files)[-1]
+        with open(os.path.join(BASE_DIR, latest_audit), 'r') as f:
+            audit_data = json.load(f)
+        
+        summary = audit_data.get('summary', {})
+        findings = audit_data.get('findings', {})
+        
+        # Extract high-priority improvements
+        improvements = findings.get('structural_improvements', [])
+        priority_improvements = [imp.get('description', '') for imp in improvements 
+                               if imp.get('priority') == 'high'][:3]
+        
+        return {
+            'health_score': summary.get('health_score', 100),
+            'unregistered_components': summary.get('unregistered_components', 0),
+            'architecture_mismatches': summary.get('architecture_mismatches', 0),
+            'priority_improvements': priority_improvements,
+            'last_audit': audit_data.get('audit_timestamp', 'Unknown')
+        }
+        
+    except Exception as e:
+        logging.warning(f"Error getting infrastructure health: {e}")
+        return {
+            'health_score': 100,
+            'unregistered_components': 0,
+            'architecture_mismatches': 0,
+            'priority_improvements': [],
+            'last_audit': 'Error'
+        }
+
 def group_related_logs(memory):
     """Group logs that reference each other via related_to"""
     groups = {}
@@ -883,6 +929,9 @@ def get_digest():
         # Load system insights if available
         system_insights = get_system_insights()
         
+        # Load infrastructure audit findings if available
+        infrastructure_health = get_infrastructure_health()
+        
         digest = {
             'period': 'Last 7 days',
             'summary': {
@@ -917,6 +966,13 @@ def get_digest():
                 'schema_health_score': system_insights.get('schema_health', {}).get('overall_health_score', 0),
                 'key_patterns': len(system_insights.get('repeated_patterns', [])),
                 'improvement_areas': len(system_insights.get('missed_tags', []))
+            },
+            'infrastructure_health': {
+                'overall_health_score': infrastructure_health.get('health_score', 100),
+                'unregistered_components': infrastructure_health.get('unregistered_components', 0),
+                'architecture_mismatches': infrastructure_health.get('architecture_mismatches', 0),
+                'priority_improvements': infrastructure_health.get('priority_improvements', []),
+                'last_audit': infrastructure_health.get('last_audit', 'Never')
             },
             'follow_up': unreviewed_data
         }
@@ -1519,6 +1575,81 @@ def get_autolog_trace():
         
     except Exception as e:
         logging.error(f"Error getting autolog trace: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/audit', methods=['GET'])
+def get_infrastructure_audit():
+    """Get infrastructure audit report"""
+    try:
+        import sys
+        sys.path.append(BASE_DIR)
+        from infra_audit import InfrastructureAuditor
+        
+        # Check if we should run a fresh audit or return cached results
+        run_fresh = request.args.get('refresh', 'false').lower() == 'true'
+        save_report = request.args.get('save', 'false').lower() == 'true'
+        format_type = request.args.get('format', 'json')
+        
+        auditor = InfrastructureAuditor(BASE_DIR)
+        
+        if run_fresh:
+            logging.info("Running fresh infrastructure audit")
+            audit_report = auditor.run_full_audit()
+        else:
+            # Try to load recent audit report
+            try:
+                audit_files = [f for f in os.listdir(BASE_DIR) if f.startswith('infrastructure_audit_') and f.endswith('.json')]
+                if audit_files:
+                    latest_audit = sorted(audit_files)[-1]
+                    with open(os.path.join(BASE_DIR, latest_audit), 'r') as f:
+                        audit_report = json.load(f)
+                    logging.info(f"Loaded cached audit report: {latest_audit}")
+                else:
+                    # No cached report, run fresh audit
+                    audit_report = auditor.run_full_audit()
+            except Exception as e:
+                logging.warning(f"Error loading cached audit: {e}, running fresh audit")
+                audit_report = auditor.run_full_audit()
+        
+        # Save report if requested
+        if save_report:
+            auditor.audit_results = audit_report
+            saved_file = auditor.save_audit_report(format_type)
+            audit_report['saved_to'] = saved_file
+        
+        # Log audit execution
+        audit_memory = {
+            "topic": "Infrastructure Audit Executed",
+            "type": "SystemTest",
+            "input": f"Infrastructure audit requested via /audit endpoint (refresh={run_fresh})",
+            "output": f"Health score: {audit_report.get('summary', {}).get('health_score', 0)}/100. Found {audit_report.get('summary', {}).get('unregistered_components', 0)} unregistered components and {audit_report.get('summary', {}).get('architecture_mismatches', 0)} mismatches.",
+            "score": 20,
+            "maxScore": 25,
+            "success": True,
+            "category": "system",
+            "tags": ["audit", "infrastructure", "health", "monitoring"],
+            "context": "Running system health check and architecture audit",
+            "related_to": [],
+            "reviewed": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "auto_generated": True
+        }
+        
+        # Save audit execution to memory
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            memory = []
+        
+        memory.append(audit_memory)
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+        
+        return jsonify(audit_report)
+        
+    except Exception as e:
+        logging.error(f"Error running infrastructure audit: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/')
