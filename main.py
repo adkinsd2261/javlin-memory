@@ -3,16 +3,20 @@ from flask import Flask, request, jsonify, abort
 import json
 import datetime
 import logging
+from json.decoder import JSONDecodeError
 
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 
-MEMORY_FILE = 'memory.json'
+# Use absolute path for memory file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MEMORY_FILE = os.path.join(BASE_DIR, 'memory.json')
 
 @app.before_request
 def require_api_key():
-    if request.endpoint == 'add_memory':
+    # Require API key for POST /memory only
+    if request.path == '/memory' and request.method == 'POST':
         key = request.headers.get('X-API-KEY')
         if key != os.getenv('JAVLIN_API_KEY'):
             logging.warning(f"Unauthorized access attempt with key: {key}")
@@ -48,13 +52,12 @@ def add_memory():
             data['timestamp'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
             logging.info(f"Added timestamp: {data['timestamp']}")
 
-        abs_path = os.path.abspath(MEMORY_FILE)
-        logging.info(f"Writing to file: {abs_path}")
+        logging.info(f"Writing to file: {MEMORY_FILE}")
 
         try:
             with open(MEMORY_FILE, 'r') as f:
                 memory = json.load(f)
-        except (FileNotFoundError, json.decoder.JSONDecodeError):
+        except (FileNotFoundError, JSONDecodeError):
             memory = []
             logging.info("Initialized empty memory list")
 
@@ -69,12 +72,26 @@ def add_memory():
         logging.error(f"Exception in add_memory: {e}")
         return jsonify({"status": "❌ Failed", "error": str(e)}), 500
 
+@app.route('/memory', methods=['GET'])
+def get_memories():
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+        return jsonify(memory)
+    except Exception as e:
+        logging.error(f"Error loading memories: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/')
 def home():
     return 'Javlin Memory API is live!'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=5000)
+
+
+
+
 
 
 
