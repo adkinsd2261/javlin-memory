@@ -302,8 +302,10 @@ def get_digest():
         print("Digest data:", digest)
         
         # Debug output - write to file for easy access
-        with open("digest_output.json", "w") as f:
+        output_file = os.path.join(BASE_DIR, "digest_output.json")
+        with open(output_file, "w") as f:
             json.dump(digest, f, indent=2)
+        print(f"Digest saved to: {output_file}")
         
         return jsonify(digest)
         
