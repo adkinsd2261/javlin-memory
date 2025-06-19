@@ -34,5 +34,17 @@
     "category": "test",
     "reviewed": false,
     "timestamp": "2025-06-19T17:46:01.443718+00:00"
+  },
+  {
+    "topic": "manual test with key",
+    "type": "SkillDrill",
+    "input": "testing API key auth with updated Flask app",
+    "output": "manual test passed",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "test",
+    "reviewed": false,
+    "timestamp": "2025-06-19T17:58:36.301355+00:00"
   }
 ]
