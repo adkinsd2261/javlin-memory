@@ -19,7 +19,14 @@ MEMORY_FILE = os.path.join(BASE_DIR, 'memory.json')
 def require_api_key():
     # Require API key for POST /memory only
     if request.path == '/memory' and request.method == 'POST':
-        key = request.headers.get('X-API-KEY')
+        # Try multiple header variations (case-insensitive)
+        key = (request.headers.get('X-API-KEY') or 
+               request.headers.get('x-api-key') or 
+               request.headers.get('X-Api-Key'))
+        
+        # Debug: log all headers for troubleshooting
+        logging.debug(f"All request headers: {dict(request.headers)}")
+        
         if key != os.getenv('JAVLIN_API_KEY'):
             logging.warning(f"Unauthorized access attempt with key: {key}")
             abort(401, description="Unauthorized: Invalid or missing API key.")
@@ -27,9 +34,13 @@ def require_api_key():
 @app.route('/memory', methods=['POST'])
 def add_memory():
     try:
-        # Debug logging for API key
-        api_key = request.headers.get('X-API-KEY')
+        # Debug logging for API key with multiple variations
+        api_key = (request.headers.get('X-API-KEY') or 
+                  request.headers.get('x-api-key') or 
+                  request.headers.get('X-Api-Key'))
         logging.debug(f"Received API key: {api_key}")
+        logging.debug(f"Request method: {request.method}")
+        logging.debug(f"Request URL: {request.url}")
         
         # Check Content-Type
         if request.content_type != 'application/json':
