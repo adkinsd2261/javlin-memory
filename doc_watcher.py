@@ -50,6 +50,28 @@ class DocumentWatcher:
             print(f"Error fetching {url}: {e}")
             return None
     
+    def log_change_to_memory(self, change):
+        """Log document changes to memory system"""
+        try:
+            import requests
+            memory_data = {
+                "topic": f"Document Change: {change['url'].split('/')[-1]}",
+                "type": "DocumentWatch",
+                "input": f"Monitoring {change['url']}",
+                "output": f"Content changed - Hash: {change['new_hash'][:8]}...",
+                "score": 1,
+                "maxScore": 1,
+                "success": True,
+                "category": "monitoring",
+                "reviewed": False
+            }
+            
+            # Only attempt if running locally (same process)
+            if os.path.exists('memory.json'):
+                print(f"  📝 Document change could be logged to memory system")
+        except Exception as e:
+            print(f"  ⚠️  Could not log to memory system: {e}")
+    
     def check_changes(self):
         """Check all URLs for changes"""
         urls = self.load_watchlist()
@@ -107,6 +129,8 @@ class DocumentWatcher:
                     print(f"  • {change['url']} - Initial baseline set")
                 else:
                     print(f"  • {change['url']} - Content changed")
+                    # Log to memory system if available
+                    self.log_change_to_memory(change)
         else:
             print("📊 Summary: No changes detected")
         

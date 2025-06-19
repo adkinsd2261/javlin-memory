@@ -101,9 +101,51 @@ def get_memories():
     try:
         with open(MEMORY_FILE, 'r') as f:
             memory = json.load(f)
+        
+        # Optional filtering by query parameters
+        category = request.args.get('category')
+        topic = request.args.get('topic')
+        success = request.args.get('success')
+        
+        if category:
+            memory = [m for m in memory if m.get('category', '').lower() == category.lower()]
+        if topic:
+            memory = [m for m in memory if topic.lower() in m.get('topic', '').lower()]
+        if success is not None:
+            success_bool = success.lower() == 'true'
+            memory = [m for m in memory if m.get('success') == success_bool]
+            
         return jsonify(memory)
     except Exception as e:
         logging.error(f"Error loading memories: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/stats')
+def get_stats():
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+        
+        total = len(memory)
+        successful = len([m for m in memory if m.get('success', False)])
+        categories = {}
+        types = {}
+        
+        for m in memory:
+            cat = m.get('category', 'unknown')
+            typ = m.get('type', 'unknown')
+            categories[cat] = categories.get(cat, 0) + 1
+            types[typ] = types.get(typ, 0) + 1
+        
+        return jsonify({
+            'total_memories': total,
+            'successful': successful,
+            'success_rate': f"{(successful/total*100):.1f}%" if total > 0 else "0%",
+            'categories': categories,
+            'types': types
+        })
+    except Exception as e:
+        logging.error(f"Error generating stats: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/')

@@ -1,11 +1,10 @@
-
 {
   "urls": [
     "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/README.md",
     "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/main.py",
     "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/doc_watcher.py",
     "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/pyproject.toml",
-    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/watchlist.json",
+    "https://raw.githubusercontent.com/adkinsd2261/memoryos/main/watchlist.json"
   ],
   "description": "List of URLs to monitor for content changes in MemoryOS project",
   "notes": [
