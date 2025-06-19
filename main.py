@@ -8,6 +8,9 @@ from json.decoder import JSONDecodeError
 import re
 from collections import Counter
 
+# Use absolute path for memory file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Load configuration
 def load_config():
     """Load system configuration"""
@@ -41,8 +44,6 @@ CORS(app)
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Use absolute path for memory file
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MEMORY_FILE = os.path.join(BASE_DIR, 'memory.json')
 
 @app.before_request
