@@ -340,6 +340,31 @@ def find_related_memories(topic, tags, category):
     
     return list(set(related))[:3]  # Return max 3 unique related topics
 
+def detect_commit_type(commit_message):
+    """Detect commit type from conventional commit message"""
+    message_lower = commit_message.lower()
+    
+    if message_lower.startswith('feat'):
+        return 'Feature'
+    elif message_lower.startswith('fix'):
+        return 'BugFix'
+    elif message_lower.startswith('docs'):
+        return 'Documentation'
+    elif message_lower.startswith('refactor'):
+        return 'Refactor'
+    elif message_lower.startswith('test'):
+        return 'SystemTest'
+    elif message_lower.startswith('chore'):
+        return 'Maintenance'
+    elif any(word in message_lower for word in ['add', 'implement', 'create']):
+        return 'Feature'
+    elif any(word in message_lower for word in ['fix', 'resolve', 'correct']):
+        return 'BugFix'
+    elif any(word in message_lower for word in ['update', 'improve', 'enhance']):
+        return 'Enhancement'
+    else:
+        return 'General'
+
 def autolog_memory(input_text="", output_text="", topic="", type_="AutoLog", category="system"):
     """Intelligently generate memory log entry"""
     
@@ -605,6 +630,369 @@ def passive_autolog():
     except Exception as e:
         logging.error(f"Error in passive autolog: {e}")
         return jsonify({"status": "❌ Failed", "error": str(e)}), 500
+
+@app.route('/build-state', methods=['GET', 'POST'])
+def build_state():
+    """Get or update build state for AI context awareness"""
+    build_state_file = os.path.join(BASE_DIR, 'build_state.json')
+    
+    if request.method == 'GET':
+        try:
+            with open(build_state_file, 'r') as f:
+                state = json.load(f)
+            return jsonify(state)
+        except (FileNotFoundError, JSONDecodeError):
+            return jsonify({"error": "Build state not found"}), 404
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json() or {}
+            
+            # Load current state
+            try:
+                with open(build_state_file, 'r') as f:
+                    current_state = json.load(f)
+            except (FileNotFoundError, JSONDecodeError):
+                current_state = {}
+            
+            # Update with new data
+            current_state.update(data)
+            current_state['last_updated'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            
+            # Save updated state
+            with open(build_state_file, 'w') as f:
+                json.dump(current_state, f, indent=2)
+            
+            return jsonify({"status": "✅ Build state updated", "state": current_state})
+            
+        except Exception as e:
+            logging.error(f"Error updating build state: {e}")
+            return jsonify({"error": str(e)}), 500
+
+@app.route('/daily-focus', methods=['GET', 'POST'])
+def daily_focus():
+    """Get or update daily focus/intent for AI guidance"""
+    daily_focus_file = os.path.join(BASE_DIR, 'daily_focus.json')
+    
+    if request.method == 'GET':
+        try:
+            with open(daily_focus_file, 'r') as f:
+                focus = json.load(f)
+            return jsonify(focus)
+        except (FileNotFoundError, JSONDecodeError):
+            return jsonify({"error": "Daily focus not found"}), 404
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json() or {}
+            
+            # Auto-set today's date if not provided
+            if 'date' not in data:
+                data['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+            
+            with open(daily_focus_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            
+            return jsonify({"status": "✅ Daily focus updated", "focus": data})
+            
+        except Exception as e:
+            logging.error(f"Error updating daily focus: {e}")
+            return jsonify({"error": str(e)}), 500
+
+@app.route('/feedback', methods=['POST'])
+def add_feedback():
+    """Add feedback for memory entries"""
+    try:
+        data = request.get_json() or {}
+        required_fields = ['memory_id', 'rating']
+        
+        missing = [field for field in required_fields if field not in data]
+        if missing:
+            return jsonify({"error": f"Missing required fields: {missing}"}), 400
+        
+        if not isinstance(data['rating'], int) or data['rating'] < 1 or data['rating'] > 5:
+            return jsonify({"error": "Rating must be integer between 1-5"}), 400
+        
+        feedback_file = os.path.join(BASE_DIR, 'feedback.json')
+        
+        # Load existing feedback
+        try:
+            with open(feedback_file, 'r') as f:
+                feedback_data = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            feedback_data = {
+                "feedback_entries": [],
+                "ratings_summary": {
+                    "total_ratings": 0,
+                    "average_rating": 0,
+                    "rating_distribution": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0}
+                },
+                "common_feedback_themes": [],
+                "last_updated": ""
+            }
+        
+        # Add new feedback
+        feedback_entry = {
+            "memory_id": data['memory_id'],
+            "rating": data['rating'],
+            "comment": data.get('comment', ''),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+        
+        feedback_data['feedback_entries'].append(feedback_entry)
+        
+        # Update summary
+        ratings = [f['rating'] for f in feedback_data['feedback_entries']]
+        feedback_data['ratings_summary']['total_ratings'] = len(ratings)
+        feedback_data['ratings_summary']['average_rating'] = sum(ratings) / len(ratings)
+        
+        # Update distribution
+        for entry in feedback_data['feedback_entries']:
+            rating_str = str(entry['rating'])
+            feedback_data['ratings_summary']['rating_distribution'][rating_str] = \
+                feedback_data['ratings_summary']['rating_distribution'].get(rating_str, 0) + 1
+        
+        feedback_data['last_updated'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        
+        # Save feedback
+        with open(feedback_file, 'w') as f:
+            json.dump(feedback_data, f, indent=2)
+        
+        return jsonify({"status": "✅ Feedback saved", "feedback": feedback_entry})
+        
+    except Exception as e:
+        logging.error(f"Error saving feedback: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/version', methods=['GET', 'POST'])
+def version_control():
+    """Get or update version information"""
+    version_file = os.path.join(BASE_DIR, 'version.json')
+    
+    if request.method == 'GET':
+        try:
+            with open(version_file, 'r') as f:
+                version_data = json.load(f)
+            return jsonify(version_data)
+        except (FileNotFoundError, JSONDecodeError):
+            return jsonify({"error": "Version data not found"}), 404
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json() or {}
+            
+            # Load current version data
+            try:
+                with open(version_file, 'r') as f:
+                    version_data = json.load(f)
+            except (FileNotFoundError, JSONDecodeError):
+                return jsonify({"error": "Version file not found"}), 404
+            
+            # If this is a version bump, archive current version
+            if 'version' in data and data['version'] != version_data.get('version'):
+                # Archive current version
+                current_version = {
+                    "version": version_data.get('version'),
+                    "date": version_data.get('date'),
+                    "description": version_data.get('description')
+                }
+                version_data.setdefault('previous_versions', []).insert(0, current_version)
+                
+                # Auto-log version change
+                version_memory = {
+                    "topic": f"Version Update: {data['version']}",
+                    "type": "VersionChange",
+                    "input": f"Updating from {version_data.get('version', 'unknown')} to {data['version']}",
+                    "output": f"Version {data['version']}: {data.get('description', 'Version updated')}",
+                    "score": 20,
+                    "maxScore": 25,
+                    "success": True,
+                    "category": "system",
+                    "tags": ["version", "update", "milestone"],
+                    "context": f"System version upgraded with new features and improvements",
+                    "related_to": [],
+                    "reviewed": False,
+                    "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "auto_generated": True
+                }
+                
+                # Save version change to memory
+                try:
+                    with open(MEMORY_FILE, 'r') as f:
+                        memory = json.load(f)
+                except (FileNotFoundError, JSONDecodeError):
+                    memory = []
+                
+                memory.append(version_memory)
+                with open(MEMORY_FILE, 'w') as f:
+                    json.dump(memory, f, indent=2)
+            
+            # Update version data
+            version_data.update(data)
+            version_data['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+            
+            with open(version_file, 'w') as f:
+                json.dump(version_data, f, indent=2)
+            
+            return jsonify({"status": "✅ Version updated", "version": version_data})
+            
+        except Exception as e:
+            logging.error(f"Error updating version: {e}")
+            return jsonify({"error": str(e)}), 500
+
+@app.route('/commit-log', methods=['GET', 'POST'])
+def commit_log():
+    """Get or add git commit information"""
+    commit_file = os.path.join(BASE_DIR, 'commit_log.json')
+    
+    if request.method == 'GET':
+        try:
+            with open(commit_file, 'r') as f:
+                commits = json.load(f)
+            return jsonify(commits)
+        except (FileNotFoundError, JSONDecodeError):
+            return jsonify({"error": "Commit log not found"}), 404
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json() or {}
+            required_fields = ['hash', 'message']
+            
+            missing = [field for field in required_fields if field not in data]
+            if missing:
+                return jsonify({"error": f"Missing required fields: {missing}"}), 400
+            
+            # Load existing commits
+            try:
+                with open(commit_file, 'r') as f:
+                    commit_data = json.load(f)
+            except (FileNotFoundError, JSONDecodeError):
+                commit_data = {"commits": [], "auto_log_commits": True, "commit_types": {}}
+            
+            # Add new commit
+            commit_entry = {
+                "hash": data['hash'],
+                "message": data['message'],
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "files_changed": data.get('files_changed', []),
+                "logged_to_memory": False
+            }
+            
+            commit_data['commits'].append(commit_entry)
+            
+            # Auto-log commit if enabled
+            if commit_data.get('auto_log_commits', True):
+                commit_type = detect_commit_type(data['message'])
+                
+                commit_memory = {
+                    "topic": f"Git Commit: {data['message'][:50]}...",
+                    "type": commit_type,
+                    "input": f"Git commit: {data['message']}",
+                    "output": f"Committed changes with hash {data['hash'][:8]}",
+                    "score": 15,
+                    "maxScore": 25,
+                    "success": True,
+                    "category": "development",
+                    "tags": ["git", "commit", commit_type.lower()],
+                    "context": f"Code changes committed to repository",
+                    "related_to": [],
+                    "reviewed": False,
+                    "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "auto_generated": True
+                }
+                
+                # Save commit to memory
+                try:
+                    with open(MEMORY_FILE, 'r') as f:
+                        memory = json.load(f)
+                except (FileNotFoundError, JSONDecodeError):
+                    memory = []
+                
+                memory.append(commit_memory)
+                with open(MEMORY_FILE, 'w') as f:
+                    json.dump(memory, f, indent=2)
+                
+                commit_entry['logged_to_memory'] = True
+            
+            # Save commit log
+            with open(commit_file, 'w') as f:
+                json.dump(commit_data, f, indent=2)
+            
+            return jsonify({"status": "✅ Commit logged", "commit": commit_entry})
+            
+        except Exception as e:
+            logging.error(f"Error logging commit: {e}")
+            return jsonify({"error": str(e)}), 500
+
+@app.route('/context', methods=['GET'])
+def get_full_context():
+    """Get complete context for AI agent decision making"""
+    try:
+        context = {}
+        
+        # Build state
+        try:
+            with open(os.path.join(BASE_DIR, 'build_state.json'), 'r') as f:
+                context['build_state'] = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            context['build_state'] = None
+        
+        # Daily focus
+        try:
+            with open(os.path.join(BASE_DIR, 'daily_focus.json'), 'r') as f:
+                context['daily_focus'] = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            context['daily_focus'] = None
+        
+        # Recent memory (last 5)
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+                context['recent_memories'] = memory[-5:] if memory else []
+                context['total_memories'] = len(memory)
+        except (FileNotFoundError, JSONDecodeError):
+            context['recent_memories'] = []
+            context['total_memories'] = 0
+        
+        # Version info
+        try:
+            with open(os.path.join(BASE_DIR, 'version.json'), 'r') as f:
+                context['version'] = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            context['version'] = None
+        
+        # Recent commits (last 3)
+        try:
+            with open(os.path.join(BASE_DIR, 'commit_log.json'), 'r') as f:
+                commit_data = json.load(f)
+                context['recent_commits'] = commit_data.get('commits', [])[-3:]
+        except (FileNotFoundError, JSONDecodeError):
+            context['recent_commits'] = []
+        
+        # Feedback summary
+        try:
+            with open(os.path.join(BASE_DIR, 'feedback.json'), 'r') as f:
+                feedback_data = json.load(f)
+                context['feedback_summary'] = feedback_data.get('ratings_summary', {})
+        except (FileNotFoundError, JSONDecodeError):
+            context['feedback_summary'] = {}
+        
+        # System health
+        context['system_status'] = {
+            'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'files_exist': {
+                'memory': os.path.exists(MEMORY_FILE),
+                'build_state': os.path.exists(os.path.join(BASE_DIR, 'build_state.json')),
+                'daily_focus': os.path.exists(os.path.join(BASE_DIR, 'daily_focus.json')),
+                'version': os.path.exists(os.path.join(BASE_DIR, 'version.json'))
+            }
+        }
+        
+        return jsonify(context)
+        
+    except Exception as e:
+        logging.error(f"Error getting context: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/')
 def home():
