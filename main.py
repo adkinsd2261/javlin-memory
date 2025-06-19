@@ -366,7 +366,28 @@ def detect_commit_type(commit_message):
         return 'General'
 
 def autolog_memory(input_text="", output_text="", topic="", type_="AutoLog", category="system"):
-    """Intelligently generate memory log entry"""
+    """Intelligently generate memory log entry with ML predictions"""
+    
+    # Try to get ML predictions first
+    ml_predictions = get_ml_predictions(input_text, output_text, topic)
+    
+    # Use ML predictions if available, otherwise fall back to heuristics
+    if ml_predictions and ml_predictions.get('confidence', {}).get('type', 0) > 0.6:
+        predicted_type = ml_predictions['type']
+        predicted_category = ml_predictions['category']
+        predicted_tags = ml_predictions['tags']
+        predicted_score = ml_predictions['score']
+        logging.info(f"Using ML predictions: type={predicted_type}, confidence={ml_predictions['confidence']['type']:.2f}")
+    else:
+        predicted_type = type_
+        predicted_category = category
+        predicted_tags = extract_keywords(f"{input_text} {output_text} {topic}")
+        predicted_score = 15
+        logging.info("Using heuristic predictions (ML confidence too low or unavailable)")
+    
+    # Override with user-provided values if specified
+    final_type = type_ if type_ != "AutoLog" else predicted_type
+    final_category = category if category != "system" else predicted_category
     
     # Generate topic if not provided
     if not topic:
@@ -377,21 +398,26 @@ def autolog_memory(input_text="", output_text="", topic="", type_="AutoLog", cat
         else:
             topic = "System Auto-Log Entry"
     
-    # Auto-generate tags
+    # Combine ML tags with heuristic tags
     all_text = f"{input_text} {output_text} {topic}"
-    tags = extract_keywords(all_text)
+    heuristic_tags = extract_keywords(all_text)
+    combined_tags = list(set(predicted_tags + heuristic_tags))[:5]  # Max 5 unique tags
     
     # Generate context summary
     context = generate_context_summary(input_text, output_text, topic)
     
     # Find related memories
-    related_to = find_related_memories(topic, tags, category)
+    related_to = find_related_memories(topic, combined_tags, final_category)
     
-    # Calculate importance score
-    importance = calculate_importance_score(topic, input_text, output_text, category, type_)
+    # Calculate importance score (combine ML and heuristic)
+    heuristic_importance = calculate_importance_score(topic, input_text, output_text, final_category, final_type)
+    ml_importance = predicted_score * 4  # Convert 25-scale to 100-scale
+    
+    # Weight the importance scores (70% heuristic, 30% ML)
+    importance = int(0.7 * heuristic_importance + 0.3 * ml_importance)
     
     # Determine if we should log this (threshold of 60)
-    should_log = importance >= 60 or type_ in ['BugFix', 'Insight', 'BuildLog', 'Decision', 'Emotion']
+    should_log = importance >= 60 or final_type in ['BugFix', 'Insight', 'BuildLog', 'Decision', 'Emotion']
     
     if not should_log:
         logging.info(f"Skipping auto-log: low importance score ({importance})")
@@ -400,23 +426,45 @@ def autolog_memory(input_text="", output_text="", topic="", type_="AutoLog", cat
     # Create memory entry
     memory_entry = {
         "topic": topic,
-        "type": type_,
+        "type": final_type,
         "input": input_text or "Auto-generated entry",
         "output": output_text or "System logged automatically",
-        "score": min(importance, 25),  # Cap at maxScore
+        "score": min(predicted_score, 25),  # Use ML predicted score, cap at maxScore
         "maxScore": 25,
         "success": True,  # Assume success for auto-logs unless indicated otherwise
-        "category": category,
-        "tags": tags,
+        "category": final_category,
+        "tags": combined_tags,
         "context": context,
         "related_to": related_to,
         "reviewed": False,
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "auto_generated": True,
-        "importance_score": importance
+        "importance_score": importance,
+        "ml_predicted": ml_predictions is not None,
+        "ml_confidence": ml_predictions.get('confidence', {}) if ml_predictions else {}
     }
     
     return memory_entry
+
+def get_ml_predictions(input_text, output_text="", topic=""):
+    """Get ML predictions for memory entry"""
+    try:
+        # Import here to avoid circular imports
+        import sys
+        sys.path.append(BASE_DIR)
+        from tag_trainer import MemoryPredictor
+        
+        predictor = MemoryPredictor()
+        if predictor.load_models():
+            return predictor.predict(input_text, output_text, topic)
+        else:
+            # Try training if no models exist
+            if predictor.train_models():
+                return predictor.predict(input_text, output_text, topic)
+    except Exception as e:
+        logging.warning(f"ML prediction failed: {e}")
+    
+    return None
 
 def find_unreviewed_logs():
     """Helper function to find unreviewed or unresolved logs"""
@@ -436,6 +484,152 @@ def find_unreviewed_logs():
     except Exception as e:
         logging.error(f"Error finding unreviewed logs: {e}")
         return None
+
+def get_top_unreviewed_for_feedback(memory, limit=10):
+    """Get top unreviewed memories prioritized by importance and recency"""
+    unreviewed = [m for m in memory if not m.get('reviewed', False)]
+    
+    # Sort by importance score (if available) and timestamp (recent first)
+    def sort_key(m):
+        importance = m.get('importance_score', m.get('score', 0))
+        try:
+            timestamp = datetime.fromisoformat(m.get('timestamp', '').replace('Z', '+00:00'))
+            recency_bonus = (datetime.now(datetime.timezone.utc) - timestamp).days * -1  # Negative for recent first
+        except:
+            recency_bonus = -1000  # Very old or invalid timestamp
+        
+        return (importance, recency_bonus)
+    
+    sorted_unreviewed = sorted(unreviewed, key=sort_key, reverse=True)
+    
+    # Return limited list with feedback prompts
+    feedback_candidates = []
+    for m in sorted_unreviewed[:limit]:
+        candidate = {
+            'memory_id': m.get('timestamp', ''),  # Use timestamp as ID
+            'topic': m.get('topic', ''),
+            'type': m.get('type', ''),
+            'category': m.get('category', ''),
+            'importance_score': m.get('importance_score', m.get('score', 0)),
+            'success': m.get('success', False),
+            'timestamp': m.get('timestamp', ''),
+            'feedback_prompt': generate_feedback_prompt(m)
+        }
+        feedback_candidates.append(candidate)
+    
+    return feedback_candidates
+
+def generate_feedback_prompt(memory_entry):
+    """Generate intelligent feedback prompt based on memory content"""
+    topic = memory_entry.get('topic', '')
+    memory_type = memory_entry.get('type', '')
+    success = memory_entry.get('success', False)
+    
+    if memory_type in ['BugFix', 'SystemTest']:
+        return f"How valuable was resolving '{topic}'? Did it prevent future issues?"
+    elif memory_type in ['Decision', 'Insight']:
+        return f"How impactful was this decision about '{topic}'? Would you make it again?"
+    elif memory_type in ['BuildLog', 'Feature']:
+        return f"How well did '{topic}' advance your goals? Any lessons learned?"
+    elif not success:
+        return f"What did you learn from this unsuccessful attempt at '{topic}'?"
+    else:
+        return f"How useful was logging '{topic}'? Should similar events be auto-logged?"
+
+def get_feedback_trends():
+    """Analyze feedback trends from feedback.json"""
+    try:
+        feedback_file = os.path.join(BASE_DIR, 'feedback.json')
+        with open(feedback_file, 'r') as f:
+            feedback_data = json.load(f)
+        
+        summary = feedback_data.get('ratings_summary', {})
+        recent_feedback = feedback_data.get('feedback_entries', [])[-5:]  # Last 5 feedback entries
+        
+        trends = {
+            'average_rating': summary.get('average_rating', 0),
+            'total_ratings': summary.get('total_ratings', 0),
+            'rating_distribution': summary.get('rating_distribution', {}),
+            'recent_feedback': recent_feedback,
+            'learning_insights': extract_learning_insights(recent_feedback)
+        }
+        
+        return trends
+        
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {
+            'average_rating': 0,
+            'total_ratings': 0,
+            'rating_distribution': {},
+            'recent_feedback': [],
+            'learning_insights': []
+        }
+
+def extract_learning_insights(feedback_entries):
+    """Extract learning insights from feedback comments"""
+    insights = []
+    
+    for feedback in feedback_entries:
+        comment = feedback.get('comment', '').lower()
+        rating = feedback.get('rating', 0)
+        
+        if rating >= 4 and any(word in comment for word in ['learn', 'insight', 'helpful', 'valuable']):
+            insights.append(f"High-value learning: {feedback.get('comment', '')[:100]}")
+        elif rating <= 2 and any(word in comment for word in ['noise', 'irrelevant', 'useless']):
+            insights.append(f"Low-value pattern: {feedback.get('comment', '')[:100]}")
+    
+    return insights[:3]  # Return top 3 insights
+
+def get_system_insights():
+    """Load system insights from insight engine"""
+    try:
+        insights_file = os.path.join(BASE_DIR, 'insights.json')
+        with open(insights_file, 'r') as f:
+            insights = json.load(f)
+        
+        # Check if insights are recent (within last 7 days)
+        analysis_time = insights.get('analysis_timestamp', '')
+        try:
+            analysis_dt = datetime.fromisoformat(analysis_time.replace('Z', '+00:00'))
+            days_old = (datetime.now(datetime.timezone.utc) - analysis_dt).days
+            
+            if days_old > 7:
+                # Run new analysis if insights are old
+                logging.info("Insights are outdated, running new analysis")
+                run_insight_analysis()
+                with open(insights_file, 'r') as f:
+                    insights = json.load(f)
+        except:
+            # Run analysis if timestamp is invalid
+            run_insight_analysis()
+            with open(insights_file, 'r') as f:
+                insights = json.load(f)
+        
+        return insights
+        
+    except (FileNotFoundError, json.JSONDecodeError):
+        # Generate insights if file doesn't exist
+        logging.info("No insights file found, generating new analysis")
+        run_insight_analysis()
+        try:
+            with open(insights_file, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+
+def run_insight_analysis():
+    """Run insight analysis in background"""
+    try:
+        import sys
+        sys.path.append(BASE_DIR)
+        from insight_engine import InsightEngine
+        
+        engine = InsightEngine()
+        engine.run_full_analysis()
+        logging.info("Insight analysis completed")
+        
+    except Exception as e:
+        logging.error(f"Error running insight analysis: {e}")
 
 def group_related_logs(memory):
     """Group logs that reference each other via related_to"""
@@ -535,6 +729,15 @@ def get_digest():
         # Calculate auto-log analytics
         avg_importance = sum(importance_scores) / len(importance_scores) if importance_scores else 0
         
+        # Get top 10 unreviewed memories for feedback
+        unreviewed_for_feedback = get_top_unreviewed_for_feedback(memory, 10)
+        
+        # Load feedback ratings for trend analysis
+        feedback_trends = get_feedback_trends()
+        
+        # Load system insights if available
+        system_insights = get_system_insights()
+        
         digest = {
             'period': 'Last 7 days',
             'summary': {
@@ -557,6 +760,18 @@ def get_digest():
                     'avg_importance_score': f"{avg_importance:.1f}",
                     'high_importance_logs': len([s for s in importance_scores if s >= 80])
                 }
+            },
+            'feedback_prompts': {
+                'unreviewed_for_feedback': unreviewed_for_feedback,
+                'feedback_trends': feedback_trends,
+                'pending_reviews': len(unreviewed_for_feedback)
+            },
+            'system_insights': system_insights,
+            'learning_evolution': {
+                'optimization_suggestions': system_insights.get('optimization_suggestions', [])[:3],
+                'schema_health_score': system_insights.get('schema_health', {}).get('overall_health_score', 0),
+                'key_patterns': len(system_insights.get('repeated_patterns', [])),
+                'improvement_areas': len(system_insights.get('missed_tags', []))
             },
             'follow_up': unreviewed_data
         }
@@ -701,7 +916,7 @@ def daily_focus():
 
 @app.route('/feedback', methods=['POST'])
 def add_feedback():
-    """Add feedback for memory entries"""
+    """Add feedback for memory entries and mark as reviewed"""
     try:
         data = request.get_json() or {}
         required_fields = ['memory_id', 'rating']
@@ -746,11 +961,13 @@ def add_feedback():
         feedback_data['ratings_summary']['total_ratings'] = len(ratings)
         feedback_data['ratings_summary']['average_rating'] = sum(ratings) / len(ratings)
         
+        # Reset distribution count
+        feedback_data['ratings_summary']['rating_distribution'] = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0}
+        
         # Update distribution
         for entry in feedback_data['feedback_entries']:
             rating_str = str(entry['rating'])
-            feedback_data['ratings_summary']['rating_distribution'][rating_str] = \
-                feedback_data['ratings_summary']['rating_distribution'].get(rating_str, 0) + 1
+            feedback_data['ratings_summary']['rating_distribution'][rating_str] += 1
         
         feedback_data['last_updated'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         
@@ -758,11 +975,40 @@ def add_feedback():
         with open(feedback_file, 'w') as f:
             json.dump(feedback_data, f, indent=2)
         
-        return jsonify({"status": "✅ Feedback saved", "feedback": feedback_entry})
+        # Mark corresponding memory as reviewed
+        mark_memory_as_reviewed(data['memory_id'], data['rating'])
+        
+        return jsonify({
+            "status": "✅ Feedback saved and memory marked as reviewed", 
+            "feedback": feedback_entry
+        })
         
     except Exception as e:
         logging.error(f"Error saving feedback: {e}")
         return jsonify({"error": str(e)}), 500
+
+def mark_memory_as_reviewed(memory_id, rating):
+    """Mark a memory entry as reviewed and store the rating"""
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+        
+        # Find and update the memory entry
+        for entry in memory:
+            if entry.get('timestamp') == memory_id:
+                entry['reviewed'] = True
+                entry['user_rating'] = rating
+                entry['reviewed_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                break
+        
+        # Save updated memory
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+            
+        logging.info(f"Marked memory {memory_id} as reviewed with rating {rating}")
+        
+    except Exception as e:
+        logging.error(f"Error marking memory as reviewed: {e}")
 
 @app.route('/version', methods=['GET', 'POST'])
 def version_control():
@@ -992,6 +1238,56 @@ def get_full_context():
         
     except Exception as e:
         logging.error(f"Error getting context: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/insights', methods=['GET'])
+def get_insights():
+    """Get system insights and analysis"""
+    try:
+        insights = get_system_insights()
+        
+        # Add refresh option
+        refresh = request.args.get('refresh', 'false').lower() == 'true'
+        if refresh:
+            run_insight_analysis()
+            insights = get_system_insights()
+        
+        return jsonify(insights)
+        
+    except Exception as e:
+        logging.error(f"Error getting insights: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/train-models', methods=['POST'])
+def train_prediction_models():
+    """Train or retrain ML prediction models"""
+    try:
+        force_retrain = request.args.get('force', 'false').lower() == 'true'
+        
+        import sys
+        sys.path.append(BASE_DIR)
+        from tag_trainer import MemoryPredictor
+        
+        predictor = MemoryPredictor()
+        
+        if force_retrain:
+            success = predictor.train_models()
+        else:
+            success = predictor.retrain_if_needed()
+        
+        if success:
+            return jsonify({
+                "status": "✅ Model training completed",
+                "models_ready": predictor.is_trained
+            })
+        else:
+            return jsonify({
+                "status": "❌ Model training failed",
+                "error": "Insufficient data or training error"
+            }), 400
+            
+    except Exception as e:
+        logging.error(f"Error training models: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/')
