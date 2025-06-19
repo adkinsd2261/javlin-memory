@@ -18,6 +18,27 @@
         "memory.json"
       ],
       "logged_to_memory": true
+    },
+    {
+      "hash": "361e6f903a4769910594b4798e2cc31c08d2e0a3",
+      "message": "Checkpoint before assistant change: Automate the tracking of system upgrades and improvements within the systemAdds new entries to memory.json to track system upgrades, improvements and build logs.Replit-Commit-Author: Assistant",
+      "timestamp": "2025-06-19T22:44:21.599357+00:00",
+      "files_changed": [
+        "commit_log.json",
+        "memory.json"
+      ],
+      "logged_to_memory": true
+    },
+    {
+      "hash": "3ba2d074d8608721d43342f482096a2a41fccd27",
+      "message": "Assistant checkpoint: Enhanced Javlin with ML learning and adaptive refinementAssistant generated file changes:- main.py: Enhance digest endpoint to include unreviewed memories for feedback, Add helper functions for feedback system, Enhance feedback endpoint to mark memories as reviewed, Integrate ML prediction into autolog system, Integrate insights into digest endpoint, Add helper function to get system insights, Add insights endpoint- tag_trainer.py: Create ML model for tag and type prediction- insight_engine.py: Create insight evolution engine for pattern detection, Add schema health analysis to insight engine, Add schema health analysis method, Update run_full_analysis to include schema health---User prompt:Enhance the Javlin memory system with long-term learning and adaptive refinement by implementing the following features:\ud83d\udd01 1. Memory Feedback SystemFiles:feedback.jsonUpdate /digest and /feedback endpointsBehavior:After each /digest, extract top 10 unreviewed memoriesPrompt for rating (1\u20135) and optional feedbackStore rating in feedback.json and update the original memory as reviewed: true\ud83e\udde0 2. Tag and Type Prediction ModelFiles:tag_trainer.pyModel file: type_predictor.pkl or similarBehavior:Train lightweight ML model (e.g. scikit-learn) on existing memory logsPredict likely type, score, and tags from new input textIntegrate into /autolog handler\ud83d\udcc8 3. Insight Evolution EngineFiles:insight_engine.pyBehavior:Scan memory.json weeklyDetect:Repeated patterns (\u201c4 decisions about X\u201d)Missed tagsRedundant logsOutput to insights.json\ud83e\uddec 4. Schema Health CheckBehavior:Analyze which fields are rarely used or often emptyOutput a recommendation to schema_suggestions.json\ud83d\udca1 Optional: Hook All This into /digestSo /digest includes:Top logs by ratingTrends over timeLearning prompts or insightsReplit-Commit-Author: AssistantReplit-Commit-Session-Id: 88d5af8e-1c30-4b12-84ea-c0f9de67100d",
+      "timestamp": "2025-06-19T22:50:58.246311+00:00",
+      "files_changed": [
+        "insight_engine.py",
+        "main.py",
+        "tag_trainer.py"
+      ],
+      "logged_to_memory": true
     }
   ],
   "auto_log_commits": true,
