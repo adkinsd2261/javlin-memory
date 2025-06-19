@@ -1,0 +1,12 @@
+
+{
+  "urls": [
+    "https://raw.githubusercontent.com/replit/replit-py/main/README.md"
+  ],
+  "description": "List of URLs to monitor for content changes",
+  "notes": [
+    "Add raw GitHub URLs for monitoring documentation changes",
+    "Use raw.githubusercontent.com URLs for GitHub files",
+    "The script will check these URLs and detect content changes using SHA256 hashing"
+  ]
+}
