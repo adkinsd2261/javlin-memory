@@ -1,13 +1,15 @@
 import os
 from flask import Flask, request, jsonify, abort
+from flask_cors import CORS
 import json
 import datetime
 import logging
 from json.decoder import JSONDecodeError
 
 app = Flask(__name__)
+CORS(app)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Use absolute path for memory file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,6 +27,17 @@ def require_api_key():
 @app.route('/memory', methods=['POST'])
 def add_memory():
     try:
+        # Debug logging for API key
+        api_key = request.headers.get('X-API-KEY')
+        logging.debug(f"Received API key: {api_key}")
+        
+        # Check Content-Type
+        if request.content_type != 'application/json':
+            logging.warning(f"Invalid Content-Type: {request.content_type}")
+            return jsonify({
+                "error": "Content-Type must be application/json"
+            }), 400
+
         data = request.get_json()
         logging.info(f"Received memory entry: {data}")
 
@@ -69,7 +82,7 @@ def add_memory():
         return jsonify({"status": "✅ Memory saved", "entry": data}), 200
 
     except Exception as e:
-        logging.error(f"Exception in add_memory: {e}")
+        logging.error(f"Exception in add_memory: {str(e)}", exc_info=True)
         return jsonify({"status": "❌ Failed", "error": str(e)}), 500
 
 @app.route('/memory', methods=['GET'])
