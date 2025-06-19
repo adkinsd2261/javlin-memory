@@ -1652,6 +1652,75 @@ def get_infrastructure_audit():
         logging.error(f"Error running infrastructure audit: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/git-sync', methods=['POST'])
+def trigger_git_sync():
+    """Manually trigger GitHub sync"""
+    try:
+        import sys
+        sys.path.append(BASE_DIR)
+        from git_sync import GitHubSyncer
+        
+        # Get parameters
+        force = request.args.get('force', 'false').lower() == 'true'
+        dry_run = request.args.get('dry_run', 'false').lower() == 'true'
+        
+        syncer = GitHubSyncer(BASE_DIR)
+        
+        if dry_run:
+            # Dry run analysis
+            recent_logs = syncer.load_memory_logs()
+            bump_type, description = syncer.determine_version_bump(recent_logs)
+            
+            result = {
+                "status": "dry_run",
+                "analysis": {
+                    "recent_logs_count": len(recent_logs),
+                    "suggested_bump": bump_type,
+                    "bump_description": description,
+                    "would_auto_sync": syncer.should_auto_sync(recent_logs),
+                    "has_changes": syncer.check_git_status()
+                },
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            }
+        else:
+            # Run actual sync
+            result = syncer.run_auto_sync(force=force)
+            
+            # Log sync execution to memory
+            sync_memory = {
+                "topic": "GitHub Sync Executed",
+                "type": "SystemUpdate",
+                "input": f"Manual GitHub sync triggered via /git-sync endpoint (force={force})",
+                "output": f"Sync result: {result['status']}. {result.get('version', 'No version change')}",
+                "score": 20,
+                "maxScore": 25,
+                "success": result['status'] == 'success',
+                "category": "development",
+                "tags": ["git", "sync", "automation", "github"],
+                "context": "Manual code synchronization with GitHub repository",
+                "related_to": [],
+                "reviewed": False,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "auto_generated": True
+            }
+            
+            # Save sync execution to memory
+            try:
+                with open(MEMORY_FILE, 'r') as f:
+                    memory = json.load(f)
+            except (FileNotFoundError, JSONDecodeError):
+                memory = []
+            
+            memory.append(sync_memory)
+            with open(MEMORY_FILE, 'w') as f:
+                json.dump(memory, f, indent=2)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logging.error(f"Error in git sync: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/')
 def home():
     return {'status': 'healthy', 'service': 'Javlin Memory API'}, 200
