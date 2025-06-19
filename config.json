@@ -1,0 +1,8 @@
+
+{
+  "agent_auto_log": true,
+  "auto_log_threshold": 60,
+  "trusted_agents": ["Javlin Builder Agent", "Assistant"],
+  "audit_logging": true,
+  "autolog_trace_file": "autolog_trace.json"
+}

@@ -8,6 +8,34 @@ from json.decoder import JSONDecodeError
 import re
 from collections import Counter
 
+# Load configuration
+def load_config():
+    """Load system configuration"""
+    config_file = os.path.join(BASE_DIR, 'config.json')
+    default_config = {
+        "agent_auto_log": True,
+        "auto_log_threshold": 60,
+        "trusted_agents": ["Javlin Builder Agent", "Assistant"],
+        "audit_logging": True,
+        "autolog_trace_file": "autolog_trace.json"
+    }
+    
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        # Merge with defaults
+        for key, value in default_config.items():
+            if key not in config:
+                config[key] = value
+        return config
+    except (FileNotFoundError, json.JSONDecodeError):
+        # Create default config if not found
+        with open(config_file, 'w') as f:
+            json.dump(default_config, f, indent=2)
+        return default_config
+
+SYSTEM_CONFIG = load_config()
+
 app = Flask(__name__)
 CORS(app)
 
@@ -364,6 +392,122 @@ def detect_commit_type(commit_message):
         return 'Enhancement'
     else:
         return 'General'
+
+def log_autolog_trace(data, user_agent, is_trusted_agent):
+    """Log autolog request to audit trace"""
+    try:
+        trace_file = os.path.join(BASE_DIR, SYSTEM_CONFIG.get('autolog_trace_file', 'autolog_trace.json'))
+        
+        trace_entry = {
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "user_agent": user_agent,
+            "is_trusted_agent": is_trusted_agent,
+            "payload": data,
+            "ip_address": request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
+        }
+        
+        try:
+            with open(trace_file, 'r') as f:
+                trace_log = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            trace_log = []
+        
+        trace_log.append(trace_entry)
+        
+        # Keep only last 1000 entries to prevent file bloat
+        if len(trace_log) > 1000:
+            trace_log = trace_log[-1000:]
+        
+        with open(trace_file, 'w') as f:
+            json.dump(trace_log, f, indent=2)
+            
+    except Exception as e:
+        logging.warning(f"Failed to log autolog trace: {e}")
+
+def autolog_memory_trusted(input_text="", output_text="", topic="", type_="AutoLog", category="system"):
+    """Trusted agent autolog with more permissive acceptance criteria"""
+    
+    # Try to get ML predictions first
+    ml_predictions = get_ml_predictions(input_text, output_text, topic)
+    
+    # Use ML predictions if available, otherwise fall back to heuristics
+    if ml_predictions and ml_predictions.get('confidence', {}).get('type', 0) > 0.5:  # Lower confidence threshold
+        predicted_type = ml_predictions['type']
+        predicted_category = ml_predictions['category']
+        predicted_tags = ml_predictions['tags']
+        predicted_score = ml_predictions['score']
+        logging.info(f"Using ML predictions (trusted): type={predicted_type}, confidence={ml_predictions['confidence']['type']:.2f}")
+    else:
+        predicted_type = type_
+        predicted_category = category
+        predicted_tags = extract_keywords(f"{input_text} {output_text} {topic}")
+        predicted_score = 20  # Higher base score for trusted agents
+        logging.info("Using heuristic predictions for trusted agent")
+    
+    # Override with user-provided values if specified
+    final_type = type_ if type_ != "AutoLog" else predicted_type
+    final_category = category if category != "system" else predicted_category
+    
+    # Trusted agent types that are always accepted
+    trusted_types = ['BuildLog', 'BugFix', 'Insight', 'Reflection', 'Decision', 'Feature', 'Enhancement', 'SystemTest']
+    
+    # Generate topic if not provided
+    if not topic:
+        if input_text:
+            words = input_text.split()[:8]
+            topic = " ".join(words) if len(" ".join(words)) < 50 else " ".join(words[:5]) + "..."
+        else:
+            topic = "Trusted Agent Auto-Log Entry"
+    
+    # Combine ML tags with heuristic tags
+    all_text = f"{input_text} {output_text} {topic}"
+    heuristic_tags = extract_keywords(all_text)
+    combined_tags = list(set(predicted_tags + heuristic_tags))[:5]
+    
+    # Generate context summary
+    context = generate_context_summary(input_text, output_text, topic)
+    
+    # Find related memories
+    related_to = find_related_memories(topic, combined_tags, final_category)
+    
+    # Calculate importance score with trusted agent bonus
+    heuristic_importance = calculate_importance_score(topic, input_text, output_text, final_category, final_type)
+    ml_importance = predicted_score * 4
+    
+    # Weight the scores with trusted agent bonus (60% heuristic, 40% ML, +20 trusted bonus)
+    importance = int(0.6 * heuristic_importance + 0.4 * ml_importance + 20)
+    
+    # More permissive threshold for trusted agents (40 instead of 60)
+    threshold = SYSTEM_CONFIG.get('auto_log_threshold', 60) - 20
+    should_log = importance >= threshold or final_type in trusted_types
+    
+    if not should_log:
+        logging.info(f"Skipping trusted autolog: low importance score ({importance}, threshold: {threshold})")
+        return None
+    
+    # Create memory entry with trusted agent marker
+    memory_entry = {
+        "topic": topic,
+        "type": final_type,
+        "input": input_text or "Trusted agent auto-generated entry",
+        "output": output_text or "System logged automatically by trusted agent",
+        "score": min(predicted_score, 25),
+        "maxScore": 25,
+        "success": True,
+        "category": final_category,
+        "tags": combined_tags,
+        "context": context,
+        "related_to": related_to,
+        "reviewed": False,
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "auto_generated": True,
+        "trusted_agent": True,
+        "importance_score": importance,
+        "ml_predicted": ml_predictions is not None,
+        "ml_confidence": ml_predictions.get('confidence', {}) if ml_predictions else {}
+    }
+    
+    return memory_entry
 
 def autolog_memory(input_text="", output_text="", topic="", type_="AutoLog", category="system"):
     """Intelligently generate memory log entry with ML predictions"""
@@ -802,9 +946,14 @@ def get_unreviewed():
 
 @app.route('/autolog', methods=['POST'])
 def passive_autolog():
-    """Endpoint for passive auto-logging - no authentication required for system use"""
+    """Endpoint for passive auto-logging with trusted agent support"""
     try:
         data = request.get_json() or {}
+        
+        # Check if this is from a trusted agent
+        user_agent = request.headers.get('User-Agent', '')
+        is_trusted_agent = any(agent in user_agent for agent in SYSTEM_CONFIG['trusted_agents'])
+        agent_auto_log = SYSTEM_CONFIG.get('agent_auto_log', True)
         
         # Extract context from request
         input_text = data.get('input', data.get('context', ''))
@@ -813,15 +962,31 @@ def passive_autolog():
         type_ = data.get('type', 'PassiveLog')
         category = data.get('category', 'system')
         
-        # Generate auto-log entry
-        auto_entry = autolog_memory(input_text, output_text, topic, type_, category)
+        # Log to audit trace if enabled
+        if SYSTEM_CONFIG.get('audit_logging', True):
+            log_autolog_trace(data, user_agent, is_trusted_agent)
         
-        if auto_entry is None:
-            return jsonify({
-                "status": "⏭️ Skipped",
-                "reason": "Auto-log threshold not met",
-                "threshold": 60
-            }), 200
+        # For trusted agents with agent_auto_log enabled, use more permissive logic
+        if is_trusted_agent and agent_auto_log:
+            # Trusted agent path - lower threshold and accept more types
+            auto_entry = autolog_memory_trusted(input_text, output_text, topic, type_, category)
+            
+            if auto_entry is None:
+                return jsonify({
+                    "status": "⏭️ Skipped",
+                    "reason": "Auto-log threshold not met (trusted agent)",
+                    "threshold": SYSTEM_CONFIG.get('auto_log_threshold', 60)
+                }), 200
+        else:
+            # Standard autolog path
+            auto_entry = autolog_memory(input_text, output_text, topic, type_, category)
+            
+            if auto_entry is None:
+                return jsonify({
+                    "status": "⏭️ Skipped", 
+                    "reason": "Auto-log threshold not met",
+                    "threshold": 60
+                }), 200
         
         # Save to memory
         try:
@@ -835,11 +1000,14 @@ def passive_autolog():
         with open(MEMORY_FILE, 'w') as f:
             json.dump(memory, f, indent=2)
         
-        logging.info(f"Passive auto-log saved: {auto_entry['topic']}")
+        status_msg = "🤖 Auto-logged (trusted)" if is_trusted_agent else "🤖 Auto-logged"
+        logging.info(f"Autolog saved: {auto_entry['topic']} (trusted: {is_trusted_agent})")
+        
         return jsonify({
-            "status": "🤖 Auto-logged",
+            "status": status_msg,
             "entry": auto_entry,
-            "importance_score": auto_entry['importance_score']
+            "importance_score": auto_entry['importance_score'],
+            "trusted_agent": is_trusted_agent
         }), 200
         
     except Exception as e:
@@ -1288,6 +1456,68 @@ def train_prediction_models():
             
     except Exception as e:
         logging.error(f"Error training models: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/config', methods=['GET', 'POST'])
+def manage_config():
+    """Get or update system configuration"""
+    global SYSTEM_CONFIG
+    
+    if request.method == 'GET':
+        return jsonify(SYSTEM_CONFIG)
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json() or {}
+            
+            # Update configuration
+            SYSTEM_CONFIG.update(data)
+            
+            # Save to file
+            config_file = os.path.join(BASE_DIR, 'config.json')
+            with open(config_file, 'w') as f:
+                json.dump(SYSTEM_CONFIG, f, indent=2)
+            
+            return jsonify({
+                "status": "✅ Configuration updated",
+                "config": SYSTEM_CONFIG
+            })
+            
+        except Exception as e:
+            logging.error(f"Error updating config: {e}")
+            return jsonify({"error": str(e)}), 500
+
+@app.route('/autolog-trace', methods=['GET'])
+def get_autolog_trace():
+    """Get autolog audit trace"""
+    try:
+        trace_file = os.path.join(BASE_DIR, SYSTEM_CONFIG.get('autolog_trace_file', 'autolog_trace.json'))
+        
+        try:
+            with open(trace_file, 'r') as f:
+                trace_log = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            trace_log = []
+        
+        # Optional filtering
+        limit = int(request.args.get('limit', 50))
+        trusted_only = request.args.get('trusted_only', 'false').lower() == 'true'
+        
+        if trusted_only:
+            trace_log = [entry for entry in trace_log if entry.get('is_trusted_agent', False)]
+        
+        # Return most recent entries
+        return jsonify({
+            "total_entries": len(trace_log),
+            "entries": trace_log[-limit:] if trace_log else [],
+            "config": {
+                "audit_logging": SYSTEM_CONFIG.get('audit_logging', True),
+                "agent_auto_log": SYSTEM_CONFIG.get('agent_auto_log', True)
+            }
+        })
+        
+    except Exception as e:
+        logging.error(f"Error getting autolog trace: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/')
