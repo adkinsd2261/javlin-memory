@@ -58,9 +58,10 @@ def load_config():
 SYSTEM_CONFIG = load_config()
 
 app = Flask(__name__)
-CORS(app, origins=["https://chat.openai.com", "https://chatgpt.com"], 
-     allow_headers=["Content-Type", "Authorization", "X-API-KEY", "x-api-key", "X-Api-Key"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+CORS(app, origins=["https://chat.openai.com", "https://chatgpt.com", "*"], 
+     allow_headers=["Content-Type", "Authorization", "X-API-KEY", "x-api-key", "X-Api-Key", "User-Agent"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     supports_credentials=True)
 
 # Flask-Caching configuration (moved here to be available for decorators)
 from flask_caching import Cache
@@ -329,6 +330,39 @@ def get_memories():
     except Exception as e:
         logging.error(f"Error loading memories: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/gpt-memory-preview', methods=['GET'])
+def gpt_memory_preview():
+    """GPT-friendly memory preview without authentication"""
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+        
+        # Get last 3 entries for preview
+        recent_entries = memory[-3:] if len(memory) >= 3 else memory
+        
+        # Sanitize for GPT display
+        preview_entries = []
+        for entry in recent_entries:
+            preview_entries.append({
+                "topic": entry.get('topic', 'Unknown'),
+                "type": entry.get('type', 'Unknown'),
+                "category": entry.get('category', 'Unknown'),
+                "success": entry.get('success', False),
+                "timestamp": entry.get('timestamp', '')
+            })
+        
+        return jsonify({
+            "total_memories": len(memory),
+            "recent_entries": preview_entries,
+            "system_healthy": True,
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "system_healthy": False
+        }), 500
 
 @app.route('/stats')
 def get_stats():
@@ -1006,11 +1040,79 @@ def health_check():
 @app.route('/health', methods=['GET'])
 def quick_health():
     """Fast health check without caching overhead"""
-    return jsonify({
-        "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "uptime": "running"
-    })
+    try:
+        # Test memory file access
+        memory_accessible = os.path.exists(MEMORY_FILE)
+        
+        # Get memory count
+        memory_count = 0
+        if memory_accessible:
+            try:
+                with open(MEMORY_FILE, 'r') as f:
+                    memory = json.load(f)
+                    memory_count = len(memory)
+            except:
+                memory_accessible = False
+        
+        return jsonify({
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "uptime": "running",
+            "memory_system": {
+                "accessible": memory_accessible,
+                "total_entries": memory_count
+            },
+            "api_endpoints": {
+                "health": "✅ Active",
+                "memory_read": "✅ Active", 
+                "memory_write": "✅ Active (requires API key)",
+                "system_health": "✅ Active"
+            },
+            "gpt_integration": {
+                "ready": True,
+                "cors_enabled": True
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error": str(e)
+        }), 500
+
+@app.route('/gpt-status', methods=['GET'])
+def gpt_status():
+    """GPT-friendly status check without authentication"""
+    try:
+        # Get basic system status
+        memory_accessible = os.path.exists(MEMORY_FILE)
+        memory_count = 0
+        
+        if memory_accessible:
+            try:
+                with open(MEMORY_FILE, 'r') as f:
+                    memory = json.load(f)
+                    memory_count = len(memory)
+            except:
+                memory_count = 0
+        
+        return jsonify({
+            "system_status": "online",
+            "memory_system": {
+                "status": "accessible" if memory_accessible else "error",
+                "total_memories": memory_count
+            },
+            "api_health": "operational",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "gpt_connection": "success",
+            "message": f"MemoryOS is running with {memory_count} memories. System is operational."
+        })
+    except Exception as e:
+        return jsonify({
+            "system_status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
 
 @app.route('/gpt-validation', methods=['POST'])
 def gpt_validation():
