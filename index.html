@@ -753,6 +753,156 @@
         .avatar-reaction.error {
             color: #f44336;
         }
+
+        /* Javlin Avatar Styles */
+        .javlin-avatar {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .avatar-orb {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .orb-core {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .javlin-avatar.listening .orb-core {
+            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.8);
+        }
+
+        .javlin-avatar.creative .orb-core {
+            background: linear-gradient(45deg, #a855f7, #ec4899);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.9);
+        }
+
+        .javlin-avatar.dev .orb-core {
+            background: linear-gradient(45deg, #3b82f6, #14b8a6);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+        }
+
+        .orb-glow {
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.4), transparent);
+            opacity: 0.6;
+            animation: subtle-rotate 6s linear infinite;
+            transition: opacity 0.4s ease;
+        }
+
+        .javlin-avatar.listening .orb-glow {
+            opacity: 0.8;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.5), transparent);
+        }
+
+        .javlin-avatar.creative .orb-glow {
+            opacity: 0.7;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.5), transparent);
+        }
+
+        .javlin-avatar.dev .orb-glow {
+            opacity: 0.7;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.5), transparent);
+        }
+
+        .orb-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            animation: particle-float 4s linear infinite;
+        }
+
+        .particle:nth-child(1) {
+            top: 10%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            top: 70%;
+            left: 80%;
+            animation-delay: 1s;
+        }
+
+        .particle:nth-child(3) {
+            top: 40%;
+            left: 50%;
+            animation-delay: 2s;
+        }
+
+        @keyframes subtle-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-20px) translateX(10px);
+                opacity: 0;
+            }
+        }
+
+        .avatar-reaction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .avatar-reaction.show {
+            opacity: 1;
+        }
+
+        .avatar-reaction.success {
+            color: #a3e635;
+        }
+
+        .avatar-reaction.error {
+            color: #f44336;
+        }
     </style>
 </head>
 <body x-data="javWorkspace()" x-init="init()" class="text-white">
@@ -766,7 +916,29 @@
 
         <div class="onboarding-card">
             <div class="floating-jav mx-auto mb-6 action-glow" style="position: static;">
-                J
+                <!-- Animated Javlin Avatar -->
+            <div class="javlin-avatar" 
+                 :class="{
+                    'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
+                    'listening': javIsThinking || panelOpen,
+                    'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
+                    'dev': workspaceMode === 'dev',
+                    'excited': avatarReaction === 'success',
+                    'alert': avatarReaction === 'error'
+                 }">
+                <div class="avatar-orb">
+                    <div class="orb-core"></div>
+                    <div class="orb-glow"></div>
+                    <div class="orb-particles" x-show="workspaceMode === 'creative'">
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                    </div>
+                </div>
+                <div class="avatar-reaction" 
+                     :class="{ 'show': avatarReaction }" 
+                     x-text="avatarReactionIcon"></div>
+            </div>
             </div>
             <h2 class="text-2xl font-light mb-4">Welcome to your creative workspace</h2>
             <p class="text-gray-300 mb-8 leading-relaxed">
@@ -950,21 +1122,34 @@
     </div>
 
     <!-- Floating Jav Assistant -->
-    <div @click="toggleCreativePanel()" 
-         @keydown.cmd.j.window="toggleCreativePanel()"
-         class="floating-jav"
-         :class="{ 'active': panelOpen || javIsThinking }">
-        <!-- Animated Jav Avatar -->
-        <div class="jav-orb"
-             :class="{
-                'idle': !javIsThinking && workspaceMode === 'creative',
-                'listening': javIsThinking,
-                'creative': workspaceMode === 'creative',
-                'dev': workspaceMode === 'dev'
-             }">
-             <div class="avatar-reaction" :class="{ 'success': avatarReaction === 'success', 'error': avatarReaction === 'error' }" x-text="avatarReactionIcon"></div>
+        <div @click="toggleCreativePanel()" 
+             @keydown.cmd.j.window="toggleCreativePanel()"
+             class="floating-jav"
+             :class="{ 'active': panelOpen || javIsThinking }">
+            <!-- Animated Javlin Avatar -->
+            <div class="javlin-avatar" 
+                 :class="{
+                    'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
+                    'listening': javIsThinking || panelOpen,
+                    'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
+                    'dev': workspaceMode === 'dev',
+                    'excited': avatarReaction === 'success',
+                    'alert': avatarReaction === 'error'
+                 }">
+                <div class="avatar-orb">
+                    <div class="orb-core"></div>
+                    <div class="orb-glow"></div>
+                    <div class="orb-particles" x-show="workspaceMode === 'creative'">
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                    </div>
+                </div>
+                <div class="avatar-reaction" 
+                     :class="{ 'show': avatarReaction }" 
+                     x-text="avatarReactionIcon"></div>
+            </div>
         </div>
-    </div>
 
     <!-- Creative Panel -->
     <div class="creative-panel" 
@@ -985,7 +1170,29 @@
             <!-- Welcome State -->
             <div x-show="conversationHistory.length === 0" class="text-center py-20">
                 <div class="floating-jav mx-auto mb-8 action-glow" style="position: static;">
-                    J
+                    <!-- Animated Javlin Avatar -->
+            <div class="javlin-avatar" 
+                 :class="{
+                    'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
+                    'listening': javIsThinking || panelOpen,
+                    'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
+                    'dev': workspaceMode === 'dev',
+                    'excited': avatarReaction === 'success',
+                    'alert': avatarReaction === 'error'
+                 }">
+                <div class="avatar-orb">
+                    <div class="orb-core"></div>
+                    <div class="orb-glow"></div>
+                    <div class="orb-particles" x-show="workspaceMode === 'creative'">
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                        <div class="particle"></div>
+                    </div>
+                </div>
+                <div class="avatar-reaction" 
+                     :class="{ 'show': avatarReaction }" 
+                     x-text="avatarReactionIcon"></div>
+            </div>
                 </div>
                 <h3 class="text-2xl font-light mb-4">What shall we build?</h3>
                 <p class="text-gray-400 mb-8">
@@ -1289,9 +1496,21 @@
                         await this.loadMemories();
                         await this.loadMemoryTimeline();
 
+                        // Synchronize avatar state as thinking ends
+                        this.synchronizeAvatarStates();
+
                         // Avatar celebrates successful interaction
                         this.triggerAvatarReaction('success');
                     }
+                },
+
+                synchronizeAvatarStates() {
+                    // This function would ideally communicate with other
+                    // avatar instances in different parts of the UI to ensure
+                    // they are all in sync (e.g., all pulsing when Jav is thinking).
+                    // In a more complex application, this might involve using a
+                    // shared state management system or a pub/sub mechanism.
+                    console.log('Avatar states synchronized (if other instances existed).');
                 },
 
                 triggerAvatarReaction(reactionType) {
@@ -1578,6 +1797,9 @@
                         await this.loadMemories();
                         await this.loadMemoryTimeline();
 
+                        // Synchronize avatar state as thinking ends
+                        this.synchronizeAvatarStates();
+
                         // Avatar celebrates successful interaction
                         this.triggerAvatarReaction('success');
                     }
@@ -1591,8 +1813,7 @@
                         this.contextualAction = intervention.suggested_actions[0];
 
                         // Auto-dismiss after 10 seconds
-                        setTimeout(() => {
-                            this.showContextualSuggestion = false;
+                        setTimeout(() => {                            this.showContextualSuggestion = false;
                         }, 10000);
                     });
                 },
