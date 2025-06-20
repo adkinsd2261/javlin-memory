@@ -84,6 +84,22 @@ class TaskRunner:
     
     def execute_command(self, command):
         """Execute a single shell command and capture output"""
+        # Block Git commands - must be handled manually per AGENT_BIBLE.md
+        git_commands = ['git add', 'git commit', 'git push', 'git pull', 'git merge', 'git rebase']
+        if any(git_cmd in command.lower() for git_cmd in git_commands):
+            logger.warning(f"Git command blocked: {command}")
+            return {
+                "command": command,
+                "timestamp": datetime.datetime.now().isoformat(),
+                "execution_time_seconds": 0,
+                "return_code": -1,
+                "stdout": "",
+                "stderr": "Git commands disabled - manual operation required per AGENT_BIBLE.md",
+                "success": False,
+                "blocked": True,
+                "reason": "automated_git_disabled"
+            }
+        
         logger.info(f"Executing command: {command}")
         
         start_time = datetime.datetime.now()

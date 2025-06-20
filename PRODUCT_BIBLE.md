@@ -24,11 +24,12 @@ MemoryOS is a **persistent AI memory system** that enables:
 - Provides analytics and insights from memory patterns
 - Auto-logs significant events with ML-powered filtering
 - Monitors system health and document changes
-- Integrates with Git workflows and build processes
+- Monitors build processes (Git integration disabled - manual only)
 - Generates weekly digests and recommendations
 
 ### ❌ What MemoryOS Does Not Do
 - Execute arbitrary commands (requires human/Replit Assistant)
+- Perform automated Git operations (add/commit/push must be manual)
 - Store sensitive credentials or PII without explicit consent
 - Replace existing project management tools
 - Operate as a general-purpose AI assistant

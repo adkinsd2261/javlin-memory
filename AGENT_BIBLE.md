@@ -18,6 +18,7 @@
 ## 2. Operating Boundaries and Limitations
 
 - The Agent cannot execute commands or code inside the Replit workspace unless those commands are pasted or triggered by Replit Assistant or a human operator.
+- **ALL GIT OPERATIONS MUST BE MANUAL**: The system is configured to block automated git add/commit/push operations. All Git workflows require explicit human operator execution.
 - Any claim of successful execution or "feature live" **MUST** be validated by:
   - A live API endpoint check (e.g., `/system-health`, `/task-output`)
   - Or explicit confirmation from the operator

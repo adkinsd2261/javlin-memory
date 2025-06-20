@@ -107,7 +107,10 @@ class UniversalComplianceMiddleware:
             r"\benabled\b|\bactivated\b|\bexecuted\b|\bprocessed\b",
             
             # Feature claims
-            r"\bfeature\s+is\s+live\b|\bsystem\s+is\s+ready\b|\bapi\s+is\s+working\b"
+            r"\bfeature\s+is\s+live\b|\bsystem\s+is\s+ready\b|\bapi\s+is\s+working\b",
+            
+            # Git automation claims (manual only per AGENT_BIBLE.md)
+            r"\bgit\s+add\b|\bgit\s+commit\b|\bgit\s+push\b|\bcommitted\s+to\s+git\b|\bpushed\s+to\s+github\b"
         ]
         
     def _load_compliance_config(self) -> Dict[str, Any]:
