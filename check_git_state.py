@@ -41,12 +41,13 @@ def check_git_state():
     # Check status
     stdout, stderr, code = run_command("git status --porcelain")
     if stdout:
-        print(f"📝 Uncommitted changes: {len(stdout.split('\n'))} files")
+        status_lines = stdout.split('\n')
+        print(f"📝 Uncommitted changes: {len(status_lines)} files")
         print("   Files:")
-        for line in stdout.split('\n')[:5]:  # Show first 5
+        for line in status_lines[:5]:  # Show first 5
             print(f"   - {line}")
-        if len(stdout.split('\n')) > 5:
-            print(f"   ... and {len(stdout.split('\n')) - 5} more")
+        if len(status_lines) > 5:
+            print(f"   ... and {len(status_lines) - 5} more")
     else:
         print("✅ Working directory clean")
     
@@ -84,7 +85,8 @@ def check_git_state():
     stdout, stderr, code = run_command("git log --oneline -5")
     if code == 0:
         print(f"📚 Recent commits:")
-        for line in stdout.split('\n')[:3]:
+        log_lines = stdout.split('\n')
+        for line in log_lines[:3]:
             print(f"   {line}")
     
     # Check for divergence
