@@ -925,3 +925,42 @@
 
                     Object.entries(this.categories).forEach(([cat, count]) => {
                         if (count > maxCount) {
+                            maxCount = count;
+                            maxCategory = cat.replace('_', ' ');
+                        }
+                    });
+                    return maxCategory;
+                },
+
+                // Scroll to bottom of chat
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        if (this.$refs.chatContainer) {
+                            this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
+                        }
+                    });
+                },
+
+                // Live Updates
+                startLiveUpdates() {
+                    setInterval(() => {
+                        this.loadSystemMetrics();
+                        this.updateCurrentFocus();
+                    }, 30000); // Update every 30 seconds
+                },
+
+                updateCurrentFocus() {
+                    const focuses = [
+                        'Building premium AI interface with cutting-edge design',
+                        'Optimizing memory system performance and reliability',
+                        'Enhancing user experience with real-time insights',
+                        'Developing advanced AI co-founder capabilities',
+                        'Implementing sophisticated workflow automation'
+                    ];
+                    
+                    if (Math.random() > 0.8) {
+                        this.currentFocus = focuses[Math.floor(Math.random() * focuses.length)];
+                    }
+                }
+            };
+        }
