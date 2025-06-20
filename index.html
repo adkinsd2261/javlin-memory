@@ -1,111 +1,282 @@
-function memoryOS() {
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryOS - Bulletproof Memory System</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div x-data="memoryOS()" x-init="init()" class="container mx-auto px-4 py-8" x-cloak>
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2 gradient-bg bg-clip-text text-transparent">MemoryOS</h1>
+            <p class="text-gray-400">Bulletproof Memory System - <span x-text="systemStatus" class="text-green-400"></span></p>
+        </header>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Memories -->
+            <div class="glass rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-2">Total Memories</h3>
+                <p class="text-3xl font-bold text-blue-400" x-text="totalMemories">0</p>
+            </div>
+
+            <!-- Success Rate -->
+            <div class="glass rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-2">Success Rate</h3>
+                <p class="text-3xl font-bold text-green-400" x-text="successRate">0%</p>
+            </div>
+
+            <!-- Categories -->
+            <div class="glass rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-2">Categories</h3>
+                <p class="text-3xl font-bold text-purple-400" x-text="Object.keys(categories).length">0</p>
+            </div>
+
+            <!-- Efficiency -->
+            <div class="glass rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-2">Efficiency</h3>
+                <p class="text-3xl font-bold text-yellow-400" x-text="efficiencyScore + '%'">0%</p>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="glass rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">Memory Chat</h2>
+            
+            <!-- Chat Messages -->
+            <div class="bg-gray-800 rounded-lg p-4 h-64 overflow-y-auto mb-4" x-ref="chatContainer">
+                <template x-for="message in chatHistory" :key="message.id">
+                    <div class="mb-3">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                                     :class="message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'">
+                                    <span class="text-sm font-bold" x-text="message.type === 'user' ? 'U' : 'M'"></span>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm text-gray-300" x-text="message.content"></p>
+                                <p class="text-xs text-gray-500 mt-1" x-text="new Date(message.timestamp).toLocaleTimeString()"></p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div x-show="isTyping" class="text-gray-400 text-sm mb-2">
+                MemoryOS is thinking...
+            </div>
+
+            <!-- Input Area -->
+            <div class="flex space-x-2">
+                <input 
+                    type="text" 
+                    x-model="currentMessage"
+                    @keydown.enter.prevent="sendMessage()"
+                    @keydown.shift.enter.prevent="currentMessage += '\n'"
+                    :disabled="isTyping"
+                    placeholder="Ask MemoryOS anything..."
+                    class="flex-grow px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                >
+                <button 
+                    @click="sendMessage()"
+                    :disabled="isTyping || !currentMessage.trim()"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                    <span x-show="!isTyping">Send</span>
+                    <span x-show="isTyping">...</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Current Focus -->
+            <div class="glass rounded-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Current Focus</h3>
+                <p class="text-gray-300" x-text="currentFocus">Loading...</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="glass rounded-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Quick Stats</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Memories:</span>
+                        <span x-text="totalMemories" class="text-blue-400">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Success Rate:</span>
+                        <span x-text="successRate" class="text-green-400">0%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Categories:</span>
+                        <span x-text="Object.keys(categories).length" class="text-purple-400">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Efficiency:</span>
+                        <span x-text="efficiencyScore + '%'" class="text-yellow-400">0%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Status:</span>
+                        <span x-text="systemStatus" class="text-green-400">Loading...</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Session:</span>
+                        <span x-text="sessionId.substring(0, 8)" class="text-gray-400">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="glass rounded-lg p-6 mt-6">
+            <h3 class="text-xl font-bold mb-4">Next Steps</h3>
+            <p class="text-gray-300" x-text="nextSteps">Ready for your next memory...</p>
+        </div>
+    </div>
+
+    <script>
+        function memoryOS() {
             return {
-                // Core state
+                // System State
+                systemStatus: 'Loading...',
+                sessionId: 'mem-' + Math.random().toString(36).substr(2, 9),
+                
+                // Memory Data
                 totalMemories: 0,
-                efficiencyScore: 0,
-                systemStatus: 'initializing',
-                sessionId: '',
-                currentFocus: 'System starting...',
                 successRate: '0%',
                 categories: {},
-                nextSteps: 'Loading system data...',
-
-                // Chat functionality
+                efficiencyScore: 0,
+                
+                // Chat State
                 chatHistory: [],
                 currentMessage: '',
                 isTyping: false,
-
+                
+                // UI State
+                currentFocus: 'System initialization...',
+                nextSteps: 'Initializing MemoryOS...',
+                
+                // Initialize the system
                 async init() {
-                    console.log('🧠 MemoryOS initializing...');
+                    console.log('🚀 Initializing MemoryOS...');
+                    this.addSystemMessage('MemoryOS initialized successfully!');
                     await this.loadSystemData();
-                    this.setupPeriodicUpdates();
+                    this.currentFocus = 'Ready for your memories';
+                    this.nextSteps = 'Start by asking me about your memories or add a new one';
                 },
-
+                
+                // Load system data from API
                 async loadSystemData() {
                     try {
+                        // Load health status
+                        const healthResponse = await fetch('/health');
+                        const healthData = await healthResponse.json();
+                        this.systemStatus = healthData.status;
+                        
                         // Load stats
                         const statsResponse = await fetch('/stats');
-                        const stats = await statsResponse.json();
-
-                        this.totalMemories = stats.total_memories || 0;
-                        this.successRate = stats.success_rate || '0%';
-                        this.categories = stats.categories || {};
-
+                        const statsData = await statsResponse.json();
+                        
+                        this.totalMemories = statsData.total_memories || 0;
+                        this.successRate = statsData.success_rate || '0%';
+                        this.categories = statsData.categories || {};
+                        
                         // Calculate efficiency score
-                        const successPercent = parseFloat(this.successRate.replace('%', ''));
-                        this.efficiencyScore = Math.min(Math.max(successPercent, 0), 100);
-
-                        // Load GPT status
-                        const gptResponse = await fetch('/gpt-status');
-                        const gptData = await gptResponse.json();
-
-                        this.systemStatus = gptData.system_status === 'online' ? 'operational' : 'degraded';
-                        this.sessionId = Date.now().toString();
-                        this.currentFocus = gptData.message || 'Ready';
-                        this.nextSteps = 'System operational';
-
+                        if (this.totalMemories > 0) {
+                            const successCount = statsData.successful || 0;
+                            this.efficiencyScore = Math.round((successCount / this.totalMemories) * 100);
+                        }
+                        
+                        console.log('✅ System data loaded successfully');
                     } catch (error) {
-                        console.error('Failed to load system data:', error);
-                        this.systemStatus = 'error';
-                        this.currentFocus = 'System error';
-                        this.nextSteps = 'Check system health';
+                        console.error('❌ Error loading system data:', error);
+                        this.addSystemMessage('Error loading system data. Check console for details.');
                     }
                 },
-
-                setupPeriodicUpdates() {
-                    // Update system data every 30 seconds
-                    setInterval(() => {
-                        this.loadSystemData();
-                    }, 30000);
-                },
-
+                
+                // Send a message
                 async sendMessage() {
                     if (!this.currentMessage.trim() || this.isTyping) return;
-
-                    const userMessage = this.currentMessage.trim();
+                    
+                    const message = this.currentMessage.trim();
+                    this.addUserMessage(message);
+                    this.currentMessage = '';
+                    this.isTyping = true;
+                    
+                    try {
+                        // Simulate AI response (replace with actual API call)
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        let response = '';
+                        if (message.toLowerCase().includes('status')) {
+                            response = `System is ${this.systemStatus} with ${this.totalMemories} memories and ${this.successRate} success rate.`;
+                        } else if (message.toLowerCase().includes('help')) {
+                            response = 'I can help you manage memories, check system status, and analyze your data. Try asking about your memories or system health!';
+                        } else {
+                            response = `I understand you said: "${message}". I'm a memory system that can help track and analyze your experiences. What would you like to remember?`;
+                        }
+                        
+                        this.addSystemMessage(response);
+                        this.scrollToBottom();
+                    } catch (error) {
+                        this.addSystemMessage('Sorry, I encountered an error processing your message.');
+                        console.error('Message error:', error);
+                    } finally {
+                        this.isTyping = false;
+                    }
+                },
+                
+                // Add user message to chat
+                addUserMessage(content) {
                     this.chatHistory.push({
                         id: Date.now(),
                         type: 'user',
-                        content: userMessage,
-                        timestamp: new Date().toLocaleTimeString()
+                        content: content,
+                        timestamp: new Date().toISOString()
                     });
-
-                    this.currentMessage = '';
-                    this.isTyping = true;
-
-                    try {
-                        // Send to AI endpoint
-                        const response = await fetch('/ai/query', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({input: userMessage})
-                        });
-
-                        const result = await response.json();
-
-                        this.chatHistory.push({
-                            id: Date.now() + 1,
-                            type: 'assistant',
-                            content: result.ai_response?.response || result.error || 'No response',
-                            timestamp: new Date().toLocaleTimeString()
-                        });
-
-                    } catch (error) {
-                        this.chatHistory.push({
-                            id: Date.now() + 2,
-                            type: 'error',
-                            content: 'Failed to get AI response',
-                            timestamp: new Date().toLocaleTimeString()
-                        });
-                    } finally {
-                        this.isTyping = false;
-                        this.$nextTick(() => {
-                            const container = this.$refs.chatContainer;
-                            if (container) {
-                                container.scrollTop = container.scrollHeight;
-                            }
-                        });
-                    }
+                    this.scrollToBottom();
+                },
+                
+                // Add system message to chat
+                addSystemMessage(content) {
+                    this.chatHistory.push({
+                        id: Date.now(),
+                        type: 'system',
+                        content: content,
+                        timestamp: new Date().toISOString()
+                    });
+                    this.scrollToBottom();
+                },
+                
+                // Scroll chat to bottom
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = this.$refs.chatContainer;
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
                 }
-            };
+            }
         }
+    </script>
+</body>
+</html>
