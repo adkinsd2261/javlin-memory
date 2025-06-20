@@ -4,593 +4,594 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jav Builder - Memory-Driven Workspace</title>
+    <title>Jav Co-Builder - Memory-Driven Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --javlin-blue: #3B82F6;
-            --javlin-blue-dark: #1E40AF;
-            --javlin-blue-light: #60A5FA;
-            --javlin-accent: #10B981;
-            --javlin-warning: #F59E0B;
-            --javlin-error: #EF4444;
-            --javlin-bg: #0F172A;
-            --javlin-surface: #1E293B;
-            --javlin-card: #334155;
+            --jav-primary: #3B82F6;
+            --jav-primary-dark: #1E40AF;
+            --jav-accent: #10B981;
+            --jav-bg: #0F172A;
+            --jav-surface: #1E293B;
+            --jav-panel: #334155;
+            --jav-border: #475569;
+            --jav-text: #F8FAFC;
+            --jav-text-muted: #94A3B8;
         }
         
-        .javlin-gradient {
-            background: linear-gradient(135deg, var(--javlin-blue), var(--javlin-blue-dark));
+        body {
+            background: var(--jav-bg);
+            color: var(--jav-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
         }
         
-        .javlin-glow {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        .workspace-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
-        .memory-card {
+        .main-canvas {
+            flex: 1;
+            position: relative;
+            background: var(--jav-bg);
+            overflow: hidden;
+        }
+        
+        .floating-panel {
+            position: absolute;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            z-index: 100;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
         }
         
-        .memory-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
-            border-color: var(--javlin-blue);
+        .floating-panel.docked {
+            border-radius: 0;
+            box-shadow: none;
         }
         
-        .tab-active {
-            background: var(--javlin-blue);
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--jav-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .panel-content {
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .jav-avatar {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+        }
+        
+        .jav-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 48px rgba(59, 130, 246, 0.6);
+        }
+        
+        .jav-avatar.active {
+            background: linear-gradient(135deg, var(--jav-accent), var(--jav-primary));
+            animation: pulse 2s infinite;
+        }
+        
+        .jav-chat-panel {
+            position: fixed;
+            right: 24px;
+            bottom: 104px;
+            width: 400px;
+            height: 500px;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .jav-chat-panel.visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        
+        .context-popup {
+            position: absolute;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-primary);
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            z-index: 500;
+            max-width: 300px;
+            font-size: 14px;
+        }
+        
+        .context-popup::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid var(--jav-primary);
+        }
+        
+        .panel-dock-zone {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.2);
+            border: 2px dashed var(--jav-primary);
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .panel-dock-zone.active {
+            opacity: 1;
+        }
+        
+        .toolbar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 200;
+        }
+        
+        .toolbar-button {
+            width: 40px;
+            height: 40px;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .toolbar-button:hover {
+            background: var(--jav-panel);
+            border-color: var(--jav-primary);
+        }
+        
+        .toolbar-button.active {
+            background: var(--jav-primary);
             color: white;
         }
         
-        .jav-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
+            background: var(--jav-surface);
+            border-top: 1px solid var(--jav-border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 12px;
+            z-index: 100;
         }
         
-        .metric-card {
-            background: linear-gradient(145deg, var(--javlin-surface), var(--javlin-card));
-            border: 1px solid rgba(59, 130, 246, 0.1);
+        .inline-suggestion {
+            position: absolute;
+            background: linear-gradient(135deg, var(--jav-accent), #06D6A0);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+            z-index: 300;
+            animation: slideInRight 0.3s ease;
         }
         
-        .terminal-output {
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-            line-height: 1.4;
+        @keyframes slideInRight {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
         
-        .notification-badge {
-            background: linear-gradient(45deg, var(--javlin-accent), #06D6A0);
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
-        .score-circle {
-            stroke-dasharray: 283;
-            stroke-dashoffset: 283;
-            transform-origin: center;
-            transition: stroke-dashoffset 0.5s ease-in-out;
+        .resizer {
+            position: absolute;
+            background: transparent;
         }
         
-        .workspace-grid {
-            display: grid;
-            grid-template-columns: 280px 1fr 320px;
-            grid-template-rows: 60px 1fr;
-            height: 100vh;
-            gap: 0;
+        .resizer.horizontal {
+            height: 6px;
+            cursor: ns-resize;
         }
         
-        @media (max-width: 1200px) {
-            .workspace-grid {
-                grid-template-columns: 250px 1fr 280px;
+        .resizer.vertical {
+            width: 6px;
+            cursor: ew-resize;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .slide-in-left {
+            animation: slideInLeft 0.3s ease;
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
         }
     </style>
 </head>
-<body class="bg-slate-900 text-white overflow-hidden">
-    <!-- Jav Builder Workspace -->
-    <div x-data="javBuilder()" x-init="init()" class="workspace-grid">
+<body>
+    <div x-data="javWorkspace()" x-init="init()" class="workspace-container">
         
-        <!-- Top Navigation Bar -->
-        <nav class="col-span-3 javlin-gradient border-b border-blue-500/20 px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-brain text-blue-300"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-white">Jav Builder</h1>
-                        <div class="text-xs text-blue-200">Memory-Driven Workspace</div>
-                    </div>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="flex space-x-2 ml-8">
-                    <button @click="quickAction('health')" 
-                            class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition-all">
-                        <i class="fas fa-heart-pulse text-green-400"></i>
-                        <span>Health</span>
-                    </button>
-                    <button @click="quickAction('test')" 
-                            class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition-all">
-                        <i class="fas fa-vial text-blue-400"></i>
-                        <span>Test</span>
-                    </button>
-                    <button @click="quickAction('deploy')" 
-                            class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition-all">
-                        <i class="fas fa-rocket text-purple-400"></i>
-                        <span>Deploy</span>
-                    </button>
-                </div>
-            </div>
+        <!-- Main Canvas - Code Editor -->
+        <div class="main-canvas" @click="hideContextMenus()">
+            <div id="monaco-editor" class="w-full h-full"></div>
             
-            <!-- Jav Status -->
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-lg">
-                    <div class="w-2 h-2 rounded-full jav-pulse"
-                         :class="javStatus === 'active' ? 'bg-green-400' : 'bg-yellow-400'"></div>
-                    <span class="text-sm font-medium" x-text="'Jav ' + javStatus"></span>
+            <!-- Context Popups -->
+            <template x-for="popup in contextPopups">
+                <div class="context-popup" 
+                     :style="`left: ${popup.x}px; top: ${popup.y}px;`"
+                     x-show="popup.visible"
+                     x-transition>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-blue-300">💡 Jav suggests</span>
+                        <button @click="dismissPopup(popup.id)" class="text-xs text-gray-400 hover:text-white">×</button>
+                    </div>
+                    <div class="text-sm mb-3" x-text="popup.message"></div>
+                    <div class="flex gap-2">
+                        <button @click="applyPopupSuggestion(popup)" 
+                                class="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded">Apply</button>
+                        <button @click="askJavAbout(popup.topic)" 
+                                class="text-xs bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded">Ask Jav</button>
+                    </div>
                 </div>
-                <div class="text-sm text-blue-200">
-                    Session <span class="font-mono" x-text="sessionId.substring(0, 8)"></span>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Left Panel - Project & Memory Context -->
-        <div class="bg-slate-800 border-r border-slate-700 flex flex-col overflow-hidden">
+            </template>
             
-            <!-- Panel Tabs -->
-            <div class="border-b border-slate-700 px-4 py-3">
-                <div class="flex space-x-1">
-                    <button @click="leftPanel = 'project'" 
-                            :class="leftPanel === 'project' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
-                        <i class="fas fa-folder mr-1"></i> Project
-                    </button>
-                    <button @click="leftPanel = 'memory'" 
-                            :class="leftPanel === 'memory' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
-                        <i class="fas fa-brain mr-1"></i> Memory
-                    </button>
+            <!-- Inline Suggestions -->
+            <template x-for="suggestion in inlineSuggestions">
+                <div class="inline-suggestion" 
+                     :style="`right: ${suggestion.x}px; top: ${suggestion.y}px;`"
+                     x-show="suggestion.visible"
+                     x-transition>
+                    <span x-text="suggestion.text"></span>
+                    <button @click="dismissSuggestion(suggestion.id)" class="ml-2 text-xs">×</button>
                 </div>
-            </div>
-
-            <!-- Project Panel -->
-            <div x-show="leftPanel === 'project'" class="flex-1 overflow-y-auto p-4 space-y-4">
-                
-                <!-- Jav Context Card -->
-                <div class="metric-card p-4 rounded-xl">
-                    <h3 class="font-semibold mb-3 flex items-center text-blue-300">
-                        <i class="fas fa-robot mr-2"></i>
-                        Jav Context
-                    </h3>
-                    <div class="space-y-3 text-sm">
-                        <div>
-                            <div class="text-slate-400 mb-1">Current Focus:</div>
-                            <div class="text-white" x-text="currentFocus"></div>
-                        </div>
-                        <div>
-                            <div class="text-slate-400 mb-1">Last Action:</div>
-                            <div class="text-slate-300" x-text="lastAction"></div>
-                        </div>
-                        <div x-show="warnings.length > 0">
-                            <div class="text-slate-400 mb-1">Active Warnings:</div>
-                            <template x-for="warning in warnings.slice(0, 2)">
-                                <div class="text-yellow-400 text-xs bg-yellow-400/10 px-2 py-1 rounded mb-1" x-text="warning"></div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- File Navigator -->
-                <div class="metric-card p-4 rounded-xl">
-                    <h3 class="font-semibold mb-3 flex items-center justify-between text-blue-300">
-                        <span><i class="fas fa-code mr-2"></i>Files</span>
-                        <button @click="refreshFiles()" class="text-xs hover:text-blue-200">
-                            <i class="fas fa-refresh"></i>
-                        </button>
-                    </h3>
-                    <div class="space-y-1 max-h-60 overflow-y-auto">
-                        <template x-for="file in projectFiles">
-                            <div @click="openFile(file)" 
-                                 class="cursor-pointer p-2 rounded-lg hover:bg-slate-700 flex items-center justify-between group"
-                                 :class="activeFile === file ? 'bg-blue-600/20 border border-blue-500/30' : ''">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-file-code text-slate-400 text-xs"></i>
-                                    <span class="text-sm" x-text="file"></span>
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    <span x-show="changedFiles.includes(file)" class="w-2 h-2 bg-orange-400 rounded-full"></span>
-                                    <i class="fas fa-external-link-alt text-slate-500 text-xs opacity-0 group-hover:opacity-100"></i>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Quick Create -->
-                <div class="metric-card p-4 rounded-xl">
-                    <h3 class="font-semibold mb-3 text-blue-300">
-                        <i class="fas fa-plus mr-2"></i>Quick Create
-                    </h3>
-                    <div class="space-y-2">
-                        <button @click="createFile('flask')" 
-                                class="w-full text-left p-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
-                            <i class="fab fa-python mr-2 text-yellow-400"></i> Flask App
-                        </button>
-                        <button @click="createFile('component')" 
-                                class="w-full text-left p-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
-                            <i class="fab fa-js mr-2 text-yellow-400"></i> Component
-                        </button>
-                        <button @click="createFile('test')" 
-                                class="w-full text-left p-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
-                            <i class="fas fa-vial mr-2 text-green-400"></i> Test File
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Memory Panel -->
-            <div x-show="leftPanel === 'memory'" class="flex-1 overflow-y-auto p-4 space-y-4">
-                
-                <!-- Memory Filters -->
-                <div class="metric-card p-4 rounded-xl">
-                    <h3 class="font-semibold mb-3 text-blue-300">
-                        <i class="fas fa-filter mr-2"></i>Memory Filters
-                    </h3>
-                    <div class="space-y-2">
-                        <select x-model="memoryFilter" @change="filterMemories()" 
-                                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
-                            <option value="all">All Memories</option>
-                            <option value="success">Successful Only</option>
-                            <option value="failed">Failed Only</option>
-                            <option value="recent">Last 24 Hours</option>
-                        </select>
-                        <select x-model="categoryFilter" @change="filterMemories()" 
-                                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
-                            <option value="all">All Categories</option>
-                            <template x-for="category in Object.keys(categories)">
-                                <option :value="category" x-text="category + ' (' + categories[category] + ')'"></option>
-                            </template>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Memory Timeline -->
-                <div class="metric-card p-4 rounded-xl">
-                    <h3 class="font-semibold mb-3 flex items-center justify-between text-blue-300">
-                        <span><i class="fas fa-timeline mr-2"></i>Recent Activity</span>
-                        <span class="text-xs text-slate-400" x-text="filteredMemories.length + ' entries'"></span>
-                    </h3>
-                    <div class="space-y-2 max-h-80 overflow-y-auto">
-                        <template x-for="memory in filteredMemories.slice(0, 10)">
-                            <div class="memory-card p-3 rounded-lg cursor-pointer" @click="selectMemory(memory)">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-                                         :class="memory.success ? 'bg-green-400' : 'bg-red-400'"></div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="font-medium text-sm text-white truncate" x-text="memory.topic"></div>
-                                        <div class="text-xs text-slate-400 mt-1" x-text="memory.type"></div>
-                                        <div class="text-xs text-slate-500 mt-1" 
-                                             x-text="formatTimestamp(memory.timestamp)"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </div>
+            </template>
         </div>
-
-        <!-- Center Panel - Main Workspace -->
-        <div class="bg-slate-900 flex flex-col overflow-hidden">
-            
-            <!-- Center Tabs -->
-            <div class="border-b border-slate-700 px-4 py-3 flex items-center justify-between">
-                <div class="flex space-x-1">
-                    <button @click="centerPanel = 'code'" 
-                            :class="centerPanel === 'code' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
-                        <i class="fas fa-code mr-2"></i>Code
-                    </button>
-                    <button @click="centerPanel = 'terminal'" 
-                            :class="centerPanel === 'terminal' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
-                        <i class="fas fa-terminal mr-2"></i>Terminal
-                    </button>
-                    <button @click="centerPanel = 'preview'" 
-                            :class="centerPanel === 'preview' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
-                        <i class="fas fa-eye mr-2"></i>Preview
-                    </button>
-                    <button @click="centerPanel = 'dashboard'" 
-                            :class="centerPanel === 'dashboard' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
-                        <i class="fas fa-chart-line mr-2"></i>Dashboard
-                    </button>
+        
+        <!-- Floating Panels -->
+        <!-- Memory Panel -->
+        <div x-show="panels.memory.visible" 
+             class="floating-panel"
+             :class="{ 'docked': panels.memory.docked }"
+             :style="getPanelStyle('memory')"
+             x-transition>
+            <div class="panel-header" @mousedown="startDrag('memory', $event)">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-brain text-blue-400"></i>
+                    <span class="font-medium">Memory</span>
                 </div>
-                
-                <!-- File Tabs -->
-                <div x-show="centerPanel === 'code'" class="flex items-center space-x-2">
-                    <template x-for="tab in openTabs">
-                        <div class="flex items-center space-x-2 bg-slate-700 px-3 py-1 rounded-lg"
-                             :class="{'bg-blue-600': activeFile === tab}">
-                            <span class="text-sm" x-text="tab"></span>
-                            <button @click="closeTab(tab)" class="text-xs hover:text-red-400 ml-2">×</button>
+                <div class="flex items-center gap-2">
+                    <button @click="togglePanelDock('memory')" class="text-xs hover:text-blue-400">
+                        <i :class="panels.memory.docked ? 'fas fa-external-link-alt' : 'fas fa-thumb-tack'"></i>
+                    </button>
+                    <button @click="togglePanel('memory')" class="text-xs hover:text-red-400">×</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="space-y-2">
+                    <template x-for="memory in recentMemories.slice(0, 5)">
+                        <div class="p-3 bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-700" 
+                             @click="openMemoryDetails(memory)">
+                            <div class="flex items-start gap-2">
+                                <div class="w-2 h-2 rounded-full mt-2" 
+                                     :class="memory.success ? 'bg-green-400' : 'bg-red-400'"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium" x-text="memory.topic"></div>
+                                    <div class="text-xs text-gray-400" x-text="memory.type"></div>
+                                </div>
+                            </div>
                         </div>
                     </template>
                 </div>
             </div>
-
-            <!-- Code Editor -->
-            <div x-show="centerPanel === 'code'" class="flex-1 relative">
-                <div id="monaco-editor-container" class="w-full h-full"></div>
-                
-                <!-- Jav Code Assistant -->
-                <div x-show="showCodeSuggestions" 
-                     class="absolute top-4 right-4 bg-slate-800 border border-blue-500 rounded-xl p-4 max-w-sm javlin-glow">
-                    <h4 class="font-semibold mb-2 flex items-center text-blue-300">
-                        <i class="fas fa-lightbulb mr-2"></i>
-                        Jav Suggests
-                    </h4>
-                    <div x-text="currentCodeSuggestion" class="text-sm mb-3 text-slate-300"></div>
-                    <div class="flex space-x-2">
-                        <button @click="applyCodeSuggestion()" 
-                                class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-sm">Apply</button>
-                        <button @click="dismissCodeSuggestion()" 
-                                class="bg-slate-600 hover:bg-slate-700 px-3 py-1 rounded-lg text-sm">Dismiss</button>
-                    </div>
+        </div>
+        
+        <!-- Project Panel -->
+        <div x-show="panels.project.visible" 
+             class="floating-panel"
+             :class="{ 'docked': panels.project.docked }"
+             :style="getPanelStyle('project')"
+             x-transition>
+            <div class="panel-header" @mousedown="startDrag('project', $event)">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-folder text-yellow-400"></i>
+                    <span class="font-medium">Project</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="togglePanelDock('project')" class="text-xs hover:text-blue-400">
+                        <i :class="panels.project.docked ? 'fas fa-external-link-alt' : 'fas fa-thumb-tack'"></i>
+                    </button>
+                    <button @click="togglePanel('project')" class="text-xs hover:text-red-400">×</button>
                 </div>
             </div>
-
-            <!-- Terminal Panel -->
-            <div x-show="centerPanel === 'terminal'" class="flex-1 p-4">
-                <div class="bg-black rounded-xl p-4 terminal-output text-sm overflow-y-auto h-full">
-                    <template x-for="line in terminalOutput">
-                        <div x-text="line" class="mb-1"></div>
+            <div class="panel-content">
+                <div class="space-y-1">
+                    <template x-for="file in projectFiles">
+                        <div class="p-2 rounded hover:bg-gray-700 cursor-pointer flex items-center justify-between group"
+                             @click="openFile(file)"
+                             @contextmenu.prevent="showFileContextMenu(file, $event)">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-file-code text-xs text-gray-400"></i>
+                                <span class="text-sm" x-text="file"></span>
+                            </div>
+                            <button @click.stop="askJavAboutFile(file)" 
+                                    class="text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Ask Jav
+                            </button>
+                        </div>
                     </template>
                 </div>
             </div>
-
-            <!-- Preview Panel -->
-            <div x-show="centerPanel === 'preview'" class="flex-1 p-4">
-                <div class="bg-white rounded-xl h-full">
-                    <iframe src="/" class="w-full h-full rounded-xl"></iframe>
+        </div>
+        
+        <!-- Health Panel -->
+        <div x-show="panels.health.visible" 
+             class="floating-panel"
+             :class="{ 'docked': panels.health.docked }"
+             :style="getPanelStyle('health')"
+             x-transition>
+            <div class="panel-header" @mousedown="startDrag('health', $event)">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-heart-pulse text-green-400"></i>
+                    <span class="font-medium">Health</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="refreshHealth()" class="text-xs hover:text-green-400">
+                        <i class="fas fa-refresh"></i>
+                    </button>
+                    <button @click="togglePanel('health')" class="text-xs hover:text-red-400">×</button>
                 </div>
             </div>
-
-            <!-- Dashboard Panel -->
-            <div x-show="centerPanel === 'dashboard'" class="flex-1 p-6 overflow-y-auto">
-                <div class="grid grid-cols-2 gap-6 mb-6">
-                    
-                    <!-- Jav Score -->
-                    <div class="metric-card p-6 rounded-xl">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-blue-300">Jav Score</h3>
-                            <span class="text-sm text-slate-400">Last updated: 2min ago</span>
-                        </div>
-                        <div class="flex items-center space-x-6">
-                            <div class="relative w-24 h-24">
-                                <svg class="w-24 h-24 transform -rotate-90">
-                                    <circle cx="48" cy="48" r="45" stroke="currentColor" stroke-width="6" 
-                                            fill="transparent" class="text-slate-700"></circle>
-                                    <circle cx="48" cy="48" r="45" stroke="currentColor" stroke-width="6" 
-                                            fill="transparent" class="text-blue-500 score-circle"
-                                            :style="`stroke-dashoffset: ${283 - (283 * efficiencyScore / 100)}`"></circle>
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <span class="text-2xl font-bold text-white" x-text="efficiencyScore"></span>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm text-slate-400 mb-1">Overall Performance</div>
-                                <div class="text-2xl font-bold text-white" x-text="efficiencyScore + '%'"></div>
-                                <div class="text-sm text-green-400">↗ +5% from last week</div>
-                            </div>
-                        </div>
+            <div class="panel-content">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">System Status</span>
+                        <span class="text-sm font-medium" 
+                              :class="systemHealth === 'healthy' ? 'text-green-400' : 'text-red-400'"
+                              x-text="systemHealth"></span>
                     </div>
-
-                    <!-- System Health -->
-                    <div class="metric-card p-6 rounded-xl">
-                        <h3 class="text-lg font-semibold text-blue-300 mb-4">System Health</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-slate-400">API Status</span>
-                                <span class="text-green-400 font-medium" x-text="systemHealth"></span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-slate-400">Memory Entries</span>
-                                <span class="text-white font-medium" x-text="totalMemories"></span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-slate-400">Success Rate</span>
-                                <span class="text-green-400 font-medium" x-text="successRate"></span>
-                            </div>
-                        </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Jav Status</span>
+                        <span class="text-sm font-medium text-blue-400" x-text="javStatus"></span>
                     </div>
-                </div>
-
-                <!-- Metrics Grid -->
-                <div class="grid grid-cols-4 gap-4 mb-6">
-                    <div class="metric-card p-4 rounded-xl text-center">
-                        <div class="text-2xl font-bold text-blue-400" x-text="totalMemories"></div>
-                        <div class="text-sm text-slate-400">Total Memories</div>
-                    </div>
-                    <div class="metric-card p-4 rounded-xl text-center">
-                        <div class="text-2xl font-bold text-green-400" x-text="Object.keys(categories).length"></div>
-                        <div class="text-sm text-slate-400">Categories</div>
-                    </div>
-                    <div class="metric-card p-4 rounded-xl text-center">
-                        <div class="text-2xl font-bold text-purple-400" x-text="openTabs.length"></div>
-                        <div class="text-sm text-slate-400">Open Files</div>
-                    </div>
-                    <div class="metric-card p-4 rounded-xl text-center">
-                        <div class="text-2xl font-bold text-yellow-400" x-text="warnings.length"></div>
-                        <div class="text-sm text-slate-400">Warnings</div>
-                    </div>
-                </div>
-
-                <!-- AI Recommendations -->
-                <div class="metric-card p-6 rounded-xl">
-                    <h3 class="text-lg font-semibold text-blue-300 mb-4">
-                        <i class="fas fa-robot mr-2"></i>Jav Recommendations
-                    </h3>
-                    <div class="space-y-3">
-                        <template x-for="rec in javRecommendations">
-                            <div class="flex items-center space-x-3 p-3 bg-slate-700/50 rounded-lg">
-                                <i class="fas fa-check-circle text-green-400"></i>
-                                <span class="text-sm text-white" x-text="rec"></span>
-                            </div>
-                        </template>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Memory Entries</span>
+                        <span class="text-sm font-medium" x-text="totalMemories"></span>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Right Panel - Jav Assistant & Live Context -->
-        <div class="bg-slate-800 border-l border-slate-700 flex flex-col overflow-hidden">
-            
-            <!-- Panel Header -->
-            <div class="border-b border-slate-700 px-4 py-3">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-semibold text-blue-300">
-                        <i class="fas fa-robot mr-2"></i>Jav Assistant
-                    </h3>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 rounded-full jav-pulse bg-green-400"></div>
-                        <span class="text-xs text-slate-400">Always Active</span>
-                    </div>
+        
+        <!-- Jav Avatar -->
+        <div class="jav-avatar" 
+             :class="{ 'active': javActive }"
+             @click="toggleJavChat()"
+             title="Click to summon Jav">
+            <i class="fas fa-robot text-xl text-white"></i>
+        </div>
+        
+        <!-- Jav Chat Panel -->
+        <div class="jav-chat-panel" 
+             :class="{ 'visible': javChatVisible }"
+             x-show="javChatVisible"
+             x-transition>
+            <div class="panel-header">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-robot text-blue-400"></i>
+                    <span class="font-medium">Jav Co-Builder</span>
                 </div>
+                <button @click="toggleJavChat()" class="text-xs hover:text-red-400">×</button>
             </div>
-
-            <!-- Jav Chat Interface -->
-            <div class="flex-1 flex flex-col">
-                
-                <!-- Chat Messages -->
+            <div class="flex flex-col h-full">
                 <div class="flex-1 overflow-y-auto p-4 space-y-3">
                     <template x-for="message in javMessages">
-                        <div class="flex space-x-3" :class="message.type === 'user' ? 'justify-end' : 'justify-start'">
-                            <div x-show="message.type === 'jav'" class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-robot text-white text-sm"></i>
+                        <div class="flex gap-3" :class="message.type === 'user' ? 'justify-end' : 'justify-start'">
+                            <div x-show="message.type === 'jav'" class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-robot text-white text-xs"></i>
                             </div>
                             <div class="max-w-xs p-3 rounded-xl text-sm"
-                                 :class="message.type === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-200'">
+                                 :class="message.type === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'">
                                 <div x-text="message.text"></div>
-                                <div class="text-xs opacity-70 mt-1" x-text="formatTimestamp(message.timestamp)"></div>
-                            </div>
-                            <div x-show="message.type === 'user'" class="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-user text-white text-sm"></i>
+                                <div class="text-xs opacity-70 mt-1" x-text="formatTime(message.timestamp)"></div>
                             </div>
                         </div>
                     </template>
                 </div>
-
-                <!-- Chat Input -->
-                <div class="border-t border-slate-700 p-4">
-                    <div class="flex space-x-2">
+                <div class="border-t border-gray-600 p-3">
+                    <div class="flex gap-2">
                         <input x-model="javInput" 
                                @keydown.enter="sendToJav()"
                                placeholder="Ask Jav anything..."
-                               class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+                               class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
                         <button @click="sendToJav()" 
                                 class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
-
-                <!-- Live Context Cards -->
-                <div class="border-t border-slate-700 p-4 space-y-3 max-h-60 overflow-y-auto">
-                    
-                    <!-- Quick Actions -->
-                    <div class="metric-card p-3 rounded-lg">
-                        <h4 class="font-semibold text-sm text-blue-300 mb-2">Quick Actions</h4>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button @click="quickAction('audit')" 
-                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
-                                <i class="fas fa-search mr-1"></i>Audit
-                            </button>
-                            <button @click="quickAction('commit')" 
-                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
-                                <i class="fas fa-save mr-1"></i>Commit
-                            </button>
-                            <button @click="quickAction('test')" 
-                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
-                                <i class="fas fa-vial mr-1"></i>Test
-                            </button>
-                            <button @click="quickAction('logs')" 
-                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
-                                <i class="fas fa-list mr-1"></i>Logs
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Live Notifications -->
-                    <div x-show="liveNotifications.length > 0" class="metric-card p-3 rounded-lg">
-                        <h4 class="font-semibold text-sm text-yellow-300 mb-2">
-                            <i class="fas fa-bell mr-1"></i>Live Updates
-                        </h4>
-                        <template x-for="notification in liveNotifications.slice(0, 3)">
-                            <div class="text-xs p-2 bg-yellow-400/10 text-yellow-400 rounded mb-1" x-text="notification"></div>
-                        </template>
-                    </div>
-                </div>
             </div>
         </div>
+        
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button @click="togglePanel('project')" 
+                    class="toolbar-button" 
+                    :class="{ 'active': panels.project.visible }"
+                    title="Toggle Project Panel (Ctrl+1)">
+                <i class="fas fa-folder"></i>
+            </button>
+            <button @click="togglePanel('memory')" 
+                    class="toolbar-button"
+                    :class="{ 'active': panels.memory.visible }"
+                    title="Toggle Memory Panel (Ctrl+2)">
+                <i class="fas fa-brain"></i>
+            </button>
+            <button @click="togglePanel('health')" 
+                    class="toolbar-button"
+                    :class="{ 'active': panels.health.visible }"
+                    title="Toggle Health Panel (Ctrl+3)">
+                <i class="fas fa-heart-pulse"></i>
+            </button>
+            <button @click="runQuickAction('test')" 
+                    class="toolbar-button"
+                    title="Run Tests (Ctrl+T)">
+                <i class="fas fa-vial"></i>
+            </button>
+            <button @click="runQuickAction('deploy')" 
+                    class="toolbar-button"
+                    title="Deploy (Ctrl+D)">
+                <i class="fas fa-rocket"></i>
+            </button>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1">
+                    <div class="w-2 h-2 rounded-full" 
+                         :class="javActive ? 'bg-green-400' : 'bg-gray-400'"></div>
+                    <span x-text="javActive ? 'Jav Active' : 'Jav Idle'"></span>
+                </span>
+                <span x-text="activeFile || 'No file open'"></span>
+                <span class="ml-auto" x-text="'Session: ' + sessionId.substring(0, 8)"></span>
+            </div>
+        </div>
+        
+        <!-- Dock Zones (shown during panel drag) -->
+        <div x-show="isDragging" class="panel-dock-zone" 
+             style="top: 60px; left: 16px; width: 300px; height: 40px;"
+             @dragover.prevent @drop="dockPanel('left')"></div>
+        <div x-show="isDragging" class="panel-dock-zone"
+             style="top: 60px; right: 16px; width: 300px; height: 40px;"
+             @dragover.prevent @drop="dockPanel('right')"></div>
     </div>
 
     <script>
-        function javBuilder() {
+        function javWorkspace() {
             return {
                 // Core State
                 sessionId: new Date().toISOString().replace(/[-:]/g, '').split('.')[0],
-                javStatus: 'active',
+                javActive: true,
+                javChatVisible: false,
                 systemHealth: 'healthy',
-                
-                // Panel States
-                leftPanel: 'project',
-                centerPanel: 'code',
-                
-                // Project State
-                activeFile: 'main.py',
-                openTabs: ['main.py'],
-                projectFiles: ['main.py', 'jav_agent.py', 'intelligent_agent.py', 'jav_chat.py', 'index.html'],
-                changedFiles: [],
-                
-                // Memory & Data
                 totalMemories: 0,
-                successRate: '0%',
-                categories: {},
-                filteredMemories: [],
-                memoryFilter: 'all',
-                categoryFilter: 'all',
-                
-                // Jav Assistant
-                currentFocus: 'Analyzing workspace structure...',
-                lastAction: 'System initialization',
-                warnings: [],
-                javMessages: [],
-                javInput: '',
-                javRecommendations: [
-                    'Consider adding type hints to main.py',
-                    'Update documentation for recent changes',
-                    'Run comprehensive tests before deployment'
-                ],
                 
                 // UI State
-                efficiencyScore: 87,
-                showCodeSuggestions: false,
-                currentCodeSuggestion: '',
-                terminalOutput: ['Jav Builder initialized...', 'Workspace ready for development'],
-                liveNotifications: [],
+                isDragging: false,
+                dragPanel: null,
+                dragOffset: { x: 0, y: 0 },
                 
-                // Editor
+                // Panels Configuration
+                panels: {
+                    memory: {
+                        visible: false,
+                        docked: false,
+                        x: 100,
+                        y: 100,
+                        width: 320,
+                        height: 400
+                    },
+                    project: {
+                        visible: true,
+                        docked: false,
+                        x: 50,
+                        y: 80,
+                        width: 280,
+                        height: 350
+                    },
+                    health: {
+                        visible: false,
+                        docked: false,
+                        x: 200,
+                        y: 150,
+                        width: 300,
+                        height: 250
+                    }
+                },
+                
+                // Data
+                activeFile: 'main.py',
+                projectFiles: ['main.py', 'jav_agent.py', 'jav_chat.py', 'index.html', 'README.md'],
+                recentMemories: [],
+                javMessages: [],
+                javInput: '',
+                
+                // Context Awareness
+                contextPopups: [],
+                inlineSuggestions: [],
+                
+                // Monaco Editor
                 editor: null,
                 
                 async init() {
-                    console.log('🚀 Initializing Jav Builder...');
+                    console.log('🚀 Initializing Jav Co-Builder Workspace...');
                     
                     // Initialize Monaco Editor
                     this.initializeEditor();
@@ -598,38 +599,55 @@
                     // Load system data
                     await this.loadSystemData();
                     
-                    // Start Jav monitoring
-                    this.startJavMonitoring();
+                    // Setup keyboard shortcuts
+                    this.setupKeyboardShortcuts();
                     
-                    // Welcome from Jav
-                    this.addJavMessage("Welcome to your memory-driven workspace! I'm Jav, your AI co-pilot. I'm always aware of your project context and ready to assist with any development tasks.");
+                    // Start Jav awareness
+                    this.startJavAwareness();
                     
-                    console.log('✅ Jav Builder ready');
+                    // Welcome message
+                    this.addJavMessage("Hey! I'm Jav, your AI co-builder. I'm always here, watching your back and ready to help. Right-click anywhere for quick actions or just click my avatar to chat!");
+                    
+                    console.log('✅ Jav Co-Builder ready');
                 },
                 
                 initializeEditor() {
                     require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
                     require(['vs/editor/editor.main'], () => {
-                        this.editor = monaco.editor.create(document.getElementById('monaco-editor-container'), {
-                            value: '# Jav Builder - Memory-Driven Workspace\n# Your AI co-pilot is always watching and ready to help\n\nprint("Welcome to Jav Builder!")',
+                        this.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                            value: '# Jav Co-Builder Workspace\n# Your AI partner is always watching and ready to help\n\nprint("Building together with Jav!")\n\n# Try right-clicking for context actions\n# Or edit this code to see Jav\'s suggestions',
                             language: 'python',
                             theme: 'vs-dark',
                             automaticLayout: true,
                             minimap: { enabled: false },
                             fontSize: 14,
-                            fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, monospace'
+                            lineNumbers: 'on',
+                            roundedSelection: false,
+                            scrollBeyondLastLine: false,
+                            readOnly: false,
+                            contextmenu: false  // We'll handle this ourselves
                         });
                         
-                        // Listen for changes and provide contextual suggestions
+                        // Context-aware suggestions
                         this.editor.onDidChangeModelContent(() => {
-                            this.analyzeCode();
+                            this.analyzeCodeChanges();
+                        });
+                        
+                        // Custom context menu
+                        this.editor.onContextMenu((e) => {
+                            this.showEditorContextMenu(e);
+                        });
+                        
+                        // Cursor position awareness
+                        this.editor.onDidChangeCursorPosition((e) => {
+                            this.updateJavContext(e);
                         });
                     });
                 },
                 
                 async loadSystemData() {
                     try {
-                        // Load health status
+                        // Load health
                         const healthResponse = await fetch('/health');
                         const healthData = await healthResponse.json();
                         this.systemHealth = healthData.status;
@@ -638,89 +656,124 @@
                         const statsResponse = await fetch('/stats');
                         const statsData = await statsResponse.json();
                         this.totalMemories = statsData.total_memories;
-                        this.successRate = statsData.success_rate;
-                        this.categories = statsData.categories || {};
                         
                         // Load recent memories
-                        const memoryResponse = await fetch('/memory?limit=20');
+                        const memoryResponse = await fetch('/memory?limit=10');
                         const memoryData = await memoryResponse.json();
-                        this.filteredMemories = memoryData.memories || [];
+                        this.recentMemories = memoryData.memories || [];
                         
-                        // Get Jav status
-                        const javResponse = await fetch('/jav/status');
-                        if (javResponse.ok) {
-                            const javData = await javResponse.json();
-                            this.currentFocus = javData.current_state?.context || 'Ready for development';
-                            this.warnings = javData.current_state?.warnings || [];
-                        }
-                        
-                        console.log('✅ System data loaded successfully');
+                        console.log('✅ System data loaded');
                     } catch (error) {
                         console.error('Failed to load system data:', error);
-                        this.addJavMessage('⚠️ Some system data could not be loaded. Operating in offline mode.');
+                        this.addJavMessage('⚠️ Some system data unavailable, but I\'m still here to help!');
                     }
                 },
                 
-                startJavMonitoring() {
-                    // Real-time monitoring and suggestions
-                    setInterval(async () => {
-                        try {
-                            const response = await fetch('/health');
-                            const data = await response.json();
-                            const oldHealth = this.systemHealth;
-                            this.systemHealth = data.status;
-                            
-                            // Alert on health changes
-                            if (oldHealth !== data.status) {
-                                this.addLiveNotification(`System health changed: ${data.status}`);
-                                if (data.status !== 'healthy') {
-                                    this.addJavMessage(`🚨 System health alert: ${data.status}. Should I run diagnostics?`);
-                                }
+                setupKeyboardShortcuts() {
+                    document.addEventListener('keydown', (e) => {
+                        if (e.ctrlKey || e.metaKey) {
+                            switch(e.code) {
+                                case 'Digit1':
+                                    e.preventDefault();
+                                    this.togglePanel('project');
+                                    break;
+                                case 'Digit2':
+                                    e.preventDefault();
+                                    this.togglePanel('memory');
+                                    break;
+                                case 'Digit3':
+                                    e.preventDefault();
+                                    this.togglePanel('health');
+                                    break;
+                                case 'KeyJ':
+                                    e.preventDefault();
+                                    this.toggleJavChat();
+                                    break;
+                                case 'KeyT':
+                                    e.preventDefault();
+                                    this.runQuickAction('test');
+                                    break;
+                                case 'KeyD':
+                                    e.preventDefault();
+                                    this.runQuickAction('deploy');
+                                    break;
                             }
-                        } catch (error) {
-                            this.systemHealth = 'error';
                         }
-                    }, 30000); // Every 30 seconds
+                    });
                 },
                 
-                // File Operations
-                openFile(filename) {
-                    this.activeFile = filename;
-                    if (!this.openTabs.includes(filename)) {
-                        this.openTabs.push(filename);
-                    }
-                    this.centerPanel = 'code';
+                startJavAwareness() {
+                    // Periodic context analysis
+                    setInterval(() => {
+                        this.analyzeWorkspaceContext();
+                    }, 10000); // Every 10 seconds
                     
-                    // Mock load file content
-                    if (this.editor) {
-                        let content = `# ${filename}\n# Opened in Jav Builder\n\n`;
-                        if (filename.endsWith('.py')) {
-                            content += `print("Hello from ${filename}")\n`;
-                        }
-                        this.editor.setValue(content);
+                    // File change detection
+                    this.watchForChanges();
+                },
+                
+                // Panel Management
+                togglePanel(panelName) {
+                    this.panels[panelName].visible = !this.panels[panelName].visible;
+                    if (this.panels[panelName].visible) {
+                        this.addJavMessage(`📂 Opened ${panelName} panel. Need help with anything specific?`);
                     }
+                },
+                
+                getPanelStyle(panelName) {
+                    const panel = this.panels[panelName];
+                    if (panel.docked) {
+                        return `top: 60px; left: 0; width: ${panel.width}px; height: calc(100vh - 92px);`;
+                    }
+                    return `left: ${panel.x}px; top: ${panel.y}px; width: ${panel.width}px; height: ${panel.height}px;`;
+                },
+                
+                startDrag(panelName, event) {
+                    this.isDragging = true;
+                    this.dragPanel = panelName;
+                    this.dragOffset = {
+                        x: event.clientX - this.panels[panelName].x,
+                        y: event.clientY - this.panels[panelName].y
+                    };
                     
-                    this.addJavMessage(`📁 Opened ${filename}. I'm analyzing the code for potential improvements.`);
+                    const handleMouseMove = (e) => {
+                        this.panels[panelName].x = e.clientX - this.dragOffset.x;
+                        this.panels[panelName].y = e.clientY - this.dragOffset.y;
+                    };
+                    
+                    const handleMouseUp = () => {
+                        this.isDragging = false;
+                        this.dragPanel = null;
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                    };
+                    
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
                 },
                 
-                closeTab(filename) {
-                    const index = this.openTabs.indexOf(filename);
-                    if (index > -1) {
-                        this.openTabs.splice(index, 1);
-                    }
-                    if (this.activeFile === filename) {
-                        this.activeFile = this.openTabs.length > 0 ? this.openTabs[0] : null;
+                togglePanelDock(panelName) {
+                    this.panels[panelName].docked = !this.panels[panelName].docked;
+                },
+                
+                // Jav Integration
+                toggleJavChat() {
+                    this.javChatVisible = !this.javChatVisible;
+                    if (this.javChatVisible) {
+                        this.javActive = true;
+                        setTimeout(() => {
+                            const input = document.querySelector('.jav-chat-panel input');
+                            if (input) input.focus();
+                        }, 100);
                     }
                 },
                 
-                // Jav Assistant
                 async sendToJav() {
                     if (!this.javInput.trim()) return;
                     
                     const userMessage = this.javInput;
                     this.javInput = '';
                     
-                    // Add user message
                     this.addUserMessage(userMessage);
                     
                     try {
@@ -732,12 +785,12 @@
                         
                         const data = await response.json();
                         if (data.status === 'success') {
-                            this.addJavMessage(data.response.message || 'Command processed successfully.');
+                            this.addJavMessage(data.response.message || 'Got it! Let me help with that.');
                         } else {
                             this.addJavMessage('❌ ' + data.error);
                         }
                     } catch (error) {
-                        this.addJavMessage('❌ Failed to communicate with Jav: ' + error.message);
+                        this.addJavMessage('❌ Connection issue: ' + error.message);
                     }
                 },
                 
@@ -765,164 +818,191 @@
                     }
                 },
                 
-                // Quick Actions
-                async quickAction(action) {
-                    this.addJavMessage(`🔧 Executing ${action}...`);
-                    
-                    switch(action) {
-                        case 'health':
-                            await this.runHealthCheck();
-                            break;
-                        case 'test':
-                            await this.runTests();
-                            break;
-                        case 'deploy':
-                            await this.deployProject();
-                            break;
-                        case 'audit':
-                            await this.runAudit();
-                            break;
-                        case 'commit':
-                            await this.commitChanges();
-                            break;
-                        case 'logs':
-                            this.centerPanel = 'terminal';
-                            this.terminalOutput.push('$ tail -f memoryos.log');
-                            break;
-                    }
-                },
-                
-                async runHealthCheck() {
-                    try {
-                        const response = await fetch('/health');
-                        const data = await response.json();
-                        this.addJavMessage(`✅ Health check complete. Status: ${data.status}`);
-                        this.terminalOutput.push(`Health Status: ${data.status}`);
-                    } catch (error) {
-                        this.addJavMessage('❌ Health check failed: ' + error.message);
-                    }
-                },
-                
-                async runTests() {
-                    this.addJavMessage('🧪 Running test suite...');
-                    this.terminalOutput.push('$ pytest running...');
-                    setTimeout(() => {
-                        this.terminalOutput.push('Tests completed - all passed ✅');
-                        this.addJavMessage('✅ All tests passed successfully!');
-                    }, 2000);
-                },
-                
-                async deployProject() {
-                    this.addJavMessage('🚀 Preparing deployment...');
-                    this.terminalOutput.push('$ Starting deployment process...');
-                    setTimeout(() => {
-                        this.terminalOutput.push('Deployment successful! 🚀');
-                        this.addJavMessage('✅ Deployment completed successfully!');
-                    }, 3000);
-                },
-                
-                async runAudit() {
-                    try {
-                        const response = await fetch('/jav/status');
-                        const data = await response.json();
-                        this.addJavMessage(`📊 System audit complete. Found ${data.current_state?.warnings?.length || 0} issues.`);
-                    } catch (error) {
-                        this.addJavMessage('❌ Audit failed: ' + error.message);
-                    }
-                },
-                
-                async commitChanges() {
-                    this.addJavMessage('📝 Committing changes...');
-                    this.terminalOutput.push('$ git add . && git commit -m "Jav-assisted changes"');
-                    setTimeout(() => {
-                        this.terminalOutput.push('Changes committed successfully ✅');
-                        this.addJavMessage('✅ Changes committed successfully!');
-                    }, 1000);
-                },
-                
-                // Code Analysis
-                analyzeCode() {
+                // Context Awareness
+                analyzeCodeChanges() {
                     if (!this.editor) return;
                     
                     const code = this.editor.getValue();
                     
-                    // Simple analysis for suggestions
-                    if (code.includes('TODO') && !this.showCodeSuggestions) {
-                        this.currentCodeSuggestion = 'I found TODO comments in your code. Would you like me to track them in your task list?';
-                        this.showCodeSuggestions = true;
+                    // Smart suggestions based on context
+                    if (code.includes('TODO') && !this.hasActiveSuggestion('todo')) {
+                        this.showInlineSuggestion('Found TODO - want me to track it?', 'todo');
                     }
                     
-                    if (code.includes('print(') && code.includes('def ') && !code.includes('logging')) {
-                        this.currentCodeSuggestion = 'Consider using logging instead of print statements for better debugging and production monitoring.';
-                        this.showCodeSuggestions = true;
+                    if (code.includes('def ') && !code.includes('"""') && !this.hasActiveSuggestion('docstring')) {
+                        this.showContextPopup('Add docstring for better documentation?', 'docstring');
                     }
                 },
                 
-                applyCodeSuggestion() {
-                    this.addJavMessage('✅ Applied suggestion: ' + this.currentCodeSuggestion);
-                    this.dismissCodeSuggestion();
+                showContextPopup(message, topic) {
+                    const position = this.editor.getPosition();
+                    const coordinates = this.editor.getScrolledVisiblePosition(position);
+                    
+                    this.contextPopups.push({
+                        id: Date.now(),
+                        message: message,
+                        topic: topic,
+                        x: coordinates.left + 200,
+                        y: coordinates.top + 60,
+                        visible: true
+                    });
+                    
+                    // Auto-dismiss after 10 seconds
+                    setTimeout(() => {
+                        this.dismissPopup(this.contextPopups[this.contextPopups.length - 1]?.id);
+                    }, 10000);
                 },
                 
-                dismissCodeSuggestion() {
-                    this.showCodeSuggestions = false;
-                    this.currentCodeSuggestion = '';
+                showInlineSuggestion(text, type) {
+                    this.inlineSuggestions.push({
+                        id: Date.now(),
+                        text: text,
+                        type: type,
+                        x: 24,
+                        y: 100,
+                        visible: true
+                    });
+                    
+                    setTimeout(() => {
+                        this.dismissSuggestion(this.inlineSuggestions[this.inlineSuggestions.length - 1]?.id);
+                    }, 8000);
                 },
                 
-                // Memory Management
-                filterMemories() {
-                    // Apply filters to memories (implementation would filter based on selected criteria)
-                    this.addJavMessage(`🔍 Filtered memories by ${this.memoryFilter} and ${this.categoryFilter}`);
+                hasActiveSuggestion(type) {
+                    return this.inlineSuggestions.some(s => s.type === type && s.visible) ||
+                           this.contextPopups.some(p => p.topic === type && p.visible);
                 },
                 
-                selectMemory(memory) {
-                    this.addJavMessage(`📋 Selected memory: ${memory.topic}. Would you like me to provide more details or related context?`);
+                dismissPopup(id) {
+                    const popup = this.contextPopups.find(p => p.id === id);
+                    if (popup) popup.visible = false;
+                },
+                
+                dismissSuggestion(id) {
+                    const suggestion = this.inlineSuggestions.find(s => s.id === id);
+                    if (suggestion) suggestion.visible = false;
+                },
+                
+                applyPopupSuggestion(popup) {
+                    this.addJavMessage(`✅ Applied suggestion: ${popup.message}`);
+                    this.dismissPopup(popup.id);
+                },
+                
+                askJavAbout(topic) {
+                    this.javInput = `Tell me about ${topic}`;
+                    this.toggleJavChat();
+                },
+                
+                // File Operations
+                openFile(filename) {
+                    this.activeFile = filename;
+                    this.addJavMessage(`📁 Opened ${filename}. I'm analyzing it for optimization opportunities.`);
+                    
+                    // Mock file content loading
+                    if (this.editor) {
+                        let content = `# ${filename}\n# Opened in Jav Co-Builder\n\n`;
+                        if (filename.endsWith('.py')) {
+                            content += `"""${filename} - Enhanced by Jav"""\n\nprint("Hello from ${filename}")\n`;
+                        }
+                        this.editor.setValue(content);
+                    }
+                },
+                
+                askJavAboutFile(filename) {
+                    this.javInput = `What can you tell me about ${filename}?`;
+                    this.toggleJavChat();
+                },
+                
+                showFileContextMenu(filename, event) {
+                    // Custom context menu implementation would go here
+                    this.askJavAboutFile(filename);
+                },
+                
+                showEditorContextMenu(event) {
+                    event.event.preventDefault();
+                    this.showContextPopup('Right-click detected! What would you like me to help with?', 'general');
+                },
+                
+                // Quick Actions
+                async runQuickAction(action) {
+                    this.addJavMessage(`🔧 Running ${action}...`);
+                    
+                    switch(action) {
+                        case 'test':
+                            this.showInlineSuggestion('Tests running...', 'test');
+                            setTimeout(() => {
+                                this.addJavMessage('✅ All tests passed! Your code looks solid.');
+                            }, 2000);
+                            break;
+                        case 'deploy':
+                            this.showInlineSuggestion('Deploying...', 'deploy');
+                            setTimeout(() => {
+                                this.addJavMessage('🚀 Deployment successful! Your app is live.');
+                            }, 3000);
+                            break;
+                    }
+                },
+                
+                async refreshHealth() {
+                    try {
+                        const response = await fetch('/health');
+                        const data = await response.json();
+                        this.systemHealth = data.status;
+                        this.addJavMessage(`🏥 Health refreshed: ${data.status}`);
+                    } catch (error) {
+                        this.addJavMessage('❌ Health check failed');
+                    }
+                },
+                
+                // Workspace Context
+                analyzeWorkspaceContext() {
+                    // Periodic analysis of workspace state
+                    if (this.javActive && Math.random() < 0.3) { // 30% chance
+                        const suggestions = [
+                            'Everything looks good! Keep building.',
+                            'I noticed some TODO items - want me to track them?',
+                            'Your code structure is clean. Nice work!',
+                            'Consider adding some tests for this module.',
+                            'Want me to check for any optimization opportunities?'
+                        ];
+                        
+                        if (!this.javChatVisible) {
+                            this.showInlineSuggestion(suggestions[Math.floor(Math.random() * suggestions.length)], 'general');
+                        }
+                    }
+                },
+                
+                updateJavContext(event) {
+                    // Update Jav's awareness of cursor position and context
+                    this.javActive = true;
+                },
+                
+                watchForChanges() {
+                    // Monitor for file system changes
+                    setInterval(async () => {
+                        // In a real implementation, this would watch for actual file changes
+                        if (Math.random() < 0.1) { // 10% chance
+                            this.addJavMessage('📁 I detected some file changes. Everything looks good!');
+                        }
+                    }, 30000);
+                },
+                
+                hideContextMenus() {
+                    // Hide any visible context popups when clicking elsewhere
+                    this.contextPopups.forEach(popup => popup.visible = false);
+                },
+                
+                openMemoryDetails(memory) {
+                    this.addJavMessage(`🧠 Memory: ${memory.topic}. Want me to explain the context or help with related tasks?`);
                 },
                 
                 // Utility Functions
-                formatTimestamp(timestamp) {
+                formatTime(timestamp) {
                     try {
                         return new Date(timestamp).toLocaleTimeString();
                     } catch {
                         return timestamp;
                     }
-                },
-                
-                addLiveNotification(text) {
-                    this.liveNotifications.unshift(text);
-                    if (this.liveNotifications.length > 5) {
-                        this.liveNotifications = this.liveNotifications.slice(0, 5);
-                    }
-                },
-                
-                refreshFiles() {
-                    this.addJavMessage('🔄 Refreshing project files...');
-                    // Mock refresh - in real implementation would scan filesystem
-                },
-                
-                createFile(type) {
-                    let filename, content;
-                    
-                    switch(type) {
-                        case 'flask':
-                            filename = 'new_app.py';
-                            content = `from flask import Flask, jsonify\nfrom flask_cors import CORS\n\napp = Flask(__name__)\nCORS(app)\n\n@app.route('/')\ndef index():\n    return jsonify({"message": "Hello from Jav Builder!"})\n\nif __name__ == '__main__':\n    app.run(host='0.0.0.0', port=5000, debug=True)`;
-                            break;
-                        case 'component':
-                            filename = 'component.js';
-                            content = `// Component created by Jav Builder\nclass NewComponent {\n    constructor() {\n        this.init();\n    }\n    \n    init() {\n        console.log('Component initialized by Jav');\n    }\n}`;
-                            break;
-                        case 'test':
-                            filename = 'test_new.py';
-                            content = `import pytest\n\ndef test_example():\n    """Test created by Jav Builder"""\n    assert True, "This test should pass"\n    \ndef test_health_endpoint():\n    """Test health endpoint"""\n    # Jav will help you implement this\n    pass`;
-                            break;
-                    }
-                    
-                    this.projectFiles.push(filename);
-                    this.openFile(filename);
-                    if (this.editor) {
-                        this.editor.setValue(content);
-                    }
-                    this.addJavMessage(`✨ Created ${filename} with ${type} template. I've added best practices and structure for you!`);
                 }
             }
         }
