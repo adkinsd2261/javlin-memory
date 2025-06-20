@@ -36,5 +36,25 @@
     "score": 15,
     "maxScore": 25,
     "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_164949",
+    "type": "Interaction",
+    "input": "Hello Claude, can you see my memory context?",
+    "output": "Yes, I can see your current memory context. As the MemoryOS AI Agent with full persistent awareness, I have access to the details you have provided:\n\nCURRENT SYSTEM STATE:\n- Total memories: 2\n- Succes...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_164949",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 2,
+    "timestamp": "2025-06-20T16:49:52.855020+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
   }
 ]
