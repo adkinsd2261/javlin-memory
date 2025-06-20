@@ -747,7 +747,7 @@ def generate_feedback_prompt(memory_entry):
     success = memory_entry.get('success', False)
 
     if memory_type in ['BugFix', 'SystemTest']:
-        return f"How valuable was resolving '{topic}'? Did it prevent future issues?"
+        return f"How valuable was resolving '{topic}'? Did it prevent futureissues?"
     elif memory_type in ['Decision', 'Insight']:
         return f"How impactful was this decision about '{topic}'? Would you make it again?"
     elif memory_type in ['BuildLog', 'Feature']:
@@ -987,6 +987,92 @@ def express_status():
     except Exception as e:
         logging.error(f"Express validation error: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
+
+import os
+from datetime import datetime, timezone
+import uuid
+import os
+from pathlib import Path
+from git_sync import GitHubSyncer
+
+@app.route('/git-sync', methods=['POST'])
+def git_sync():
+    """Manual GitHub sync endpoint"""
+    try:
+        force = request.args.get('force', 'false').lower() == 'true'
+        syncer = GitHubSyncer()
+        result = syncer.run_auto_sync(force=force)
+
+        # Log the sync attempt to memory
+        log_to_memory(
+            topic="GitHub Sync Executed",
+            type_="SystemUpdate",
+            input_=f"Manual GitHub sync triggered via /git-sync endpoint (force={force})",
+            output=f"Sync result: {result.get('status')}. {result.get('message', '')}",
+            success=result.get('status') == 'success',
+            category='development',
+            tags=['git', 'sync', 'automation', 'github'],
+            context="Manual code synchronization with GitHub repository"
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+def log_to_memory(topic, type_, input_, output, success=True, score=None, max_score=25, category=None, tags=None, context=None, related_to=None):
+    """Enhanced memory logging with automatic validation and tagging"""
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+    except (FileNotFoundError, JSONDecodeError):
+        memory = []
+
+    # Auto-generate tags if not provided
+    if tags is None:
+        tags = extract_keywords(f"{topic} {type_} {input_} {output}")
+
+    entry = {
+        "topic": topic,
+        "type": type_,
+        "input": input_,
+        "output": output,
+        "score": score or 10,
+        "maxScore": max_score,
+        "success": success,
+        "category": category or "system",
+        "tags": tags or [],
+        "context": context or "",
+        "related_to": related_to or [],
+        "reviewed": False,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "auto_generated": True
+    }
+
+    memory.append(entry)
+
+    try:
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+    except Exception as e:
+        print(f"Failed to save memory: {e}")
+
+    # Trigger auto-sync if significant changes accumulated
+    try:
+        syncer = GitHubSyncer()
+        recent_logs = memory[-10:]  # Check last 10 entries
+        if syncer.should_auto_sync(recent_logs):
+            # Run sync in background (non-blocking)
+            import threading
+            sync_thread = threading.Thread(target=lambda: syncer.run_auto_sync())
+            sync_thread.daemon = True
+            sync_thread.start()
+    except Exception as e:
+        print(f"Auto-sync check failed: {e}")
+
+    return entry
 
 if __name__ == '__main__':
     try:
