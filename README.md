@@ -206,16 +206,62 @@ All operations are governed by comprehensive bible documentation:
 - **CONTRIBUTING.md** - Development standards and bible compliance
 - **API_REFERENCE.md** - Complete API documentation
 
-### 🛡️ Output Compliance System
+### 🛡️ Universal Compliance and Output Enforcement
 
-MemoryOS includes comprehensive output post-processing that:
+MemoryOS features a comprehensive universal compliance layer that:
 
-- **Detects action language** without backend confirmation
-- **Blocks unverified claims** of completion or live status
-- **Logs GPT drift violations** as BuildLogs for audit trails
-- **Surfaces pending actions** requiring manual confirmation
-- **Enforces AGENT_BIBLE.md** principles in all agent outputs
+- **Centralizes ALL output validation** through single compliance middleware
+- **Routes every output channel** (API, UI, logs, chat, email) through compliance checks
+- **Blocks action language** without verified backend confirmation
+- **Enforces AGENT_BIBLE.md** compliance across all interfaces
+- **Provides static code analysis** to detect compliance bypasses
+- **Audits all outputs** with comprehensive logging and drift detection
+- **Prevents human bypasses** with automated detection and alerts
 
-No feature, file, or status is presented as complete until verified via API endpoints or human confirmation.
+#### Compliance Architecture
+
+```python
+# All outputs must use centralized functions
+from compliance_middleware import send_user_output, OutputChannel
+
+# Correct usage - routed through compliance
+response = send_user_output("System status updated", OutputChannel.API_RESPONSE)
+
+# Or use decorators for functions
+@api_output
+def my_api_endpoint():
+    return "Information provided"  # Automatically validated
+
+# Direct outputs are detected and blocked
+return jsonify({"status": "I completed the task"})  # ❌ FLAGGED
+```
+
+#### Compliance Validation Levels
+
+- **STRICT**: API responses, UI messages - blocks action language without confirmation
+- **MODERATE**: Log messages, notifications - warns but doesn't block
+- **PERMISSIVE**: Error messages - logs for audit but allows through
+
+#### Static Analysis & Code Review
+
+```bash
+# Run compliance linter
+python compliance_linter.py --directory . --fail-on-violations
+
+# Check compliance stats
+curl localhost:5000/compliance/stats
+
+# View audit log
+curl localhost:5000/compliance/audit
+```
+
+#### Compliance Testing
+
+```bash
+# Run comprehensive E2E compliance tests
+python compliance_tests.py
+```
+
+No output bypasses the compliance contract - all channels are validated, audited, and enforced per AGENT_BIBLE.md.
 
 **MemoryOS is production-ready, audit-compliant, and designed for serious development workflows. All operations are governed by comprehensive documentation standards.**

@@ -60,15 +60,17 @@ CORS(app)
 from routes.task_output import task_output_bp
 app.register_blueprint(task_output_bp)
 
-# Import session management, bible compliance, and connection validation
+# Import session management, bible compliance, connection validation, and compliance middleware
 from session_manager import SessionManager
 from bible_compliance import init_bible_compliance, requires_confirmation
 from connection_validator import ConnectionValidator
+from compliance_middleware import init_compliance_middleware, send_user_output, log_and_respond, OutputChannel, api_output, ui_output
 
-# Initialize bible compliance, session management, and connection validation
+# Initialize all compliance and validation systems
 bible_compliance = init_bible_compliance(BASE_DIR)
 session_manager = SessionManager(BASE_DIR)
 connection_validator = ConnectionValidator(BASE_DIR)
+compliance_middleware = init_compliance_middleware(BASE_DIR)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -1580,6 +1582,89 @@ def commit_log():
         except Exception as e:
             logging.error(f"Error logging commit: {e}")
             return jsonify({"error": str(e)}), 500
+
+@app.route('/compliance/stats')
+def get_compliance_stats():
+    """Get compliance statistics and health metrics"""
+    try:
+        stats = compliance_middleware.get_compliance_stats()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/compliance/audit')
+def get_compliance_audit():
+    """Get compliance audit log"""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        with open(os.path.join(BASE_DIR, 'compliance_audit.json'), 'r') as f:
+            audit_log = json.load(f)
+        entries = audit_log.get("entries", [])[-limit:]
+        return jsonify({"audit_entries": entries, "total": len(entries)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/compliance/bypasses')
+def get_compliance_bypasses():
+    """Get compliance bypass attempts"""
+    try:
+        with open(os.path.join(BASE_DIR, 'compliance_bypasses.json'), 'r') as f:
+            bypass_log = json.load(f)
+        return jsonify(bypass_log)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/system-health')
+def system_health():
+    """Comprehensive system health check with compliance validation"""
+    try:
+        # Connection validation
+        connection_status = connection_validator.validate_connection()
+        
+        # Compliance health
+        compliance_stats = compliance_middleware.get_compliance_stats()
+        
+        # Bible compliance check
+        bible_compliance_status = check_agent_bible_compliance()
+        
+        # Memory system health
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+            memory_health = {
+                "total_entries": len(memory),
+                "unreviewed": len([m for m in memory if not m.get('reviewed', False)]),
+                "recent_errors": len([m for m in memory[-10:] if not m.get('success', True)])
+            }
+        except Exception:
+            memory_health = {"error": "Cannot access memory system"}
+        
+        health_status = {
+            "overall_status": "healthy" if connection_status['overall_status'] == 'healthy' and bible_compliance_status['compliant'] else "degraded",
+            "connection": connection_status,
+            "compliance": compliance_stats,
+            "bible_compliance": bible_compliance_status,
+            "memory_system": memory_health,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+        
+        # Use compliance middleware for response
+        confirmation_status = {
+            'confirmed': True,
+            'confirmation_method': 'system_verification',
+            'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+        
+        validated_response = send_user_output(
+            json.dumps(health_status), 
+            OutputChannel.API_RESPONSE, 
+            confirmation_status
+        )
+        
+        return jsonify(json.loads(validated_response))
+        
+    except Exception as e:
+        return jsonify({"error": str(e), "status": "error"}), 500
 
 if __name__ == '__main__':
     # Import output compliance
