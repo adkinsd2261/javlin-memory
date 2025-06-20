@@ -1,0 +1,48 @@
+Prompt: Build Me a Jav Workspace with Photoshop-Like Co-Builder UX
+
+What’s missing from current builds:
+
+It still feels like a classic IDE with a chatbot stuck in a sidebar, not like a modern creative tool.
+
+I want the feeling of me and my AI co-builder (Jav) working side by side, not me “using” an assistant.
+
+The main focus should be the code/workspace/canvas, with Jav always accessible—dockable, summonable, but never in the way.
+
+Hideaway/dockable panels for project memory, logs, activity, tests, health—just like Photoshop’s panels/tools/history—so I can pull them up or hide them with a click.
+
+Jav is always context-aware: when I open a file, edit code, run a test, or hit an error, Jav appears (or offers to help) right where I’m working, not just in chat.
+
+Smart overlays, pop-outs, and right-click “Ask Jav” options—just like “Inspect” in Photoshop or Figma.
+
+No clutter, no forced chat. Jav’s chat/insights are there when I want them, or when something needs my attention—otherwise, my workspace is all about building.
+
+Every action, memory, and insight is available, but doesn’t crowd the main view—slide-in, fade-out, pin, or float as needed.
+
+Specific Features Needed:
+
+Main code/workspace canvas with minimal distractions.
+
+Jav “avatar” or status always visible; click or shortcut to summon chat/insight panel, which can dock, float, or auto-hide.
+
+Slide-out panels for memory, logs, tests, activity—customizable, resizable, hideable, recallable instantly.
+
+Inline popups/overlays from Jav as I work (“You missed a test here!”), with quick actions or “dismiss” options.
+
+Ability to drag/resize/reorder all panels—like Photoshop or Figma, not a fixed grid.
+
+Keyboard shortcuts to summon/hide Jav, open panels, or perform quick actions.
+
+Workspace remembers my layout, open files, pinned memories, etc. across sessions.
+
+Vibe:
+
+Think: Me and my AI, building together, not me using a “tool.”
+
+Modern, premium, smooth—never clunky, never “old IDE.”
+
+More like Photoshop, Figma, or VS Code with Co-Pilot, but with full agent awareness of everything I do.
+
+If you need a UX wireframe or animation for reference, ask!
+Do not deliver another tabbed IDE + chatbot.
+I want a “co-builder” experience—Jav is always there, helping me build,
+with an environment that puts my work and our partnership first.
