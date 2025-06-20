@@ -745,8 +745,7 @@ def get_feedback_trends():
     try:
         feedback_file = os.path.join(BASE_DIR, 'feedback.json')
         with open(feedback_file, 'r') as f:
-            feedback_data =```python
- json.load(f)
+            feedback_data = json.load(f)
 
         summary = feedback_data.get('ratings_summary', {})
         recent_feedback = feedback_data.get('feedback_entries', [])[-5:]  # Last 5 feedback entries
@@ -1562,3 +1561,32 @@ def commit_log():
                 # Save commit to memory
                 try:
                     with open(MEMORY_FILE, 'r') as f:
+                        memory = json.load(f)
+                except (FileNotFoundError, JSONDecodeError):
+                    memory = []
+
+                memory.append(commit_memory)
+                with open(MEMORYFILE, 'w') as f:
+                    json.dump(memory, f, indent=2)
+
+                commit_entry['logged_to_memory'] = True
+
+            # Save commit log
+            with open(commit_file, 'w') as f:
+                json.dump(commit_data, f, indent=2)
+
+            return jsonify({"status": "✅ Commit logged", "commit": commit_entry})
+
+        except Exception as e:
+            logging.error(f"Error logging commit: {e}")
+            return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    # Import output compliance
+    from output_compliance import init_output_compliance
+
+    # Initialize output compliance
+    output_compliance = init_output_compliance(BASE_DIR)
+
+    # Run Flask app
+    app.run(host='0.0.0.0', port=5000, debug=True)
