@@ -256,5 +256,45 @@
     "score": 15,
     "maxScore": 25,
     "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_173037",
+    "type": "Interaction",
+    "input": "Replit is added those in. quick chat about product. were getting to this point where we have 2 things, the terminal I need to build this with all my personal touches, but we also need the raw \"demo\" s...",
+    "output": "Understood. Let's discuss the product roadmap and strategic recommendations based on the comprehensive audit data I have access to.\n\nThe audit reveals several strategic gaps that should be addressed t...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_173037",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 10,
+    "timestamp": "2025-06-20T17:30:44.123821+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_173616",
+    "type": "Interaction",
+    "input": "Audit the creative terminal, and give me exact pain points, and fixes.",
+    "output": "Thank you for the request to audit the MemoryOS product. Based on the comprehensive data provided, I can provide the following insights:\n\nPain Points:\n1. Missing Onboarding: The strategic gaps analysi...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_173616",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 10,
+    "timestamp": "2025-06-20T17:36:21.993123+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
   }
 ]
