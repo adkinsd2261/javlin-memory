@@ -1033,37 +1033,7 @@ EXPRESS_VALIDATION_CONFIG = {
     "retry_delay": 2
 }
 
-@app.route('/system-health', endpoint='system_health_endpoint')
-def system_health():
-    """Get system health status"""
-    try:
-        # Basic health check without complex dependencies
-        health_data = {
-            "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "memory": {
-                "file_exists": os.path.exists(MEMORY_FILE),
-                "total_entries": 0
-            },
-            "git": {
-                "status": "unknown",
-                "has_changes": False
-            },
-            "health_score": 100
-        }
-
-        # Try to get memory count
-        try:
-            with open(MEMORY_FILE, 'r') as f:
-                memory = json.load(f)
-                health_data["memory"]["total_entries"] = len(memory)
-        except (FileNotFoundError, json.JSONDecodeError):
-            health_data["memory"]["total_entries"] = 0
-
-        return jsonify(health_data)
-    except Exception as e:
-        logging.error(f"Error checking system health: {e}")
-        return jsonify({"status": "error", "error": str(e)}), 500
+# Removed duplicate system_health endpoint - using system_health_check instead
 
 @app.route('/')
 def health_check():
@@ -1241,6 +1211,91 @@ def git_sync():
 
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route('/system-health', methods=['GET'])
+def system_health_check():
+    """Comprehensive system health check endpoint"""
+    try:
+        health_data = {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "memory": {
+                "file_exists": os.path.exists(MEMORY_FILE),
+                "total_entries": 0
+            },
+            "endpoints": {
+                "health": "active",
+                "memory": "active", 
+                "stats": "active",
+                "gpt_status": "active"
+            },
+            "modules": {
+                "bible_compliance": bible_compliance is not None,
+                "connection_validator": connection_validator is not None,
+                "compliance_middleware": compliance_middleware is not None
+            },
+            "health_score": 85
+        }
+
+        # Get memory count
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+                health_data["memory"]["total_entries"] = len(memory)
+        except (FileNotFoundError, json.JSONDecodeError):
+            health_data["memory"]["total_entries"] = 0
+            health_data["health_score"] -= 10
+
+        return jsonify(health_data)
+    except Exception as e:
+        logging.error(f"System health check failed: {e}")
+        return jsonify({
+            "status": "error", 
+            "error": str(e),
+            "health_score": 0
+        }), 500
+
+@app.route('/last-commit', methods=['GET'])
+def last_commit():
+    """Get last git commit info"""
+    try:
+        result = subprocess.run(['git', 'log', '-1', '--format="%h %s %cd"'], 
+                              capture_output=True, text=True, cwd=BASE_DIR)
+        if result.returncode == 0:
+            return jsonify({
+                "last_commit": result.stdout.strip(),
+                "status": "success"
+            })
+        else:
+            return jsonify({
+                "last_commit": "No git history available",
+                "status": "no_git"
+            })
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "status": "error"
+        }), 500
+
+@app.route('/task-output', methods=['GET'])
+def task_output():
+    """Get task output from task runner"""
+    try:
+        task_output_file = os.path.join(BASE_DIR, 'task_output.json')
+        if os.path.exists(task_output_file):
+            with open(task_output_file, 'r') as f:
+                data = json.load(f)
+            return jsonify(data)
+        else:
+            return jsonify({
+                "status": "no_tasks",
+                "message": "No task output available"
+            })
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "status": "error"
+        }), 500
 
 def log_to_memory(topic, type_, input_, output, success=True, score=None, max_score=25, category=None, tags=None, context=None, related_to=None):
     """Enhanced memory logging with automatic validation and tagging"""
