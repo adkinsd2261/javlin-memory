@@ -1,0 +1,12 @@
+{
+  "automation_level": "suggest_only",
+  "never_automate": [],
+  "always_ask": [],
+  "global_automations": [],
+  "feedback_history": {},
+  "suggestion_preferences": {
+    "show_reasoning": true,
+    "show_memory_source": true,
+    "allow_interruptions": false
+  }
+}
