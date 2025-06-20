@@ -15,7 +15,7 @@ BEHAVIORAL AUTHORITY: AGENT_BIBLE.md
 
 import os
 import json
-import datetime
+from datetime import datetime, timezone
 import requests
 import logging
 from typing import Dict, Any, Optional
@@ -36,7 +36,7 @@ class GPTReplitIntegration:
             validation_data = {
                 "query": user_query,
                 "response_type": response_type,
-                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
             response = requests.post(
@@ -114,14 +114,14 @@ class GPTReplitIntegration:
                 "recent_activity": recent_memory[:3] if recent_memory else [],
                 "connection_score": health.get('connection_health_score', 0),
                 "agent_ready": health.get('agent_confirmation_ready', False),
-                "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
             return {
                 "error": str(e),
                 "manual_verification_required": True,
-                "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             }
 
     def generate_compliant_response(self, user_query: str, intended_response: str) -> Dict[str, Any]:
@@ -178,4 +178,4 @@ def check_if_claim_allowed(claim: str) -> Dict[str, Any]:
     """Check if GPT can make a specific claim"""
     integration = GPTReplitIntegration(os.path.dirname(os.path.abspath(__file__)))
     return integration.check_compliance_before_claim(claim)
-`
+```

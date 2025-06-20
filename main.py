@@ -15,7 +15,6 @@ import os
 from flask import Flask, request, jsonify, abort, render_template_string
 from flask_cors import CORS
 import json
-import datetime
 import logging
 from json.decoder import JSONDecodeError
 import re
@@ -25,6 +24,7 @@ import inspect
 import time
 import fcntl
 import tempfile
+from datetime import datetime, timezone
 
 # Use absolute path for memory file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -247,7 +247,7 @@ def add_memory():
             data["related_to"] = []
 
         if 'timestamp' not in data:
-            data['timestamp'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            data['timestamp'] = datetime.now(timezone.utc).isoformat()
             logging.info(f"Added timestamp: {data['timestamp']}")
 
         # Add context and auto-tagging for manual entries if not present
@@ -522,7 +522,7 @@ def log_autolog_trace(data, user_agent, is_trusted_agent):
         trace_file = os.path.join(BASE_DIR, SYSTEM_CONFIG.get('autolog_trace_file', 'autolog_trace.json'))
 
         trace_entry = {
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_agent": user_agent,
             "is_trusted_agent": is_trusted_agent,
             "payload": data,
@@ -622,7 +622,7 @@ def autolog_memory_trusted(input_text="", output_text="", topic="", type_="AutoL
         "context": context,
         "related_to": related_to,
         "reviewed": False,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "auto_generated": True,
         "trusted_agent": True,
         "importance_score": importance,
@@ -704,7 +704,7 @@ def autolog_memory(input_text="", output_text="", topic="", type_="AutoLog", cat
         "context": context,
         "related_to": related_to,
         "reviewed": False,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "auto_generated": True,
         "importance_score": importance,
         "ml_predicted": ml_predictions is not None,
@@ -761,7 +761,7 @@ def get_top_unreviewed_for_feedback(memory, limit=10):
         importance = m.get('importance_score', m.get('score', 0))
         try:
             timestamp = datetime.fromisoformat(m.get('timestamp', '').replace('Z', '+00:00'))
-            recency_bonus = (datetime.now(datetime.timezone.utc) - timestamp).days * -1  # Negative for recent first
+            recency_bonus = (datetime.now(timezone.utc) - timestamp).days * -1  # Negative for recent first
         except:
             recency_bonus = -1000  # Very old or invalid timestamp
 
@@ -936,7 +936,7 @@ def get_founder_intelligence():
         "is_active": True,
         "decisions_made": 42,
         "active_insights": 7,
-        "last_state_check": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "last_state_check": datetime.now(timezone.utc).isoformat(),
         "founder_context": {
             "focus_areas": ["product_strategy", "market_analysis", "team_growth"]
         },
@@ -967,7 +967,7 @@ def system_health():
         # Basic health check without complex dependencies
         health_data = {
             "status": "healthy",
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "memory": {
                 "file_exists": os.path.exists(MEMORY_FILE),
                 "total_entries": 0
@@ -978,7 +978,7 @@ def system_health():
             },
             "health_score": 100
         }
-        
+
         # Try to get memory count
         try:
             with open(MEMORY_FILE, 'r') as f:
@@ -986,7 +986,7 @@ def system_health():
                 health_data["memory"]["total_entries"] = len(memory)
         except (FileNotFoundError, json.JSONDecodeError):
             health_data["memory"]["total_entries"] = 0
-            
+
         return jsonify(health_data)
     except Exception as e:
         logging.error(f"Error checking system health: {e}")
@@ -997,7 +997,7 @@ def quick_health():
     """Fast health check without caching overhead"""
     return jsonify({
         "status": "healthy",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "uptime": "running"
     })
 
@@ -1011,7 +1011,7 @@ def express_status():
             return jsonify({"status": "caching_disabled"})
 
         if EXPRESS_VALIDATION_CACHE and EXPRESS_VALIDATION_LAST_UPDATE and \
-           (datetime.datetime.now() - EXPRESS_VALIDATION_LAST_UPDATE).total_seconds() < EXPRESS_VALIDATION_CONFIG['cache_duration']:
+           (datetime.now() - EXPRESS_VALIDATION_LAST_UPDATE).total_seconds() < EXPRESS_VALIDATION_CONFIG['cache_duration']:
             return jsonify({"status": "cached", "data": EXPRESS_VALIDATION_CACHE})
 
         # Attempt fresh validation
@@ -1019,7 +1019,7 @@ def express_status():
 
         if validation_result.get('status') == 'success':
             EXPRESS_VALIDATION_CACHE = validation_result
-            EXPRESS_VALIDATION_LAST_UPDATE = datetime.datetime.now()
+            EXPRESS_VALIDATION_LAST_UPDATE = datetime.now()
             return jsonify({"status": "fresh", "data": validation_result})
         else:
             return jsonify({"status": "failed_fresh_validation", "error": validation_result.get('error')}), 500
