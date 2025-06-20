@@ -385,6 +385,159 @@ def ai_context():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
+@app.route('/product/audit')
+def product_audit():
+    """Comprehensive product audit for strategic analysis"""
+    try:
+        import os
+        import glob
+        
+        # Analyze file structure and documentation
+        docs = {}
+        code_files = {}
+        
+        # Check key documentation files
+        doc_files = ['README.md', 'AGENT_BIBLE.md', 'config.json', 'version.json']
+        for doc in doc_files:
+            if os.path.exists(doc):
+                with open(doc, 'r') as f:
+                    docs[doc] = f.read()
+        
+        # Analyze code structure
+        py_files = glob.glob('*.py')
+        for py_file in py_files:
+            try:
+                with open(py_file, 'r') as f:
+                    content = f.read()
+                    # Extract key info
+                    lines = len(content.split('\n'))
+                    functions = content.count('def ')
+                    classes = content.count('class ')
+                    endpoints = content.count('@app.route')
+                    
+                    code_files[py_file] = {
+                        "lines": lines,
+                        "functions": functions,
+                        "classes": classes,
+                        "endpoints": endpoints,
+                        "size_kb": round(len(content) / 1024, 2)
+                    }
+            except:
+                pass
+        
+        # Get memory statistics for product usage insights
+        memory = load_memory()
+        
+        # Analyze memory for product insights
+        categories = {}
+        success_patterns = {}
+        user_pain_points = []
+        
+        for mem in memory[-50:]:  # Recent memories
+            cat = mem.get('category', 'unknown')
+            categories[cat] = categories.get(cat, 0) + 1
+            
+            if not mem.get('success', True):
+                user_pain_points.append({
+                    "topic": mem.get('topic', ''),
+                    "type": mem.get('type', ''),
+                    "input": mem.get('input', '')[:100],
+                    "timestamp": mem.get('timestamp', '')
+                })
+        
+        # Analyze UI and frontend
+        ui_files = ['index.html', 'MemoryTimeline.jsx']
+        ui_analysis = {}
+        for ui_file in ui_files:
+            if os.path.exists(ui_file):
+                with open(ui_file, 'r') as f:
+                    content = f.read()
+                    ui_analysis[ui_file] = {
+                        "has_styling": 'style' in content.lower() or 'css' in content.lower(),
+                        "has_javascript": 'script' in content.lower() or '.js' in content,
+                        "size_kb": round(len(content) / 1024, 2),
+                        "components": content.count('function ') + content.count('const ') + content.count('class ')
+                    }
+        
+        # Product positioning analysis
+        features_mentioned = []
+        if 'README.md' in docs:
+            readme = docs['README.md'].lower()
+            feature_keywords = ['api', 'memory', 'ai', 'agent', 'monitoring', 'health', 'logging', 'deployment']
+            for keyword in feature_keywords:
+                if keyword in readme:
+                    features_mentioned.append(keyword)
+        
+        audit_result = {
+            "product_overview": {
+                "name": "MemoryOS",
+                "version": "2.0.0",
+                "tagline": "Bulletproof minimal memory system",
+                "core_value_prop": "AI-powered persistent memory with health monitoring"
+            },
+            "documentation_health": {
+                "files_present": list(docs.keys()),
+                "total_doc_size_kb": sum(round(len(content) / 1024, 2) for content in docs.values()),
+                "features_documented": features_mentioned,
+                "documentation_completeness": len(docs) / len(doc_files) * 100
+            },
+            "technical_foundation": {
+                "code_files": code_files,
+                "total_endpoints": sum(info.get('endpoints', 0) for info in code_files.values()),
+                "total_functions": sum(info.get('functions', 0) for info in code_files.values()),
+                "codebase_size_kb": sum(info.get('size_kb', 0) for info in code_files.values())
+            },
+            "user_experience": {
+                "ui_files": ui_analysis,
+                "has_frontend": len(ui_analysis) > 0,
+                "styling_quality": any(info.get('has_styling', False) for info in ui_analysis.values()),
+                "interactivity": any(info.get('has_javascript', False) for info in ui_analysis.values())
+            },
+            "product_usage_insights": {
+                "total_memories": len(memory),
+                "category_breakdown": categories,
+                "recent_pain_points": user_pain_points[:5],
+                "success_rate": f"{sum(1 for m in memory if m.get('success', False)) / len(memory) * 100:.1f}%" if memory else "0%"
+            },
+            "strategic_gaps": {
+                "missing_onboarding": not any('getting started' in doc.lower() for doc in docs.values()),
+                "missing_pricing": not any('pricing' in doc.lower() for doc in docs.values()),
+                "missing_use_cases": not any('use case' in doc.lower() for doc in docs.values()),
+                "missing_integration_guide": not any('integration' in doc.lower() for doc in docs.values()),
+                "ui_needs_work": not any(info.get('has_styling', False) for info in ui_analysis.values())
+            },
+            "competitive_positioning": {
+                "target_market": "AI-powered productivity tools",
+                "unique_features": ["persistent memory", "health monitoring", "ai agent integration"],
+                "differentiators": ["bulletproof reliability", "zero complexity", "production-ready"]
+            },
+            "recommendations": {
+                "immediate": [
+                    "Create clear value proposition on landing page",
+                    "Add pricing tiers and use case examples",
+                    "Improve UI styling and user experience",
+                    "Add onboarding flow for new users"
+                ],
+                "strategic": [
+                    "Develop API marketplace positioning",
+                    "Create developer community",
+                    "Build integration ecosystem",
+                    "Establish thought leadership in AI memory"
+                ]
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        return jsonify(audit_result)
+        
+    except Exception as e:
+        logger.error(f"Product audit failed: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
 if __name__ == '__main__':
     # Ensure memory file exists
     if not os.path.exists(MEMORY_FILE):

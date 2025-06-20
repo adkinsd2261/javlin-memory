@@ -104,12 +104,29 @@ class MemoryAwareAgent:
         except:
             return {"status": "unknown"}
     
+    def get_product_audit(self) -> Dict[str, Any]:
+        """Get comprehensive product audit for strategic analysis"""
+        try:
+            response = requests.get(f"{self.memory_api_base}/product/audit")
+            return response.json()
+        except Exception as e:
+            self.logger.error(f"Product audit request failed: {e}")
+            return {"error": str(e)}
+    
     def generate_context_prompt(self, user_input: str) -> str:
         """Generate full context-aware prompt"""
         context = self.load_persistent_context()
         
+        # Check if user is asking for audit or strategic analysis
+        audit_keywords = ['audit', 'pain point', 'product', 'selling', 'documentation', 'strategy', 'gaps', 'recommendations']
+        needs_audit = any(keyword in user_input.lower() for keyword in audit_keywords)
+        
+        audit_data = {}
+        if needs_audit:
+            audit_data = self.get_product_audit()
+        
         # Build comprehensive system prompt
-        system_prompt = f"""You are the MemoryOS AI Agent with full persistent awareness.
+        system_prompt = f"""You are the MemoryOS AI Agent with full persistent awareness and audit capabilities.
 
 CURRENT SYSTEM STATE:
 - Total memories: {context.get('total_memories', 0)}
@@ -127,11 +144,42 @@ RECENT MEMORY CONTEXT:
         
         system_prompt += f"""
 CATEGORY BREAKDOWN:
-{json.dumps(context.get('categories', {}), indent=2)}
+{json.dumps(context.get('categories', {}), indent=2)}"""
+
+        # Add product audit data if requested
+        if needs_audit and audit_data and 'error' not in audit_data:
+            system_prompt += f"""
+
+COMPREHENSIVE PRODUCT AUDIT DATA:
+Product Overview: {json.dumps(audit_data.get('product_overview', {}), indent=2)}
+
+Documentation Health: {json.dumps(audit_data.get('documentation_health', {}), indent=2)}
+
+Technical Foundation: {json.dumps(audit_data.get('technical_foundation', {}), indent=2)}
+
+User Experience Analysis: {json.dumps(audit_data.get('user_experience', {}), indent=2)}
+
+Usage Insights: {json.dumps(audit_data.get('product_usage_insights', {}), indent=2)}
+
+Strategic Gaps Identified: {json.dumps(audit_data.get('strategic_gaps', {}), indent=2)}
+
+Current Positioning: {json.dumps(audit_data.get('competitive_positioning', {}), indent=2)}
+
+Strategic Recommendations: {json.dumps(audit_data.get('recommendations', {}), indent=2)}
+
+AUDIT INSTRUCTIONS:
+When user asks for product audit, pain points, or strategic analysis, use this comprehensive data to:
+1. Identify specific gaps in documentation, UX, and positioning
+2. Highlight pain points from recent memory failures
+3. Provide actionable recommendations for immediate and strategic improvements
+4. Focus on what the product is actually selling vs. what it could be selling
+5. Suggest specific improvements to documentation, UI, and user flow"""
+
+        system_prompt += f"""
 
 USER INPUT: {user_input}
 
-Respond with full awareness of the system state and memory context. You maintain persistent knowledge across all interactions."""
+Respond with full awareness of the system state, memory context, and if requested, comprehensive product audit insights. You have access to the complete codebase analysis, documentation review, and strategic positioning data."""
 
         return system_prompt
     
