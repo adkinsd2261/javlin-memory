@@ -54,18 +54,32 @@ class GitHubSyncer:
             with open(self.config_file, 'r') as f:
                 user_config = json.load(f)
             
+            # Validate config structure
+            if not isinstance(user_config, dict):
+                self.logger.warning("Invalid config format, using defaults")
+                return default_config
+            
             # Merge with defaults
             for section in default_config:
                 if section not in user_config:
                     user_config[section] = default_config[section]
-                else:
+                elif isinstance(user_config[section], dict):
                     for key, value in default_config[section].items():
                         if key not in user_config[section]:
                             user_config[section][key] = value
+                else:
+                    user_config[section] = default_config[section]
             
             return user_config
         
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            self.logger.warning(f"Config load error: {e}, using defaults")
+            # Create default config file
+            try:
+                with open(self.config_file, 'w') as f:
+                    json.dump(default_config, f, indent=2)
+            except Exception:
+                pass
             return default_config
     
     def load_memory_logs(self, limit: int = None) -> List[Dict]:
@@ -318,28 +332,71 @@ class GitHubSyncer:
             return False
     
     def commit_and_push(self, commit_message: str, version: str) -> bool:
-        """Execute git add, commit, and push"""
+        """Execute git add, commit, and push with proper lock file handling"""
         try:
+            # Clear any existing lock files
+            lock_files = [
+                '.git/index.lock',
+                '.git/refs/heads/main.lock',
+                '.git/HEAD.lock',
+                '.git/config.lock'
+            ]
+            
+            for lock_file in lock_files:
+                lock_path = os.path.join(self.base_dir, lock_file)
+                if os.path.exists(lock_path):
+                    os.remove(lock_path)
+                    self.logger.info(f"Removed lock file: {lock_file}")
+            
+            # Wait a moment for file system to clear
+            import time
+            time.sleep(0.5)
+            
+            # Check if there are actually changes to commit
+            result = subprocess.run(['git', 'status', '--porcelain'], 
+                                  capture_output=True, text=True, cwd=self.base_dir)
+            if not result.stdout.strip():
+                self.logger.info("No changes to commit")
+                return False
+            
             # Add all changes
-            subprocess.run(['git', 'add', '.'], check=True, cwd=self.base_dir)
+            subprocess.run(['git', 'add', '.'], check=True, cwd=self.base_dir, timeout=30)
+            
+            # Check if there's anything staged
+            result = subprocess.run(['git', 'diff', '--cached', '--quiet'], 
+                                  capture_output=True, cwd=self.base_dir)
+            if result.returncode == 0:
+                self.logger.info("No staged changes to commit")
+                return False
             
             # Commit with message
             subprocess.run(['git', 'commit', '-m', commit_message], 
-                         check=True, cwd=self.base_dir)
+                         check=True, cwd=self.base_dir, timeout=30)
             
-            # Tag the version
-            subprocess.run(['git', 'tag', version], check=True, cwd=self.base_dir)
+            # Tag the version (skip if already exists)
+            try:
+                subprocess.run(['git', 'tag', version], check=True, cwd=self.base_dir, timeout=15)
+            except subprocess.CalledProcessError:
+                self.logger.warning(f"Tag {version} already exists, skipping")
             
             # Push to main branch
             branch = self.config['git_sync']['branch']
-            subprocess.run(['git', 'push', 'origin', branch], check=True, cwd=self.base_dir)
-            subprocess.run(['git', 'push', 'origin', '--tags'], check=True, cwd=self.base_dir)
+            subprocess.run(['git', 'push', 'origin', branch], check=True, cwd=self.base_dir, timeout=60)
+            
+            # Push tags
+            try:
+                subprocess.run(['git', 'push', 'origin', '--tags'], check=True, cwd=self.base_dir, timeout=30)
+            except subprocess.CalledProcessError:
+                self.logger.warning("Failed to push tags, but commit was successful")
             
             self.logger.info(f"Successfully pushed {version} to {branch}")
             return True
             
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Git operation failed: {e}")
+            return False
+        except subprocess.TimeoutExpired as e:
+            self.logger.error(f"Git operation timed out: {e}")
             return False
     
     def log_commit_metadata(self, commit_message: str, version: str, recent_logs: List[Dict]):

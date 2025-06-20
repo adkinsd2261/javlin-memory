@@ -1,4 +1,10 @@
+
 {
+  "agent_auto_log": true,
+  "auto_log_threshold": 60,
+  "trusted_agents": ["Javlin Builder Agent", "Assistant"],
+  "audit_logging": true,
+  "autolog_trace_file": "autolog_trace.json",
   "git_sync": {
     "enabled": true,
     "auto_push": true,
@@ -9,7 +15,7 @@
   },
   "personalization": {
     "commit_format": "emoji",
-    "sign_off": "Darryl Adkins <adkinsd2261@gmail.com>",
+    "sign_off": "Javlin Builder Agent",
     "delay_commits": false,
     "batch_commits": true,
     "custom_commit_template": ""

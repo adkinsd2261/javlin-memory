@@ -1000,7 +1000,16 @@ def git_sync():
     """Manual GitHub sync endpoint"""
     try:
         force = request.args.get('force', 'false').lower() == 'true'
-        syncer = GitHubSyncer()
+        
+        # Clear any existing lock files first
+        import subprocess
+        try:
+            subprocess.run(['find', '.git', '-name', '*.lock', '-delete'], 
+                         capture_output=True, cwd=BASE_DIR, timeout=10)
+        except:
+            pass
+            
+        syncer = GitHubSyncer(BASE_DIR)
         result = syncer.run_auto_sync(force=force)
 
         # Log the sync attempt to memory
@@ -1061,14 +1070,22 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
 
     # Trigger auto-sync if significant changes accumulated
     try:
-        syncer = GitHubSyncer()
+        syncer = GitHubSyncer(BASE_DIR)
         recent_logs = memory[-10:]  # Check last 10 entries
         if syncer.should_auto_sync(recent_logs):
-            # Run sync in background (non-blocking)
-            import threading
-            sync_thread = threading.Thread(target=lambda: syncer.run_auto_sync())
-            sync_thread.daemon = True
-            sync_thread.start()
+            # Log sync intent but don't run in background to prevent conflicts
+            print(f"Auto-sync triggered: {len(recent_logs)} recent changes")
+            # Instead of background sync, just log that sync is needed
+            log_to_memory(
+                topic="Auto-sync Triggered",
+                type_="SystemUpdate",
+                input_=f"Auto-sync threshold met with {len(recent_logs)} recent changes",
+                output="Sync scheduled for next manual trigger to prevent lock conflicts",
+                success=True,
+                category='development',
+                tags=['git', 'sync', 'auto'],
+                context="Auto-sync detection and scheduling"
+            )
     except Exception as e:
         print(f"Auto-sync check failed: {e}")
 
