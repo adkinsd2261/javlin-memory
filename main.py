@@ -751,7 +751,7 @@ def get_top_unreviewed_for_feedback(memory, limit=10):
 
         return (importance, recency_bonus)
 
-    sorted_unreviewed = sorted(unreviewed, key=sort_key, reverse=True)
+    sorted_unreviewed = sorted(unreviewed, key=sort_unreviewed, key=sort_key, reverse=True)
 
     # Return limited list with feedback prompts
     feedback_candidates = []
@@ -1033,7 +1033,7 @@ def git_sync():
     """Simple git sync endpoint - bypasses lock issues"""
     try:
         message = request.args.get('message', '🔧 API sync')
-        
+
         # Simple success response to unblock GPT integration
         log_to_memory(
             topic="Git Sync Bypass", 
@@ -1044,12 +1044,12 @@ def git_sync():
             category="system",
             tags=["git", "bypass", "workaround"]
         )
-        
+
         return jsonify({
             "status": "success", 
             "message": "Git sync bypassed - lock issue workaround active"
         })
-        
+
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
 

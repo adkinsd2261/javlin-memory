@@ -36,7 +36,7 @@ localPort = 8080
 externalPort = 8080
 
 [workflows]
-runButton = "Start MemoryOS API (Safe)"
+runButton = "Start MemoryOS API (Clean)"
 
 [[workflows.workflow]]
 name = "Start MemoryOS API"
@@ -58,6 +58,19 @@ args = "python doc_watcher.py"
 
 [[workflows.workflow]]
 name = "Start MemoryOS API (Safe)"
+author = 44033680
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python force_git_cleanup.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[[workflows.workflow]]
+name = "Start MemoryOS API (Clean)"
 author = 44033680
 mode = "sequential"
 
