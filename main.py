@@ -746,7 +746,149 @@ def get_feedback_trends():
     """Analyze feedback trends from feedback.json"""
     try:
         feedback_file = os.path.join(BASE_DIR, 'feedback.json')
-        with open(feedback_file, 'r') as f:
+        with open(feedback_file, 'r')```python
+ as f:
             feedback_data = json.load(f)
 
-        summary
+        summary = {
+            'total_feedback': len(feedback_data),
+            'positive_count': len([fb for fb in feedback_data if fb.get('sentiment') == 'positive']),
+            'negative_count': len([fb for fb in feedback_data if fb.get('sentiment') == 'negative']),
+            'average_rating': sum([fb.get('rating', 0) for fb in feedback_data]) / len(feedback_data) if feedback_data else 0
+        }
+
+        # Trend analysis (e.g., feedback over time)
+        time_series_data = {}
+        for fb in feedback_data:
+            date = fb.get('timestamp', '').split('T')[0]  # Extract date part
+            if date:
+                if date not in time_series_data:
+                    time_series_data[date] = {'positive': 0, 'negative': 0, 'total': 0}
+                time_series_data[date]['total'] += 1
+                if fb.get('sentiment') == 'positive':
+                    time_series_data[date]['positive'] += 1
+                else:
+                    time_series_data[date]['negative'] += 1
+
+        return jsonify({
+            'summary': summary,
+            'trends': time_series_data
+        })
+    except FileNotFoundError:
+        return {"message": "No feedback file found or invalid JSON"}
+
+@app.route('/founder', methods=['GET'])
+@requires_confirmation
+def founder_status():
+    """GPT endpoint for founder agent status and intelligence"""
+    try:
+        # Validate connection first
+        validation = connection_validator.validate_fresh_connection('founder_check', ['/health', '/memory'])
+
+        if not validation['confirmation_allowed']:
+            return send_user_output(
+                "🔒 **Backend Connection Required**\n\n"
+                "Cannot provide founder status without fresh backend validation.\n\n"
+                f"**Connection Health:** {validation['overall_health_score']:.1f}%\n"
+                f"**Endpoints Failed:** {len(validation['failed_endpoints'])}\n\n"
+                "Please ensure MemoryOS backend is running and accessible.",
+                OutputChannel.API_RESPONSE,
+                {"confirmed": False, "validation_required": True}
+            )
+
+        # Get founder intelligence
+        founder_data = get_founder_intelligence()
+
+        # Get system health
+        health_response = connection_validator._test_endpoint('/system-health')
+        system_health = health_response.get('status') == 'success'
+
+        # Format response for GPT
+        status_message = f"""🧠 **MemoryOS Founder Agent Status**
+
+**Connection Status:** ✅ VALIDATED ({validation['overall_health_score']:.1f}% health)
+**Founder Agent:** {'🟢 ACTIVE' if founder_data.get('is_active') else '🔴 INACTIVE'}
+**System Health:** {'✅ HEALTHY' if system_health else '⚠️ DEGRADED'}
+
+**Intelligence Metrics:**
+- Decisions Made: {founder_data.get('decisions_made', 0)}
+- Active Insights: {founder_data.get('active_insights', 0)}
+- Last State Check: {founder_data.get('last_state_check', 'Never')}
+
+**Current Focus Areas:**
+{chr(10).join(f"• {area.replace('_', ' ').title()}" for area in founder_data.get('founder_context', {}).get('focus_areas', []))}
+
+**Backend Endpoints Validated:** {', '.join(validation['endpoints_validated'])}
+"""
+
+        return send_user_output(
+            status_message,
+            OutputChannel.API_RESPONSE,
+            {
+                "confirmed": True, 
+                "confirmation_method": "backend_validation",
+                "founder_data": founder_data,
+                "connection_health": validation['overall_health_score']
+            }
+        )
+
+    except Exception as e:
+        logging.error(f"Founder status error: {e}")
+        return send_user_output(
+            f"❌ **Founder Status Error**\n\nError retrieving founder status: {str(e)}",
+            OutputChannel.API_RESPONSE,
+            {"confirmed": False, "error": str(e)}
+        )
+
+@app.route('/founder/start', methods=['POST'])
+@requires_confirmation  
+def start_founder():
+    """Start the proactive founder agent"""
+    try:
+        # Validate connection first
+        validation = connection_validator.validate_fresh_connection('feature_activation', ['/health', '/memory', '/stats'])
+
+        if not validation['confirmation_allowed']:
+            return jsonify({
+                "error": "Backend connection validation failed",
+                "health_score": validation['overall_health_score'],
+                "failed_endpoints": validation['failed_endpoints']
+            }), 503
+
+        result = start_founder_mode()
+        return jsonify({"status": "LIVE", "message": result, "validated": True})
+
+    except Exception as e:
+        logging.error(f"Start founder error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/founder/status', methods=['GET'])
+def founder_status_json():
+    """JSON status for the founder UI"""
+    try:
+        return jsonify(get_founder_intelligence())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/founder/insights', methods=['GET'])
+def founder_insights():
+    """Get founder insights for UI"""
+    try:
+        founder_data = get_founder_intelligence()
+        return jsonify({
+            "active_insights": proactive_founder.active_insights if proactive_founder else [],
+            "recent_decisions": founder_data.get('recent_decisions', [])
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/founder/ui')
+def founder_ui():
+    """Serve the founder intelligence UI"""
+    try:
+        with open(os.path.join(BASE_DIR, 'founder_ui.html'), 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        return "Founder UI not found", 404
+
+logging.basicConfig(level=logging.DEBUG)
