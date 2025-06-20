@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +22,9 @@
             --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --terminal-bg: #0f172a;
             --terminal-text: #00ff88;
+            --cofounder-color: #8b5cf6;
+            --insight-bg: rgba(139, 92, 246, 0.1);
+            --glow-color: #00ff88;
         }
 
         * {
@@ -211,62 +215,32 @@
             margin-top: 0.5rem;
         }
 
-        /* Features Grid */
-        .features-section {
-            padding: 3rem 2rem;
-        }
-
-        .features-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .features-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--primary-color);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        /* Terminal Interface */
+        /* Interactive Terminal */
         .terminal-section {
+            padding: 0;
+            background: var(--terminal-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            min-height: 600px;
+        }
+
+        .terminal-main {
             padding: 2rem;
+            border-right: 1px solid #334155;
+        }
+
+        .cofounder-panel {
+            background: rgba(139, 92, 246, 0.05);
+            border-left: 3px solid var(--cofounder-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .terminal {
@@ -275,8 +249,9 @@
             padding: 1.5rem;
             color: var(--terminal-text);
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            min-height: 400px;
+            min-height: 500px;
             position: relative;
+            border: 1px solid #334155;
         }
 
         .terminal-header {
@@ -304,7 +279,7 @@
         }
 
         .chat-history {
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
             margin-bottom: 1rem;
         }
@@ -312,6 +287,7 @@
         .chat-message {
             margin: 1rem 0;
             line-height: 1.4;
+            animation: slideIn 0.3s ease-out;
         }
 
         .chat-message.user {
@@ -326,10 +302,22 @@
             color: #fbbf24;
         }
 
+        .chat-message.cofounder {
+            color: var(--cofounder-color);
+            border-left: 3px solid var(--cofounder-color);
+            padding-left: 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
         .terminal-input {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--glow-color);
         }
 
         .terminal-prompt {
@@ -349,6 +337,92 @@
 
         .terminal-input input::placeholder {
             color: #64748b;
+        }
+
+        /* Co-founder Panel */
+        .cofounder-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--cofounder-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .cofounder-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--cofounder-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .insight-card {
+            background: var(--insight-bg);
+            border: 1px solid var(--cofounder-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: var(--cofounder-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .insight-content {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .insight-metric {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--cofounder-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.25rem 0.25rem 0.25rem 0;
+            font-size: 0.8rem;
+        }
+
+        .efficiency-score {
+            background: linear-gradient(45deg, var(--cofounder-color), var(--accent-color));
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .efficiency-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .live-updates {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--glow-color);
+            animation: pulse 2s infinite;
         }
 
         /* Memory Browser */
@@ -437,7 +511,7 @@
             background: white;
             border-radius: 12px;
             padding: 2rem;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
@@ -466,8 +540,49 @@
             color: var(--primary-color);
         }
 
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 5px var(--glow-color);
+            }
+            50% {
+                box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--glow-color);
+            }
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
+            .terminal-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .cofounder-panel {
+                border-left: none;
+                border-top: 3px solid var(--cofounder-color);
+            }
+
             .nav-content {
                 flex-direction: column;
                 gap: 1rem;
@@ -483,10 +598,6 @@
             }
 
             .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .features-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -535,6 +646,28 @@
             background: rgba(239, 68, 68, 0.1);
             color: var(--error-color);
         }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cofounder-color);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body x-data="memoryOS()" x-init="init()">
@@ -548,7 +681,7 @@
                 </div>
                 <ul class="nav-links">
                     <li class="nav-link" :class="{ active: activeSection === 'home' }" @click="setActiveSection('home')">Home</li>
-                    <li class="nav-link" :class="{ active: activeSection === 'terminal' }" @click="setActiveSection('terminal')">Terminal</li>
+                    <li class="nav-link" :class="{ active: activeSection === 'terminal' }" @click="setActiveSection('terminal')">Co-Founder Terminal</li>
                     <li class="nav-link" :class="{ active: activeSection === 'memory' }" @click="setActiveSection('memory')">Memory</li>
                     <li class="nav-link" :class="{ active: activeSection === 'analytics' }" @click="setActiveSection('analytics')">Analytics</li>
                 </ul>
@@ -563,7 +696,7 @@
             <section class="section" :class="{ active: activeSection === 'home' }">
                 <div class="hero">
                     <h1>Creative AI Agent Terminal</h1>
-                    <p>Your persistent AI companion for deep work, creative projects, and intelligent automation</p>
+                    <p>Your persistent AI co-founder for deep work, creative projects, and intelligent automation</p>
                     <div class="cta-buttons">
                         <button class="btn btn-primary" @click="setActiveSection('terminal')">Start Creating</button>
                         <button class="btn btn-secondary" @click="showOnboarding = true">Learn More</button>
@@ -581,8 +714,8 @@
                         <span class="stat-label">Success Rate</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-number" x-text="daysSince">0</span>
-                        <span class="stat-label">Days Creating</span>
+                        <span class="stat-number" x-text="efficiencyScore">0</span>
+                        <span class="stat-label">Efficiency Score</span>
                     </div>
                     <div class="stat-card">
                         <div class="status-indicator" :class="systemStatus === 'healthy' ? 'status-healthy' : 'status-error'">
@@ -591,77 +724,107 @@
                         <span class="stat-label">System Status</span>
                     </div>
                 </div>
-
-                <!-- Features -->
-                <div class="features-section">
-                    <div class="features-header">
-                        <h2>Built for Creative Minds</h2>
-                        <p>Everything you need to transform ideas into reality with AI assistance</p>
-                    </div>
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon">🧠</div>
-                            <h3>Persistent Memory</h3>
-                            <p>Your AI remembers every conversation, insight, and creative breakthrough across all sessions.</p>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">⚡</div>
-                            <h3>Instant Context</h3>
-                            <p>Jump into any project with full context - no need to re-explain your vision or progress.</p>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🎨</div>
-                            <h3>Creative Workflows</h3>
-                            <p>Optimized for brainstorming, ideation, writing, coding, and complex problem-solving.</p>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🔗</div>
-                            <h3>API Integration</h3>
-                            <p>Connect with your favorite tools and automate repetitive tasks in your creative process.</p>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">📈</div>
-                            <h3>Progress Tracking</h3>
-                            <p>Visualize your creative journey with intelligent analytics and insights.</p>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🛡️</div>
-                            <h3>Bulletproof Reliability</h3>
-                            <p>Enterprise-grade reliability ensures your creative work is never lost.</p>
-                        </div>
-                    </div>
-                </div>
             </section>
 
-            <!-- Terminal Section -->
+            <!-- Interactive Co-Founder Terminal -->
             <section class="section" :class="{ active: activeSection === 'terminal' }">
                 <div class="terminal-section">
-                    <div class="terminal">
-                        <div class="terminal-header">
-                            <div class="terminal-dot red"></div>
-                            <div class="terminal-dot yellow"></div>
-                            <div class="terminal-dot green"></div>
-                            <div class="terminal-title">MemoryOS Creative Terminal</div>
-                        </div>
+                    <div class="live-updates">
+                        <div class="pulse-dot"></div>
+                        <span style="color: #94a3b8; font-size: 0.8rem;">Live Co-Founder Mode</span>
+                    </div>
 
-                        <div class="chat-history" x-ref="chatHistory">
-                            <template x-for="message in chatHistory" :key="message.id">
-                                <div class="chat-message" :class="message.type">
-                                    <span x-text="message.content"></span>
+                    <div class="terminal-layout">
+                        <!-- Main Terminal -->
+                        <div class="terminal-main">
+                            <div class="terminal">
+                                <div class="terminal-header">
+                                    <div class="terminal-dot red"></div>
+                                    <div class="terminal-dot yellow"></div>
+                                    <div class="terminal-dot green"></div>
+                                    <div class="terminal-title">Co-Founder AI Terminal - Building Together</div>
                                 </div>
-                            </template>
+
+                                <div class="chat-history" x-ref="chatHistory">
+                                    <template x-for="message in chatHistory" :key="message.id">
+                                        <div class="chat-message" :class="message.type">
+                                            <span x-html="message.content"></span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div class="terminal-input">
+                                    <span class="terminal-prompt">❯</span>
+                                    <input 
+                                        x-model="currentMessage" 
+                                        @keydown.enter="sendMessage()"
+                                        :disabled="isTyping"
+                                        placeholder="What are we building today? I have insights based on your memories..."
+                                        autofocus
+                                    >
+                                    <div x-show="isTyping" class="loading"></div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="terminal-input">
-                            <span class="terminal-prompt">❯</span>
-                            <input 
-                                x-model="currentMessage" 
-                                @keydown.enter="sendMessage()"
-                                :disabled="isTyping"
-                                placeholder="Ask me anything about your creative projects..."
-                                autofocus
-                            >
-                            <div x-show="isTyping" class="loading"></div>
+                        <!-- Co-Founder Insights Panel -->
+                        <div class="cofounder-panel">
+                            <div class="cofounder-header">
+                                <div class="cofounder-avatar">CF</div>
+                                <span>Co-Founder Insights</span>
+                            </div>
+
+                            <div class="efficiency-score">
+                                <div class="efficiency-number" x-text="efficiencyScore + '%'">85%</div>
+                                <div>Current Efficiency</div>
+                            </div>
+
+                            <div class="insight-card">
+                                <div class="insight-title">🎯 What You've Learned</div>
+                                <div class="insight-content" x-text="currentLearnings">
+                                    Analyzing your memory patterns...
+                                </div>
+                            </div>
+
+                            <div class="insight-card">
+                                <div class="insight-title">🚧 Current Blockers</div>
+                                <div class="insight-content">
+                                    <div x-show="blockers.length === 0" class="insight-metric">No blockers detected!</div>
+                                    <template x-for="blocker in blockers">
+                                        <div class="insight-metric" x-text="blocker"></div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="insight-card">
+                                <div class="insight-title">⚡ Efficiency Boosts</div>
+                                <div class="insight-content">
+                                    <template x-for="boost in efficiencyBoosts">
+                                        <div class="insight-metric" x-text="boost"></div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="insight-card">
+                                <div class="insight-title">📊 Live Metrics</div>
+                                <div class="insight-content">
+                                    <div class="insight-metric">Sessions: <span x-text="totalSessions"></span></div>
+                                    <div class="insight-metric">Success Rate: <span x-text="successRate"></span></div>
+                                    <div class="insight-metric">Categories: <span x-text="Object.keys(categories).length"></span></div>
+                                </div>
+                            </div>
+
+                            <div class="insight-card" x-show="isTyping">
+                                <div class="insight-title">🤔 AI Processing</div>
+                                <div class="insight-content">
+                                    <div class="typing-indicator">
+                                        Analyzing context
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -744,40 +907,45 @@
         </div>
     </main>
 
-    <!-- Onboarding Modal -->
+    <!-- Enhanced Onboarding Modal -->
     <div x-show="showOnboarding" class="onboarding-modal" x-transition>
         <div class="onboarding-content">
             <div class="onboarding-header">
-                <h3>Welcome to MemoryOS Creative Terminal</h3>
+                <h3>Welcome to MemoryOS Co-Founder Terminal</h3>
                 <button @click="showOnboarding = false" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem;">&times;</button>
             </div>
 
-            <p>MemoryOS is your creative AI companion that never forgets. Here's how to get started:</p>
+            <p>MemoryOS is your creative AI co-founder that learns, remembers, and grows with you. Experience the future of AI collaboration:</p>
 
             <div class="onboarding-steps">
                 <div class="onboarding-step">
-                    <h4>1. Start a Creative Session</h4>
-                    <p>Click on the Terminal tab and begin chatting with your AI assistant about any creative project, problem, or idea.</p>
+                    <h4>🧠 Persistent AI Memory</h4>
+                    <p>Your AI co-founder remembers every conversation, insight, and breakthrough across all sessions. No more repeating context.</p>
                 </div>
 
                 <div class="onboarding-step">
-                    <h4>2. Build Persistent Context</h4>
-                    <p>Every conversation is remembered. Your AI learns your preferences, project details, and creative style over time.</p>
+                    <h4>🎯 Live Insights & Blockers</h4>
+                    <p>Get real-time analysis of what's working, what's blocking you, and personalized efficiency recommendations.</p>
                 </div>
 
                 <div class="onboarding-step">
-                    <h4>3. Explore Your Memory</h4>
-                    <p>Browse your Memory Archive to revisit past insights, track progress, and find inspiration from previous sessions.</p>
+                    <h4>⚡ Deep Work Optimization</h4>
+                    <p>Eliminate workflow-killing friction. Focus on creating while AI handles context, memory, and strategic guidance.</p>
                 </div>
 
                 <div class="onboarding-step">
-                    <h4>4. Analyze Your Journey</h4>
-                    <p>Use Analytics to understand your creative patterns and see how your collaboration with AI evolves.</p>
+                    <h4>📈 Efficiency Tracking</h4>
+                    <p>Monitor your creative patterns, success rates, and growth over time with intelligent analytics.</p>
+                </div>
+
+                <div class="onboarding-step">
+                    <h4>🚀 Production Ready</h4>
+                    <p>Built for serious creators, entrepreneurs, and teams who need reliable AI that scales with their ambitions.</p>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 2rem;">
-                <button class="btn btn-primary" @click="showOnboarding = false; setActiveSection('terminal')">Start Creating Now</button>
+                <button class="btn btn-primary" @click="showOnboarding = false; setActiveSection('terminal')">Start Building Together</button>
             </div>
         </div>
     </div>
@@ -797,12 +965,18 @@
                 // System
                 systemStatus: 'checking...',
                 totalMemories: 0,
+                totalSessions: 0,
                 successRate: '0%',
                 recentMemories: [],
                 categories: {},
                 aiProvider: 'Unknown',
                 sessionId: '',
-                daysSince: 0,
+                efficiencyScore: 85,
+
+                // Co-founder insights
+                currentLearnings: 'Analyzing your memory patterns to identify key learnings...',
+                blockers: [],
+                efficiencyBoosts: ['Memory Context', 'Pattern Recognition', 'Auto-Insights'],
 
                 // Memory browsing
                 memorySearch: '',
@@ -813,7 +987,7 @@
                     await this.loadSystemStatus();
                     await this.refreshMemories();
                     this.addWelcomeMessage();
-                    this.calculateDaysSince();
+                    this.startLiveInsights();
 
                     // Show onboarding for first-time users
                     const hasVisited = localStorage.getItem('memoryos-visited');
@@ -828,6 +1002,8 @@
                     this.activeSection = section;
                     if (section === 'memory') {
                         this.refreshMemories();
+                    } else if (section === 'terminal') {
+                        this.updateCofounderInsights();
                     }
                 },
 
@@ -844,7 +1020,7 @@
 
                         if (contextResponse && contextResponse.ok) {
                             const context = await contextResponse.json();
-                            this.aiProvider = context.ai_provider || 'Unknown';
+                            this.aiProvider = context.ai_provider || 'Claude AI';
                             this.sessionId = context.session_id || '';
                         }
                     } catch (error) {
@@ -868,17 +1044,105 @@
                         this.totalMemories = stats.total_memories || 0;
                         this.successRate = stats.success_rate || '0%';
                         this.categories = stats.categories || {};
+                        this.totalSessions = this.countUniqueSessions();
+                        
+                        this.updateCofounderInsights();
                     } catch (error) {
                         console.error('Failed to refresh memories:', error);
                     }
+                },
+
+                // Co-founder Intelligence
+                updateCofounderInsights() {
+                    // Analyze learnings
+                    const learnings = this.extractLearnings();
+                    this.currentLearnings = learnings.length > 0 ? learnings.join(', ') : 'Building baseline understanding...';
+
+                    // Identify blockers
+                    this.blockers = this.identifyBlockers();
+
+                    // Calculate efficiency score
+                    this.efficiencyScore = this.calculateEfficiencyScore();
+
+                    // Update efficiency boosts
+                    this.efficiencyBoosts = this.getEfficiencyBoosts();
+                },
+
+                extractLearnings() {
+                    const successfulMemories = this.recentMemories.filter(m => m.success);
+                    const learnings = [];
+                    
+                    successfulMemories.slice(-5).forEach(memory => {
+                        if (memory.topic && memory.topic.length < 50) {
+                            learnings.push(memory.topic);
+                        }
+                    });
+                    
+                    return learnings;
+                },
+
+                identifyBlockers() {
+                    const failedMemories = this.recentMemories.filter(m => !m.success);
+                    const blockers = [];
+                    
+                    if (failedMemories.length > 2) {
+                        blockers.push('Multiple Failures');
+                    }
+                    if (this.recentMemories.length < 5) {
+                        blockers.push('Low Activity');
+                    }
+                    
+                    return blockers;
+                },
+
+                calculateEfficiencyScore() {
+                    const total = this.totalMemories;
+                    const successCount = this.recentMemories.filter(m => m.success).length;
+                    const categoryCount = Object.keys(this.categories).length;
+                    
+                    if (total === 0) return 75;
+                    
+                    const successRatio = successCount / Math.min(total, 20);
+                    const diversityBonus = Math.min(categoryCount * 5, 25);
+                    const activityBonus = Math.min(total * 2, 20);
+                    
+                    return Math.min(Math.round((successRatio * 50) + diversityBonus + activityBonus), 100);
+                },
+
+                getEfficiencyBoosts() {
+                    const boosts = ['Memory Context', 'Pattern Recognition'];
+                    
+                    if (this.totalMemories > 10) boosts.push('Rich History');
+                    if (Object.keys(this.categories).length > 3) boosts.push('Category Diversity');
+                    if (this.efficiencyScore > 80) boosts.push('High Performance');
+                    
+                    return boosts;
+                },
+
+                countUniqueSessions() {
+                    const sessions = new Set();
+                    this.recentMemories.forEach(memory => {
+                        if (memory.session_id) sessions.add(memory.session_id);
+                    });
+                    return sessions.size || 1;
+                },
+
+                startLiveInsights() {
+                    // Update insights every 30 seconds
+                    setInterval(() => {
+                        this.updateCofounderInsights();
+                    }, 30000);
                 },
 
                 // Chat Functions
                 addWelcomeMessage() {
                     this.chatHistory.push({
                         id: Date.now(),
-                        type: 'system',
-                        content: `🚀 MemoryOS Creative Terminal initialized. Status: ${this.systemStatus}. Ready for creative collaboration!`
+                        type: 'cofounder',
+                        content: `🚀 <strong>Co-Founder AI Online</strong><br>
+                        Status: ${this.systemStatus} | Memories: ${this.totalMemories} | Efficiency: ${this.efficiencyScore}%<br><br>
+                        Hey! I'm your AI co-founder. I've been analyzing your ${this.totalMemories} memories and I'm ready to help you build. I can see patterns in your work, identify blockers, and suggest optimizations.<br><br>
+                        <em>What are we working on today?</em>`
                     });
                     this.scrollToBottom();
                 },
@@ -897,6 +1161,16 @@
                     this.isTyping = true;
                     this.scrollToBottom();
 
+                    // Add co-founder thinking message
+                    setTimeout(() => {
+                        this.chatHistory.push({
+                            id: Date.now() + 0.5,
+                            type: 'cofounder',
+                            content: `<em>Analyzing your ${this.totalMemories} memories and current context...</em>`
+                        });
+                        this.scrollToBottom();
+                    }, 500);
+
                     try {
                         const response = await fetch('/ai/query', {
                             method: 'POST',
@@ -907,11 +1181,19 @@
                         const result = await response.json();
 
                         if (result.status === 'success') {
+                            // Remove thinking message
+                            this.chatHistory = this.chatHistory.filter(msg => !msg.content.includes('Analyzing your'));
+                            
                             this.chatHistory.push({
                                 id: Date.now() + 1,
                                 type: 'ai',
                                 content: result.ai_response.response || 'No response received'
                             });
+
+                            // Add co-founder insight
+                            setTimeout(() => {
+                                this.addCofounderInsight(userMessage, result.ai_response.response);
+                            }, 1000);
                         } else {
                             this.chatHistory.push({
                                 id: Date.now() + 1,
@@ -932,6 +1214,50 @@
                     }
                 },
 
+                addCofounderInsight(userInput, aiResponse) {
+                    const insights = [
+                        `💡 This adds to your <strong>${this.getMostActiveCategory()}</strong> knowledge base`,
+                        `📊 Your success rate in this area: <strong>${this.successRate}</strong>`,
+                        `⚡ This interaction improved your efficiency score to <strong>${this.efficiencyScore}%</strong>`,
+                        `🎯 Consider exploring: <strong>${this.suggestNextStep()}</strong>`
+                    ];
+
+                    const randomInsight = insights[Math.floor(Math.random() * insights.length)];
+                    
+                    this.chatHistory.push({
+                        id: Date.now() + 2,
+                        type: 'cofounder',
+                        content: `<small>${randomInsight}</small>`
+                    });
+                    this.scrollToBottom();
+                },
+
+                getMostActiveCategory() {
+                    const categories = this.categories;
+                    let maxCategory = 'general';
+                    let maxCount = 0;
+                    
+                    Object.entries(categories).forEach(([cat, count]) => {
+                        if (count > maxCount) {
+                            maxCount = count;
+                            maxCategory = cat;
+                        }
+                    });
+                    
+                    return maxCategory;
+                },
+
+                suggestNextStep() {
+                    const suggestions = [
+                        'API integration patterns',
+                        'scaling your current approach',
+                        'automating repetitive tasks',
+                        'improving error handling',
+                        'adding monitoring capabilities'
+                    ];
+                    return suggestions[Math.floor(Math.random() * suggestions.length)];
+                },
+
                 scrollToBottom() {
                     this.$nextTick(() => {
                         if (this.$refs.chatHistory) {
@@ -941,12 +1267,6 @@
                 },
 
                 // Utility Functions
-                calculateDaysSince() {
-                    const startDate = new Date('2025-01-01');
-                    const today = new Date();
-                    this.daysSince = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-                },
-
                 formatTimestamp(timestamp) {
                     return new Date(timestamp).toLocaleDateString('en-US', {
                         month: 'short',
