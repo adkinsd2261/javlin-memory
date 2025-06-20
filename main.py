@@ -60,6 +60,14 @@ SYSTEM_CONFIG = load_config()
 app = Flask(__name__)
 CORS(app)
 
+# Flask-Caching configuration (moved here to be available for decorators)
+from flask_caching import Cache
+cache = Cache(app, config={
+    "CACHE_TYPE": "SimpleCache",  # In-memory caching
+    "CACHE_DEFAULT_TIMEOUT": 60,   # 1 minute for faster responses
+    "CACHE_THRESHOLD": 500         # Max 500 cached items
+})
+
 # Register blueprints
 from routes.task_output import task_output_bp
 app.register_blueprint(task_output_bp)
@@ -950,13 +958,7 @@ def start_founder_mode():
     """Placeholder to start founder mode"""
     return "Founder agent activated. Proactive intelligence online. This is a simulated response."
 
-# Flask-Caching configuration
-from flask_caching import Cache
-cache = Cache(app, config={
-    "CACHE_TYPE": "SimpleCache",  # In-memory caching
-    "CACHE_DEFAULT_TIMEOUT": 60,   # 1 minute for faster responses
-    "CACHE_THRESHOLD": 500         # Max 500 cached items
-})
+
 
 # Express validation cache
 EXPRESS_VALIDATION_CACHE = {}
