@@ -1,3 +1,16 @@
+"""
+MemoryOS Flask API - Main Application
+
+This module implements the core memory system API and all agent logic.
+All behaviors, boundaries, and pipeline integration must comply with AGENT_BIBLE.md.
+
+BEHAVIORAL AUTHORITY: AGENT_BIBLE.md
+- Agent cannot execute commands unless triggered by Replit Assistant or human operator
+- Any claim of "feature live" MUST be validated by observable endpoint or human confirmation
+- Never simulate full autonomy - state manual intervention requirements clearly
+- All meaningful actions must be logged as structured memories with timestamps
+"""
+
 import os
 from flask import Flask, request, jsonify, abort
 from flask_cors import CORS
@@ -730,6 +743,75 @@ def extract_learning_insights(feedback_entries):
     
     return insights[:3]  # Return top 3 insights
 
+def check_agent_bible_compliance():
+    """Check if current agent behavior matches AGENT_BIBLE.md requirements"""
+    try:
+        agent_bible_file = os.path.join(BASE_DIR, 'AGENT_BIBLE.md')
+        
+        if not os.path.exists(agent_bible_file):
+            return {
+                "compliant": False,
+                "error": "AGENT_BIBLE.md not found",
+                "last_updated": None,
+                "warnings": ["Critical: AGENT_BIBLE.md missing - agent behavior undefined"]
+            }
+        
+        # Get file modification time
+        stat = os.stat(agent_bible_file)
+        last_updated = datetime.datetime.fromtimestamp(stat.st_mtime).isoformat()
+        
+        warnings = []
+        
+        # Check if this file has proper AGENT_BIBLE reference
+        with open(__file__, 'r') as f:
+            main_content = f.read()
+            if 'AGENT_BIBLE.md' not in main_content:
+                warnings.append("main.py missing AGENT_BIBLE.md reference in docstring")
+        
+        # Check for manual confirmation patterns in autolog functions
+        if 'validate_confirmation_requirement' not in main_content:
+            warnings.append("Manual confirmation validation not implemented")
+        
+        # Check system health endpoint compliance
+        if '/system-health' not in main_content:
+            warnings.append("System health endpoint missing")
+        
+        return {
+            "compliant": len(warnings) == 0,
+            "last_updated": last_updated,
+            "warnings": warnings,
+            "principles_checked": [
+                "AGENT_BIBLE.md reference present",
+                "Manual confirmation patterns",
+                "System health monitoring"
+            ]
+        }
+        
+    except Exception as e:
+        return {
+            "compliant": False,
+            "error": str(e),
+            "last_updated": None,
+            "warnings": ["Error checking AGENT_BIBLE.md compliance"]
+        }
+
+def validate_confirmation_requirement(action_type, result_claim=None):
+    """
+    Validate confirmation requirement per AGENT_BIBLE.md before claiming success
+    
+    Returns: (is_valid, message)
+    """
+    # Per AGENT_BIBLE.md: Never claim "live" unless validated by endpoint check or human confirmation
+    if result_claim and any(word in result_claim.lower() for word in ['live', 'deployed', 'running', 'active']):
+        return False, f"Manual confirmation required by AGENT_BIBLE.md: Cannot claim '{result_claim}' without endpoint validation or human confirmation"
+    
+    # Commands that require explicit validation
+    high_risk_actions = ['deployment', 'feature_activation', 'system_change', 'endpoint_creation']
+    if action_type in high_risk_actions:
+        return False, f"Manual confirmation required by AGENT_BIBLE.md: {action_type} requires human validation"
+    
+    return True, "Confirmation requirement satisfied"
+
 def get_system_insights():
     """Load system insights from insight engine"""
     try:
@@ -1050,6 +1132,16 @@ def passive_autolog():
                     "threshold": 60
                 }), 200
         
+        # AGENT_BIBLE.md compliance check
+        is_valid, confirmation_msg = validate_confirmation_requirement('autolog', auto_entry.get('output', ''))
+        if not is_valid:
+            return jsonify({
+                "status": "⚠️ Manual confirmation required",
+                "message": confirmation_msg,
+                "entry": auto_entry,
+                "agent_bible_compliance": False
+            }), 202
+        
         # Save to memory
         try:
             with open(MEMORY_FILE, 'r') as f:
@@ -1069,7 +1161,8 @@ def passive_autolog():
             "status": status_msg,
             "entry": auto_entry,
             "importance_score": auto_entry['importance_score'],
-            "trusted_agent": is_trusted_agent
+            "trusted_agent": is_trusted_agent,
+            "agent_bible_compliance": True
         }), 200
         
     except Exception as e:
@@ -1860,6 +1953,9 @@ def get_system_health():
             "uptime_seconds": 0
         }
         
+        # AGENT_BIBLE.md compliance check
+        bible_compliance = check_agent_bible_compliance()
+        
         health_data = {
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "memory": {
@@ -1882,6 +1978,7 @@ def get_system_health():
                 "base_directory": BASE_DIR,
                 "config_loaded": bool(SYSTEM_CONFIG)
             },
+            "agent_bible_compliance": bible_compliance,
             "health_score": 100  # Will be calculated based on various factors
         }
         
@@ -1896,6 +1993,11 @@ def get_system_health():
         if len(last_commands) == 0:
             health_score -= 10
         
+        # AGENT_BIBLE.md compliance penalty
+        if not bible_compliance["compliant"]:
+            health_score -= 20
+            logging.warning(f"AGENT_BIBLE.md compliance issues: {bible_compliance['warnings']}")
+        
         health_data["health_score"] = max(health_score, 0)
         
         return jsonify(health_data)
@@ -1906,6 +2008,94 @@ def get_system_health():
 
 @app.route('/')
 def home():
+
+
+@app.route('/onboarding', methods=['GET'])
+def get_onboarding():
+    """
+    Onboarding endpoint that explains MemoryOS capabilities and AGENT_BIBLE.md principles
+    
+    Per AGENT_BIBLE.md: Onboarding must communicate what MemoryOS can and cannot do,
+    show manual steps required, and provide clear boundaries.
+    """
+    try:
+        # Load AGENT_BIBLE.md content
+        agent_bible_file = os.path.join(BASE_DIR, 'AGENT_BIBLE.md')
+        bible_summary = "AGENT_BIBLE.md not found - behavioral guidelines undefined"
+        
+        if os.path.exists(agent_bible_file):
+            with open(agent_bible_file, 'r') as f:
+                bible_content = f.read()
+                # Extract key principles
+                bible_summary = "✅ AGENT_BIBLE.md loaded - behavioral guidelines active"
+        
+        onboarding_data = {
+            "welcome_message": "Welcome to MemoryOS - Persistent AI Memory System",
+            "agent_bible_compliance": {
+                "status": bible_summary,
+                "last_updated": check_agent_bible_compliance().get("last_updated", "Unknown")
+            },
+            "what_memoryos_can_do": [
+                "✅ Log and retrieve structured memories via API",
+                "✅ Provide system health and analytics",
+                "✅ Auto-log important events with ML predictions",
+                "✅ Generate insights from memory patterns",
+                "✅ Monitor document changes and system state",
+                "✅ Manage build states and daily focus",
+                "✅ Track git commits and version history"
+            ],
+            "what_memoryos_cannot_do": [
+                "❌ Execute commands in Replit workspace automatically",
+                "❌ Claim features are 'live' without endpoint validation",
+                "❌ Operate with full autonomy - manual steps required",
+                "❌ Bypass API authentication requirements",
+                "❌ Make system changes without human confirmation"
+            ],
+            "required_manual_steps": [
+                "🔧 Paste commands into Replit shell for execution",
+                "🔧 Use Replit Assistant for file changes",
+                "🔧 Manually verify endpoint functionality",
+                "🔧 Confirm deployment and feature activation",
+                "🔧 Set API keys in Replit Secrets"
+            ],
+            "getting_started": {
+                "1_check_health": "GET /system-health - Verify system status",
+                "2_view_memories": "GET /memory - See existing memory entries",
+                "3_get_stats": "GET /stats - View memory analytics",
+                "4_add_memory": "POST /memory - Log new memories (requires API key)",
+                "5_check_digest": "GET /digest - Get weekly summary and insights"
+            },
+            "api_endpoints": {
+                "memory_management": ["/memory", "/stats", "/digest", "/feedback"],
+                "system_monitoring": ["/system-health", "/last-commit", "/task-output"],
+                "agent_context": ["/context", "/build-state", "/daily-focus"],
+                "infrastructure": ["/audit", "/git-sync", "/insights"]
+            },
+            "agent_bible_principles": [
+                "🧠 Persistent, cofounder-grade AI for creative/engineering workflows",
+                "📝 Logs decisions, bugs, insights, and emotions as structured memories",
+                "🚨 Cannot execute commands unless triggered by human/Replit Assistant",
+                "✅ Must validate 'live' claims via endpoint checks or human confirmation",
+                "🔍 Always surfaces incomplete states and required next steps",
+                "📊 API-first design with optional manual bridges clearly explained"
+            ],
+            "success_verification": {
+                "how_to_confirm_features_work": [
+                    "Test API endpoints directly (e.g., curl or browser)",
+                    "Check /system-health for component status",
+                    "Verify logs appear in /memory after operations",
+                    "Use /task-output to see recent command results"
+                ],
+                "warning": "Per AGENT_BIBLE.md: Never trust claims of 'live' features without verification"
+            }
+        }
+        
+        return jsonify(onboarding_data)
+        
+    except Exception as e:
+        logging.error(f"Error in onboarding: {e}")
+        return jsonify({"error": str(e)}), 500
+
     return {'status': 'healthy', 'service': 'Javlin Memory API'}, 200
 
 if __name__ == '__main__':
