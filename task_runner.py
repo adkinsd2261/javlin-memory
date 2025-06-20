@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 """
 Task Runner for Javlin Memory System
-Polls task_queue.json every 5 seconds and executes shell commands
+Watches task_queue.json for changes and executes shell commands automatically
 """
 
 import json
@@ -11,6 +11,7 @@ import time
 import datetime
 import os
 import logging
+from pathlib import Path
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,7 +24,25 @@ TASK_OUTPUT_FILE = os.path.join(BASE_DIR, 'task_output.json')
 class TaskRunner:
     def __init__(self):
         self.running = True
-        logger.info("Task Runner initialized")
+        self.last_queue_mtime = 0
+        self.check_interval = 3  # seconds
+        logger.info("Task Runner initialized with file watching")
+        print("👀 Watching task_queue.json for new commands...")
+    
+    def get_queue_file_mtime(self):
+        """Get the modification time of task_queue.json"""
+        try:
+            return os.path.getmtime(TASK_QUEUE_FILE)
+        except OSError:
+            return 0
+    
+    def has_queue_changed(self):
+        """Check if task_queue.json has been modified since last check"""
+        current_mtime = self.get_queue_file_mtime()
+        if current_mtime > self.last_queue_mtime:
+            self.last_queue_mtime = current_mtime
+            return True
+        return False
     
     def load_task_queue(self):
         """Load tasks from task_queue.json"""
@@ -41,6 +60,8 @@ class TaskRunner:
             with open(TASK_QUEUE_FILE, 'w') as f:
                 json.dump([], f, indent=2)
             logger.info("Task queue cleared")
+            # Update our tracking time after clearing
+            self.last_queue_mtime = self.get_queue_file_mtime()
         except Exception as e:
             logger.error(f"Error clearing task queue: {e}")
     
@@ -135,8 +156,9 @@ class TaskRunner:
         tasks = self.load_task_queue()
         
         if not tasks:
-            return
+            return False  # No tasks processed
         
+        print(f"🔍 Found {len(tasks)} new commands to execute")
         logger.info(f"📋 Found {len(tasks)} tasks to execute")
         
         # Load existing outputs
@@ -156,6 +178,7 @@ class TaskRunner:
                 logger.warning(f"Task {i} has invalid format: {task}")
                 continue
             
+            print(f"⚡ [{i}/{len(tasks)}] Executing: {command}")
             logger.info(f"[{i}/{len(tasks)}] Processing: {command}")
             
             # Execute command
@@ -169,6 +192,7 @@ class TaskRunner:
         batch_end = datetime.datetime.now()
         batch_time = (batch_end - batch_start).total_seconds()
         
+        print(f"✨ Batch completed in {batch_time:.2f}s")
         logger.info(f"✨ Batch completed in {batch_time:.2f}s")
         
         # Save all outputs
@@ -176,18 +200,37 @@ class TaskRunner:
         
         # Clear the task queue
         self.clear_task_queue()
+        
+        print("👀 Watching task_queue.json for new commands...")
+        return True  # Tasks were processed
     
     def run(self):
-        """Main loop - check for tasks every 5 seconds"""
-        logger.info("🚀 Task Runner started (polling every 5 seconds)")
-        logger.info("Press Ctrl+C to stop")
+        """Main loop - watch for file changes and process tasks"""
+        logger.info(f"🚀 Task Runner started (checking every {self.check_interval} seconds)")
+        print(f"🚀 Task Runner started (checking every {self.check_interval} seconds)")
+        print("Press Ctrl+C to stop")
+        
+        # Initialize last modification time
+        self.last_queue_mtime = self.get_queue_file_mtime()
         
         try:
             while self.running:
-                self.process_tasks()
-                time.sleep(5)
+                # Check if task queue file has changed
+                if self.has_queue_changed():
+                    logger.info("📄 Task queue file changed, checking for new tasks...")
+                    # Process any new tasks
+                    tasks_processed = self.process_tasks()
+                    if not tasks_processed:
+                        print("👀 Watching task_queue.json for new commands...")
+                else:
+                    # Brief status update every 30 seconds
+                    if time.time() % 30 < self.check_interval:
+                        logger.debug("Still watching for changes...")
+                
+                time.sleep(self.check_interval)
                 
         except KeyboardInterrupt:
+            print("\n🛑 Task Runner stopped by user")
             logger.info("🛑 Task Runner stopped by user")
         except Exception as e:
             logger.error(f"💥 Unexpected error: {e}")
