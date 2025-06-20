@@ -505,4 +505,3 @@ def requires_confirmation(action_type: str = 'general'):
             confirmation_wrapper.__name__ = f"{func.__name__}_with_confirmation"
             return confirmation_wrapper
         return decorator
-`
