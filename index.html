@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryOS - Deep Work AI Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .typing-indicator { opacity: 0.7; }
+        .typing-indicator span { animation: typing 1.4s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="memoryOS()">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                        <span class="text-2xl">🧠</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">MemoryOS</h1>
+                        <p class="text-white/80 text-sm">Your Deep Work AI Agent</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="glass rounded-lg px-4 py-2">
+                        <span class="text-sm">Status: </span>
+                        <span x-text="systemStatus" :class="systemStatus === 'healthy' ? 'text-green-300' : 'text-red-300'"></span>
+                    </div>
+                    <div class="glass rounded-lg px-4 py-2">
+                        <span class="text-sm">Memories: </span>
+                        <span x-text="totalMemories" class="font-mono"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interface -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- AI Chat Interface -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <span class="mr-3">🤖</span>
+                            AI Agent Chat
+                        </h2>
+                        <p class="text-white/80 text-sm mt-1">Context-aware conversations with persistent memory</p>
+                    </div>
+                    
+                    <!-- Chat Messages -->
+                    <div class="h-96 overflow-y-auto p-6 space-y-4" x-ref="chatContainer">
+                        <template x-for="message in chatHistory" :key="message.id">
+                            <div class="flex" :class="message.role === 'user' ? 'justify-end' : 'justify-start'">
+                                <div class="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl" 
+                                     :class="message.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'">
+                                    <p class="text-sm" x-text="message.content"></p>
+                                    <span class="text-xs opacity-60" x-text="new Date(message.timestamp).toLocaleTimeString()"></span>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <!-- Typing Indicator -->
+                        <div x-show="isTyping" class="flex justify-start">
+                            <div class="bg-gray-100 px-4 py-3 rounded-2xl">
+                                <div class="typing-indicator flex space-x-1">
+                                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="border-t p-6">
+                        <form @submit.prevent="sendMessage()" class="flex space-x-4">
+                            <input 
+                                type="text" 
+                                x-model="currentMessage"
+                                placeholder="Ask your AI agent anything..."
+                                class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                :disabled="isTyping"
+                            >
+                            <button 
+                                type="submit"
+                                :disabled="!currentMessage.trim() || isTyping"
+                                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-xl font-medium transition-colors"
+                            >
+                                Send
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory & System Panel -->
+            <div class="space-y-6">
+                
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">📊</span>
+                        System Overview
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Total Memories</span>
+                            <span class="font-mono font-medium" x-text="totalMemories"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Success Rate</span>
+                            <span class="font-mono font-medium" x-text="successRate"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">AI Provider</span>
+                            <span class="font-mono font-medium" x-text="aiProvider"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Session</span>
+                            <span class="font-mono text-xs" x-text="sessionId"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Memories -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">🧠</span>
+                        Recent Memories
+                    </h3>
+                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                        <template x-for="memory in recentMemories" :key="memory.timestamp">
+                            <div class="border-l-4 border-blue-200 pl-3 py-2">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium" x-text="memory.type"></span>
+                                    <span class="text-xs text-gray-500" x-text="getRelativeTime(memory.timestamp)"></span>
+                                </div>
+                                <p class="text-sm text-gray-600 line-clamp-2" x-text="memory.topic"></p>
+                                <div class="flex items-center mt-1 space-x-2">
+                                    <span :class="memory.success ? 'text-green-600' : 'text-red-600'" class="text-xs">
+                                        <span x-text="memory.success ? '✅' : '❌'"></span>
+                                        <span x-text="memory.success ? 'Success' : 'Failed'"></span>
+                                    </span>
+                                    <span class="text-xs text-gray-400" x-text="memory.category"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">⚡</span>
+                        Quick Actions
+                    </h3>
+                    <div class="space-y-3">
+                        <button 
+                            @click="refreshMemories()"
+                            class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                        >
+                            <span class="mr-2">🔄</span>
+                            Refresh Context
+                        </button>
+                        <button 
+                            @click="showMemoryTimeline = !showMemoryTimeline"
+                            class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                        >
+                            <span class="mr-2">📋</span>
+                            View Memory Timeline
+                        </button>
+                        <button 
+                            @click="exportMemories()"
+                            class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                        >
+                            <span class="mr-2">📥</span>
+                            Export Memories
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Timeline Modal -->
+    <div x-show="showMemoryTimeline" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50">
+        <div class="min-h-screen px-4 text-center">
+            <div class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">Memory Timeline</h3>
+                    <button @click="showMemoryTimeline = false" class="text-gray-400 hover:text-gray-600">
+                        <span class="text-2xl">×</span>
+                    </button>
+                </div>
+                <div id="memory-timeline-container" class="max-h-96 overflow-y-auto">
+                    <!-- Timeline will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function memoryOS() {
+            return {
+                // State
+                currentMessage: '',
+                chatHistory: [],
+                isTyping: false,
+                systemStatus: 'checking...',
+                totalMemories: 0,
+                successRate: '0%',
+                recentMemories: [],
+                aiProvider: 'Unknown',
+                sessionId: '',
+                showMemoryTimeline: false,
+
+                // Initialize
+                async init() {
+                    await this.loadSystemStatus();
+                    await this.refreshMemories();
+                    this.addWelcomeMessage();
+                },
+
+                // Add welcome message
+                addWelcomeMessage() {
+                    this.chatHistory.push({
+                        id: Date.now(),
+                        role: 'assistant',
+                        content: `🧠 Welcome to MemoryOS! I'm your context-aware AI agent with access to ${this.totalMemories} memories. I maintain persistent awareness across all our conversations. How can I help you today?`,
+                        timestamp: new Date().toISOString()
+                    });
+                },
+
+                // Send message to AI agent
+                async sendMessage() {
+                    if (!this.currentMessage.trim()) return;
+
+                    const userMessage = {
+                        id: Date.now(),
+                        role: 'user',
+                        content: this.currentMessage,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    this.chatHistory.push(userMessage);
+                    const messageToSend = this.currentMessage;
+                    this.currentMessage = '';
+                    this.isTyping = true;
+                    
+                    this.scrollToBottom();
+
+                    try {
+                        const response = await fetch('/ai/query', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ input: messageToSend })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            this.chatHistory.push({
+                                id: Date.now() + 1,
+                                role: 'assistant',
+                                content: data.ai_response.response,
+                                timestamp: new Date().toISOString()
+                            });
+                        } else {
+                            this.chatHistory.push({
+                                id: Date.now() + 1,
+                                role: 'assistant',
+                                content: `❌ Error: ${data.error || 'Failed to get response from AI agent'}`,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Chat error:', error);
+                        this.chatHistory.push({
+                            id: Date.now() + 1,
+                            role: 'assistant',
+                            content: '❌ Connection error. Please check if the MemoryOS API is running.',
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
+                    this.isTyping = false;
+                    this.scrollToBottom();
+                    await this.refreshMemories();
+                },
+
+                // Load system status
+                async loadSystemStatus() {
+                    try {
+                        const [healthResponse, statsResponse, contextResponse] = await Promise.all([
+                            fetch('/health'),
+                            fetch('/stats'),
+                            fetch('/ai/context')
+                        ]);
+
+                        const health = await healthResponse.json();
+                        const stats = await statsResponse.json();
+                        const context = await contextResponse.json();
+
+                        this.systemStatus = health.status;
+                        this.totalMemories = stats.total_memories || 0;
+                        this.successRate = stats.success_rate || '0%';
+                        this.aiProvider = context.ai_provider || 'Unknown';
+                        this.sessionId = context.session_id || 'Unknown';
+                    } catch (error) {
+                        console.error('Failed to load system status:', error);
+                        this.systemStatus = 'error';
+                    }
+                },
+
+                // Refresh memories
+                async refreshMemories() {
+                    try {
+                        const response = await fetch('/memory?limit=10');
+                        const data = await response.json();
+                        this.recentMemories = data.memories || [];
+                        await this.loadSystemStatus();
+                    } catch (error) {
+                        console.error('Failed to refresh memories:', error);
+                    }
+                },
+
+                // Export memories
+                async exportMemories() {
+                    try {
+                        const response = await fetch('/memory?limit=1000');
+                        const data = await response.json();
+                        
+                        const blob = new Blob([JSON.stringify(data.memories, null, 2)], {
+                            type: 'application/json'
+                        });
+                        
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `memoryos-export-${new Date().toISOString().split('T')[0]}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } catch (error) {
+                        console.error('Failed to export memories:', error);
+                    }
+                },
+
+                // Utility functions
+                getRelativeTime(timestamp) {
+                    const now = new Date();
+                    const time = new Date(timestamp);
+                    const diff = now - time;
+                    const minutes = Math.floor(diff / 60000);
+                    const hours = Math.floor(diff / 3600000);
+                    const days = Math.floor(diff / 86400000);
+
+                    if (days > 0) return `${days}d ago`;
+                    if (hours > 0) return `${hours}h ago`;
+                    if (minutes > 0) return `${minutes}m ago`;
+                    return 'Just now';
+                },
+
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -112,13 +112,18 @@ def validate_api_key():
     return key == API_KEY
 
 @app.route('/')
-def health():
-    """Root health check"""
-    return jsonify({
-        "status": "healthy",
-        "service": "MemoryOS-Clean",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
+def index():
+    """Serve the main MemoryOS UI"""
+    try:
+        with open('index.html', 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        return jsonify({
+            "status": "healthy",
+            "service": "MemoryOS-Clean",
+            "message": "UI not found, API is running",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
 
 @app.route('/health')
 def health_check():
