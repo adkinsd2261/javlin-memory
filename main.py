@@ -1031,20 +1031,20 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Ultra-simple git sync"""
+    """Clean git sync endpoint"""
     try:
-        from git_manager import git_manager
+        from git_handler import git_handler
         
-        message = request.args.get('message', '🔧 Manual sync via API')
-        result = git_manager.commit_and_push(message)
+        message = request.args.get('message', '🔧 Clean sync via API')
+        result = git_handler.sync_changes(message)
         
-        return jsonify(result)
+        if result['success']:
+            return jsonify({"status": "success", "message": result['message']})
+        else:
+            return jsonify({"status": "error", "error": result['error']}), 500
         
     except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 def log_to_memory(topic, type_, input_, output, success=True, score=None, max_score=25, category=None, tags=None, context=None, related_to=None):
     """Enhanced memory logging with automatic validation and tagging"""
