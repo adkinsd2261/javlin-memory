@@ -1,5 +1,5 @@
 {
-  "version": "v0.12.0",
+  "version": "v0.13.0",
   "date": "2025-06-20",
   "description": "New features and enhancements",
   "changes": [
@@ -11,6 +11,11 @@
     "Built intelligent filtering system"
   ],
   "previous_versions": [
+    {
+      "version": "v0.12.0",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
     {
       "version": "v0.11.0",
       "date": "2025-06-20",
@@ -53,11 +58,6 @@
     },
     {
       "version": "v0.3.0",
-      "date": "2025-06-20",
-      "description": "New features and enhancements"
-    },
-    {
-      "version": "v0.2.3",
       "date": "2025-06-20",
       "description": "New features and enhancements"
     }

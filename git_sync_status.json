@@ -1,0 +1,8 @@
+
+{
+  "last_sync_attempt": null,
+  "consecutive_failures": 0,
+  "circuit_breaker_until": null,
+  "last_successful_sync": null,
+  "status": "ready"
+}

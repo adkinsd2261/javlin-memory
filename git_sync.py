@@ -458,10 +458,76 @@ class GitHubSyncer:
             for log in recent_logs
         )
 
+    def _load_sync_status(self) -> Dict:
+        """Load git sync status and circuit breaker state"""
+        status_file = os.path.join(self.base_dir, 'git_sync_status.json')
+        try:
+            with open(status_file, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {
+                "last_sync_attempt": None,
+                "consecutive_failures": 0,
+                "circuit_breaker_until": None,
+                "last_successful_sync": None,
+                "status": "ready"
+            }
+
+    def _save_sync_status(self, status: Dict):
+        """Save git sync status"""
+        status_file = os.path.join(self.base_dir, 'git_sync_status.json')
+        with open(status_file, 'w') as f:
+            json.dump(status, f, indent=2)
+
+    def _is_circuit_breaker_active(self) -> bool:
+        """Check if circuit breaker is currently blocking sync attempts"""
+        status = self._load_sync_status()
+        if status.get('circuit_breaker_until'):
+            breaker_until = datetime.datetime.fromisoformat(status['circuit_breaker_until'])
+            if datetime.datetime.now() < breaker_until:
+                return True
+            else:
+                # Circuit breaker period expired, reset
+                status['circuit_breaker_until'] = None
+                status['consecutive_failures'] = 0
+                self._save_sync_status(status)
+        return False
+
+    def _update_sync_status(self, success: bool, message: str = ""):
+        """Update sync status and handle circuit breaker logic"""
+        status = self._load_sync_status()
+        status['last_sync_attempt'] = datetime.datetime.now().isoformat()
+        
+        if success:
+            status['consecutive_failures'] = 0
+            status['circuit_breaker_until'] = None
+            status['last_successful_sync'] = datetime.datetime.now().isoformat()
+            status['status'] = 'success'
+        else:
+            status['consecutive_failures'] += 1
+            status['status'] = 'failed'
+            
+            # Activate circuit breaker after 3 consecutive failures
+            if status['consecutive_failures'] >= 3:
+                # Block for 5 minutes
+                breaker_until = datetime.datetime.now() + datetime.timedelta(minutes=5)
+                status['circuit_breaker_until'] = breaker_until.isoformat()
+                self.logger.warning(f"Circuit breaker activated until {breaker_until}")
+        
+        self._save_sync_status(status)
+
     def run_auto_sync(self, force: bool = False) -> Dict[str, any]:
-        """Run auto-sync with proper lock handling and loop prevention"""
+        """Run auto-sync with circuit breaker and improved lock handling"""
         import fcntl
         import tempfile
+        
+        # Check circuit breaker first
+        if not force and self._is_circuit_breaker_active():
+            status = self._load_sync_status()
+            return {
+                "status": "blocked", 
+                "message": f"Circuit breaker active until {status.get('circuit_breaker_until')}"
+            }
         
         # Use file locking to prevent concurrent sync operations
         lock_file_path = os.path.join(tempfile.gettempdir(), 'memoryos_git_sync.lock')
@@ -470,21 +536,20 @@ class GitHubSyncer:
             lock_file = open(lock_file_path, 'w')
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             
-            # Prevent recursive calls by checking if sync is already running
+            # Prevent recursive calls
             if hasattr(self, '_sync_in_progress') and self._sync_in_progress:
                 return {"status": "skipped", "message": "Sync already in progress"}
 
             self._sync_in_progress = True
 
-            # Force clear any existing locks before starting
-            self._force_clear_git_locks()
+            # Enhanced lock clearing with timeout
+            self._enhanced_lock_clear()
 
             # Check if sync is needed
             if not force and not self.should_auto_sync(self.load_memory_logs()):
                 self._sync_in_progress = False
                 return {"status": "skipped", "message": "No sync needed"}
 
-            # Run sync with timeout protection
             # Load recent memory logs
             recent_logs = self.load_memory_logs()
             bump_type, bump_description = self.determine_version_bump(recent_logs)
@@ -499,8 +564,11 @@ class GitHubSyncer:
             # Generate commit message
             commit_message = self.generate_commit_message(recent_logs, new_version, bump_type)
 
-            # Commit and push
-            success = self.commit_and_push(commit_message, new_version)
+            # Commit and push with enhanced error handling
+            success = self._safe_commit_and_push(commit_message, new_version)
+
+            # Update circuit breaker status
+            self._update_sync_status(success, "Sync completed" if success else "Sync failed")
 
             if success:
                 # Log commit metadata
@@ -517,7 +585,10 @@ class GitHubSyncer:
             else:
                 return {"status": "error", "message": "Failed to commit and push changes"}
 
+        except BlockingIOError:
+            return {"status": "skipped", "message": "Another sync operation is in progress"}
         except Exception as e:
+            self._update_sync_status(False, str(e))
             return {"status": "error", "message": str(e)}
         finally:
             # Always clear the in-progress flag
@@ -531,6 +602,113 @@ class GitHubSyncer:
                 os.unlink(lock_file_path)
             except:
                 pass
+
+    def _enhanced_lock_clear(self):
+        """Enhanced lock clearing with better process management"""
+        import time
+        import subprocess
+        
+        # Kill git processes with multiple signals
+        try:
+            # SIGTERM first (graceful)
+            subprocess.run(['pkill', '-TERM', 'git'], capture_output=True, timeout=5)
+            time.sleep(2)
+            
+            # SIGKILL if still running  
+            subprocess.run(['pkill', '-KILL', 'git'], capture_output=True, timeout=5)
+            time.sleep(1)
+            
+        except subprocess.TimeoutExpired:
+            pass
+        
+        # Force remove lock files with retry logic
+        lock_files = [
+            '.git/index.lock',
+            '.git/refs/heads/main.lock',
+            '.git/HEAD.lock',
+            '.git/config.lock',
+            '.git/COMMIT_EDITMSG.lock',
+            '.git/refs/remotes/origin/main.lock'
+        ]
+        
+        for lock_file in lock_files:
+            lock_path = os.path.join(self.base_dir, lock_file)
+            for attempt in range(3):  # Try 3 times
+                if os.path.exists(lock_path):
+                    try:
+                        os.remove(lock_path)
+                        self.logger.info(f"Removed lock file: {lock_file}")
+                        break
+                    except (PermissionError, OSError) as e:
+                        if attempt < 2:  # Not the last attempt
+                            time.sleep(0.5)
+                            continue
+                        else:
+                            self.logger.error(f"Failed to remove {lock_file}: {e}")
+
+    def _safe_commit_and_push(self, commit_message: str, version: str) -> bool:
+        """Enhanced commit and push with better error handling"""
+        try:
+            # Check if there are actually changes
+            result = subprocess.run(['git', 'status', '--porcelain'], 
+                                  capture_output=True, text=True, cwd=self.base_dir, timeout=15)
+            if not result.stdout.strip():
+                self.logger.info("No changes to commit")
+                return True  # Success - nothing needed
+
+            # Configure git identity
+            subprocess.run(['git', 'config', 'user.name', 'MemoryOS'], 
+                         cwd=self.base_dir, timeout=10, capture_output=True)
+            subprocess.run(['git', 'config', 'user.email', 'memoryos@javlin.ai'], 
+                         cwd=self.base_dir, timeout=10, capture_output=True)
+
+            # Add all changes with timeout
+            add_result = subprocess.run(['git', 'add', '.'], 
+                                      check=True, cwd=self.base_dir, timeout=30, capture_output=True)
+
+            # Check if there are staged changes
+            staged_result = subprocess.run(['git', 'diff', '--cached', '--quiet'], 
+                                         capture_output=True, cwd=self.base_dir, timeout=10)
+            if staged_result.returncode == 0:
+                self.logger.info("No staged changes after add")
+                return True  # Success - nothing to commit
+
+            # Commit with timeout
+            commit_result = subprocess.run(['git', 'commit', '-m', commit_message], 
+                                         check=True, cwd=self.base_dir, timeout=30, capture_output=True)
+
+            # Push with timeout and retry logic
+            for attempt in range(2):  # Try push twice
+                try:
+                    push_result = subprocess.run(['git', 'push', 'origin', 'main'], 
+                                               check=True, cwd=self.base_dir, timeout=60, capture_output=True)
+                    self.logger.info(f"Successfully pushed {version} to main")
+                    return True
+                except subprocess.CalledProcessError as e:
+                    if attempt == 0:  # First attempt failed, try pull and retry
+                        self.logger.warning("Push failed, trying to sync with remote...")
+                        try:
+                            subprocess.run(['git', 'pull', 'origin', 'main', '--rebase'], 
+                                         cwd=self.base_dir, timeout=30, capture_output=True)
+                        except:
+                            pass  # Continue to retry push
+                        continue
+                    else:
+                        self.logger.error(f"Push failed after retry: {e}")
+                        return False
+
+        except subprocess.TimeoutExpired as e:
+            self.logger.error(f"Git operation timed out: {e}")
+            self._enhanced_lock_clear()  # Clear locks on timeout
+            return False
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Git operation failed: {e}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error during git operations: {e}")
+            return False
+
+        return False
 
     def _force_clear_git_locks(self):
         """Force clear all git lock files with process checking"""
