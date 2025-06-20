@@ -42,6 +42,10 @@ SYSTEM_CONFIG = load_config()
 app = Flask(__name__)
 CORS(app)
 
+# Register blueprints
+from routes.task_output import task_output_bp
+app.register_blueprint(task_output_bp)
+
 logging.basicConfig(level=logging.DEBUG)
 
 MEMORY_FILE = os.path.join(BASE_DIR, 'memory.json')
