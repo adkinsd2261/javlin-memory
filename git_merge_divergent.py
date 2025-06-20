@@ -92,15 +92,78 @@ class GitDivergenceResolver:
         self.log(f"Backup created in {self.backup_dir}")
         self.rollback_commands.append(f"# Restore from backup: cp -r {self.backup_dir}/* .")
         
+    def check_git_processes(self):
+        """Check if any git processes are currently running"""
+        try:
+            import psutil
+            git_processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if proc.info['name'] and 'git' in proc.info['name'].lower():
+                        git_processes.append(proc.info)
+                    elif proc.info['cmdline'] and any('git' in str(cmd).lower() for cmd in proc.info['cmdline']):
+                        git_processes.append(proc.info)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            return git_processes
+        except ImportError:
+            self.log("psutil not available - skipping process check", "WARNING")
+            return []
+
     def cleanup_git_locks(self):
-        """Remove any git lock files"""
-        self.log("Cleaning up git locks...")
+        """Safely remove git lock files with process checking"""
+        self.log("Checking for git lock files...")
         
-        lock_files = ['.git/index.lock', '.git/HEAD.lock', '.git/config.lock']
+        lock_files = [
+            '.git/index.lock', 
+            '.git/HEAD.lock', 
+            '.git/config.lock',
+            '.git/refs/heads/main.lock',
+            '.git/refs/heads/master.lock',
+            '.git/refs/remotes/origin/main.lock'
+        ]
+        
+        found_locks = []
         for lock_file in lock_files:
             if os.path.exists(lock_file):
-                os.remove(lock_file)
-                self.log(f"Removed {lock_file}")
+                found_locks.append(lock_file)
+        
+        if not found_locks:
+            self.log("No git lock files found")
+            return True
+        
+        self.log(f"Found {len(found_locks)} git lock files: {found_locks}")
+        
+        # Check for active git processes
+        git_processes = self.check_git_processes()
+        if git_processes:
+            self.log("Active git processes detected:", "ERROR")
+            for proc in git_processes:
+                self.log(f"   PID {proc['pid']}: {proc['name']} - {proc['cmdline']}", "ERROR")
+            self.log("Cannot safely remove locks while git is running", "ERROR")
+            return False
+        
+        self.log("No active git processes - safe to remove locks")
+        
+        # Remove lock files with error handling
+        import time
+        removed_count = 0
+        for lock_file in found_locks:
+            try:
+                if os.path.exists(lock_file):
+                    file_age = time.time() - os.path.getmtime(lock_file)
+                    self.log(f"Removing {lock_file} (age: {file_age:.1f} seconds)")
+                    os.remove(lock_file)
+                    removed_count += 1
+            except Exception as e:
+                self.log(f"Failed to remove {lock_file}: {e}", "ERROR")
+                return False
+        
+        self.log(f"Successfully removed {removed_count} git lock files")
+        
+        # Brief pause for filesystem sync
+        time.sleep(0.5)
+        return True
     
     def check_git_status(self):
         """Check current git status"""

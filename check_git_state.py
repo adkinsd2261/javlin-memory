@@ -7,6 +7,8 @@ Pre-check script to analyze current git state before merge
 import subprocess
 import os
 import json
+import time
+import psutil
 
 def run_command(cmd):
     try:
@@ -15,9 +17,82 @@ def run_command(cmd):
     except Exception as e:
         return "", str(e), 1
 
+def check_git_processes():
+    """Check if any git processes are currently running"""
+    git_processes = []
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            if proc.info['name'] and 'git' in proc.info['name'].lower():
+                git_processes.append(proc.info)
+            elif proc.info['cmdline'] and any('git' in str(cmd).lower() for cmd in proc.info['cmdline']):
+                git_processes.append(proc.info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return git_processes
+
+def safe_cleanup_git_locks():
+    """Safely clean up git lock files if no git processes are running"""
+    print("🔒 Checking for git lock files...")
+    
+    lock_files = [
+        '.git/index.lock',
+        '.git/HEAD.lock', 
+        '.git/config.lock',
+        '.git/refs/heads/main.lock',
+        '.git/refs/heads/master.lock'
+    ]
+    
+    found_locks = []
+    for lock_file in lock_files:
+        if os.path.exists(lock_file):
+            found_locks.append(lock_file)
+    
+    if not found_locks:
+        print("✅ No git lock files found")
+        return True
+    
+    print(f"⚠️  Found {len(found_locks)} git lock file(s): {found_locks}")
+    
+    # Check for active git processes
+    git_processes = check_git_processes()
+    if git_processes:
+        print("❌ Active git processes detected:")
+        for proc in git_processes:
+            print(f"   PID {proc['pid']}: {proc['name']} - {proc['cmdline']}")
+        print("   Cannot safely remove locks while git is running")
+        return False
+    
+    print("✅ No active git processes found - safe to remove locks")
+    
+    # Remove lock files
+    removed_count = 0
+    for lock_file in found_locks:
+        try:
+            # Double-check file still exists and get its age
+            if os.path.exists(lock_file):
+                file_age = time.time() - os.path.getmtime(lock_file)
+                print(f"   Removing {lock_file} (age: {file_age:.1f} seconds)")
+                os.remove(lock_file)
+                removed_count += 1
+        except Exception as e:
+            print(f"   ❌ Failed to remove {lock_file}: {e}")
+            return False
+    
+    print(f"✅ Successfully removed {removed_count} git lock file(s)")
+    
+    # Wait a moment for filesystem to sync
+    time.sleep(0.5)
+    
+    return True
+
 def check_git_state():
     print("🔍 Git State Analysis")
     print("====================")
+    
+    # First, clean up any stale git locks
+    if not safe_cleanup_git_locks():
+        print("❌ Could not safely clean up git locks")
+        return False
     
     # Check if we're in a git repo
     stdout, stderr, code = run_command("git rev-parse --is-inside-work-tree")
