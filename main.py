@@ -272,7 +272,7 @@ def get_memories():
         page = int(request.args.get('page', 1))
         limit = min(int(request.args.get('limit', 50)), 200)  # Max 200 items
         offset = (page - 1) * limit
-        
+
         with open(MEMORY_FILE, 'r') as f:
             memory = json.load(f)
 
@@ -298,7 +298,7 @@ def get_memories():
         # Apply pagination
         total_count = len(memory)
         paginated_memory = memory[offset:offset + limit]
-        
+
         return jsonify({
             "memories": paginated_memory,
             "pagination": {
@@ -730,7 +730,7 @@ def find_unreviewed_logs():
             'unreviewed': unreviewed,
             'unsuccessful': unsuccessful,
             'total_unreviewed': len(unreviewed),
-            'total_unsuccessful': len(unsuccessful)
+            'total_unsuccessful': len(unreviewed)
         }
     except Exception as e:
         logging.error(f"Error finding unreviewed logs: {e}")
@@ -1032,15 +1032,15 @@ from git_sync import GitHubSyncer
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
     """Sync changes to GitHub with robust error handling and locking"""
-    
+
     # Use file locking to prevent concurrent git operations
     lock_file_path = os.path.join(tempfile.gettempdir(), 'memoryos_git_sync.lock')
-    
+
     try:
         # Create lock file with timeout
         lock_file = open(lock_file_path, 'w')
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        
+
         # Check circuit breaker
         try:
             with open('git_sync_status.json', 'r') as f:
@@ -1071,7 +1071,7 @@ def git_sync():
                 sync_status["failure_count"] = 0
                 with open('git_sync_status.json', 'w') as f:
                     json.dump(sync_status, f)
-                
+
                 return jsonify({
                     "status": "success", 
                     "message": "Git sync completed via shell script",
@@ -1213,7 +1213,7 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
 if __name__ == '__main__':
     try:
         logging.info("Starting MemoryOS Flask API...")
-        
+
         # Optimize memory file on startup
         try:
             from performance_config import optimize_memory_file
@@ -1222,10 +1222,12 @@ if __name__ == '__main__':
                 logging.info(f"Archived {archived_count} old memory entries for better performance")
         except ImportError:
             pass
-        
+
         # Use threaded mode for better concurrent performance
         app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
     except Exception as e:
         logging.error(f"Failed to start Flask app: {e}")
         print(f"Error starting app: {e}")
         exit(1)
+
+# Refactor git_sync to use a coordinated approach, removing the recovery scripts and relying on a single function.
