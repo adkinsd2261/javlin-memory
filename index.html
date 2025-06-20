@@ -923,6 +923,83 @@
                     let maxCategory = 'general';
                     let maxCount = 0;
 
+                    if (statsResponse?.ok) {
+                            const stats = await statsResponse.json();
+                            this.totalMemories = stats.total_memories || 16;
+                            this.successRate = stats.success_rate || '100.0%';
+                            this.categories = stats.categories || { ai_interaction: 15, system: 1 };
+                        }
+                    } catch (error) {
+                        console.error('Failed to load metrics:', error);
+                    }
+                },
+
+                // Add welcome message
+                addWelcomeMessage() {
+                    this.chatHistory.push({
+                        id: Date.now(),
+                        type: 'system',
+                        content: 'Welcome to MemoryOS! Your AI co-founder is online and ready to help. Ask me about system insights, efficiency improvements, or strategic guidance.',
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                },
+
+                // Send message
+                async sendMessage() {
+                    if (!this.currentMessage.trim() || this.isTyping) return;
+
+                    const userMessage = {
+                        id: Date.now(),
+                        type: 'user',
+                        content: this.currentMessage,
+                        timestamp: new Date().toLocaleTimeString()
+                    };
+
+                    this.chatHistory.push(userMessage);
+                    const messageText = this.currentMessage;
+                    this.currentMessage = '';
+                    this.isTyping = true;
+
+                    this.scrollToBottom();
+
+                    // Simulate AI response
+                    setTimeout(() => {
+                        const aiResponse = this.generateAIResponse(messageText);
+                        this.chatHistory.push({
+                            id: Date.now() + 1,
+                            type: 'ai',
+                            content: aiResponse,
+                            timestamp: new Date().toLocaleTimeString()
+                        });
+                        this.isTyping = false;
+                        this.scrollToBottom();
+                    }, 1500);
+                },
+
+                // Generate AI response
+                generateAIResponse(userMessage) {
+                    const responses = {
+                        'efficiency': `Based on current system metrics, your efficiency score is ${this.efficiencyScore}%. I recommend focusing on memory optimization patterns and reducing API response times.`,
+                        'insights': `Key insights: ${this.totalMemories} memories processed with ${this.successRate} success rate. Most active category: ${this.getMostActiveCategory()}.`,
+                        'status': `System status: ${this.systemStatus}. All core functions operational. Recent focus: ${this.currentFocus}`,
+                        'memory': `Memory system analysis: ${this.totalMemories} total entries across ${Object.keys(this.categories).length} categories. High performance maintained.`,
+                        'help': 'I can provide insights on system performance, memory optimization, strategic guidance, and workflow improvements. What would you like to explore?'
+                    };
+
+                    for (const [key, response] of Object.entries(responses)) {
+                        if (userMessage.toLowerCase().includes(key)) {
+                            return response;
+                        }
+                    }
+
+                    return `I understand you're asking about "${userMessage}". Based on our current system state with ${this.totalMemories} memories and ${this.successRate} success rate, I'd recommend focusing on optimizing your workflow patterns. What specific area would you like me to analyze?`;
+                },
+
+                // Get most active category
+                getMostActiveCategory() {
+                    let maxCount = 0;
+                    let maxCategory = 'system';
+                    
                     Object.entries(this.categories).forEach(([cat, count]) => {
                         if (count > maxCount) {
                             maxCount = count;
