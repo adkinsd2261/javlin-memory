@@ -751,7 +751,7 @@ def get_top_unreviewed_for_feedback(memory, limit=10):
 
         return (importance, recencye, recency_bonus)
 
-    sorted_unreviewed = sorted(unreviewed, key=sort_unreviewed, key=sort_key, reverse=True)
+    sorted_unreviewed = sorted(unreviewed, key=sort_key, reverse=True)
 
     # Return limited list with feedback prompts
     feedback_candidates = []
