@@ -4,27 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jav Co-Builder - Creative Workshop</title>
+    <title>Jav Studio - Creative Co-Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --jav-primary: #3B82F6;
-            --jav-primary-dark: #1E40AF;
-            --jav-accent: #10B981;
-            --jav-bg: #0F172A;
-            --jav-surface: #1E293B;
-            --jav-panel: #334155;
-            --jav-border: #475569;
-            --jav-text: #F8FAFC;
-            --jav-text-muted: #94A3B8;
+            --jav-primary: #6366F1;
+            --jav-secondary: #8B5CF6;
+            --jav-accent: #06B6D4;
             --jav-success: #10B981;
             --jav-warning: #F59E0B;
             --jav-error: #EF4444;
-            --jav-chat-user: #3B82F6;
-            --jav-chat-assistant: #10B981;
+            --jav-bg: #0F172A;
+            --jav-surface: #1E293B;
+            --jav-card: #334155;
+            --jav-border: #475569;
+            --jav-text: #F1F5F9;
+            --jav-text-muted: #94A3B8;
+            --jav-gradient: linear-gradient(135deg, var(--jav-primary), var(--jav-secondary));
         }
         
         body {
@@ -34,145 +33,267 @@
             overflow: hidden;
         }
         
-        .workspace-container {
-            position: relative;
-            width: 100vw;
+        .studio-container {
+            display: grid;
+            grid-template-columns: 1fr 420px;
             height: 100vh;
+            gap: 1px;
+            background: var(--jav-border);
+        }
+        
+        .code-canvas {
+            background: var(--jav-bg);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .creative-panel {
+            background: var(--jav-surface);
             display: flex;
             flex-direction: column;
-        }
-        
-        .main-canvas {
-            flex: 1;
-            position: relative;
-            background: var(--jav-bg);
             overflow: hidden;
+            border-left: 1px solid var(--jav-border);
         }
         
-        .jav-collaborative-panel {
-            position: fixed;
-            right: 24px;
-            top: 24px;
-            width: 420px;
-            max-height: 80vh;
-            background: var(--jav-surface);
-            border: 1px solid var(--jav-border);
-            border-radius: 20px;
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(20px);
-        }
-        
-        .jav-collaborative-panel.minimized {
-            height: 70px;
-            max-height: 70px;
-        }
-        
-        .jav-collaborative-panel.floating {
-            transform: scale(1.02);
-            box-shadow: 0 35px 90px rgba(59, 130, 246, 0.3);
-        }
-        
-        .collaborative-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--jav-border);
+        .panel-header {
+            padding: 20px;
+            background: var(--jav-gradient);
+            color: white;
             display: flex;
             align-items: center;
-            justify-content: between;
-            cursor: pointer;
-            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
-            color: white;
-            position: relative;
+            justify-content: space-between;
+        }
+        
+        .jav-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        .creative-space {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
         
-        .collaborative-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .collaborative-header:hover::before {
-            left: 100%;
-        }
-        
-        .collaborative-content {
-            max-height: calc(80vh - 70px);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .creative-stream {
+        .conversation-flow {
             flex: 1;
-            min-height: 300px;
-            max-height: 400px;
             overflow-y: auto;
-            padding: 0;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.1);
         }
         
-        .stream-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.2);
-            animation: slideInStream 0.4s ease;
+        .insight-card {
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--jav-border);
             position: relative;
+            cursor: move;
+            transition: all 0.3s ease;
+            background: var(--jav-card);
         }
         
-        .stream-item:hover {
-            background: rgba(59, 130, 246, 0.05);
+        .insight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-color: var(--jav-primary);
         }
         
-        .stream-item.chat-message {
-            background: rgba(16, 185, 129, 0.08);
+        .insight-card.dragging {
+            opacity: 0.8;
+            transform: rotate(2deg);
+            z-index: 1000;
         }
         
-        .stream-item.user-message {
-            background: rgba(59, 130, 246, 0.08);
+        .insight-card.suggestion {
+            border-left: 4px solid var(--jav-accent);
+            background: linear-gradient(135deg, var(--jav-card), rgba(6, 182, 212, 0.05));
         }
         
-        .stream-item.suggestion {
-            background: rgba(245, 158, 11, 0.08);
-            border-left: 4px solid var(--jav-warning);
-        }
-        
-        .stream-item.error {
-            background: rgba(239, 68, 68, 0.08);
+        .insight-card.error {
             border-left: 4px solid var(--jav-error);
+            background: linear-gradient(135deg, var(--jav-card), rgba(239, 68, 68, 0.05));
         }
         
-        .stream-item.success {
-            background: rgba(16, 185, 129, 0.08);
-            border-left: 4px solid var(--jav-success);
+        .insight-card.idea {
+            border-left: 4px solid var(--jav-secondary);
+            background: linear-gradient(135deg, var(--jav-card), rgba(139, 92, 246, 0.05));
         }
         
-        .stream-item.pinned {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
+        .insight-card.pinned {
+            border: 2px solid var(--jav-warning);
+            background: linear-gradient(135deg, var(--jav-card), rgba(245, 158, 11, 0.1));
         }
         
-        .stream-item.pinned::before {
-            content: '⭐';
+        .insight-card.pinned::before {
+            content: '📌';
             position: absolute;
             top: 8px;
             right: 8px;
             font-size: 12px;
         }
         
-        .message-content {
+        .card-header {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
         }
         
-        .message-avatar {
+        .card-source {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--jav-text-muted);
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .insight-card:hover .card-actions {
+            opacity: 1;
+        }
+        
+        .action-button {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--jav-text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .action-button:hover {
+            background: var(--jav-primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .card-content {
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--jav-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--jav-text);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-action:hover {
+            background: var(--jav-primary);
+            border-color: var(--jav-primary);
+            transform: translateY(-1px);
+        }
+        
+        .quick-action.primary {
+            background: var(--jav-primary);
+            border-color: var(--jav-primary);
+            color: white;
+        }
+        
+        .chat-area {
+            padding: 20px;
+            border-top: 1px solid var(--jav-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-input-container {
+            position: relative;
+        }
+        
+        .chat-input {
+            width: 100%;
+            min-height: 60px;
+            max-height: 120px;
+            padding: 16px 50px 16px 16px;
+            border: 2px solid var(--jav-border);
+            border-radius: 16px;
+            background: var(--jav-card);
+            color: var(--jav-text);
+            resize: none;
+            font-size: 14px;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--jav-primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        
+        .chat-input::placeholder {
+            color: var(--jav-text-muted);
+        }
+        
+        .send-button {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--jav-gradient);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .send-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .conversation-bubble {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.4s ease;
+        }
+        
+        .bubble-avatar {
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -183,620 +304,522 @@
             flex-shrink: 0;
         }
         
-        .jav-avatar-mini {
-            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
+        .jav-bubble-avatar {
+            background: var(--jav-gradient);
             color: white;
         }
         
-        .user-avatar-mini {
-            background: linear-gradient(135deg, var(--jav-accent), var(--jav-primary));
+        .user-bubble-avatar {
+            background: var(--jav-accent);
             color: white;
         }
         
-        .system-avatar-mini {
-            background: var(--jav-panel);
-            color: var(--jav-text-muted);
-        }
-        
-        .message-bubble {
+        .bubble-content {
             flex: 1;
             padding: 12px 16px;
             border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.5;
+            max-width: 280px;
             position: relative;
         }
         
         .jav-bubble {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            color: var(--jav-text);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.2);
         }
         
         .user-bubble {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            color: var(--jav-text);
-        }
-        
-        .system-bubble {
-            background: rgba(148, 163, 184, 0.1);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            color: var(--jav-text-muted);
-        }
-        
-        .message-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .stream-item:hover .message-actions {
-            opacity: 1;
-        }
-        
-        .action-btn {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--jav-text-muted);
-        }
-        
-        .action-btn:hover {
-            background: var(--jav-primary);
-            color: white;
-            transform: translateY(-1px);
-        }
-        
-        .chat-input-area {
-            padding: 20px;
-            border-top: 1px solid var(--jav-border);
-            background: rgba(0, 0, 0, 0.2);
-        }
-        
-        .chat-input-container {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-        }
-        
-        .chat-input {
-            flex: 1;
-            background: var(--jav-panel);
-            border: 1px solid var(--jav-border);
-            border-radius: 20px;
-            padding: 12px 16px;
-            color: var(--jav-text);
-            font-size: 14px;
-            resize: none;
-            min-height: 44px;
-            max-height: 120px;
-            transition: all 0.2s ease;
-        }
-        
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--jav-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .chat-send-btn {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
-            border: none;
-            border-radius: 50%;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .chat-send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-        
-        .chat-send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .jav-status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--jav-success);
-            animation: pulse 2s infinite;
-            margin-right: 8px;
-        }
-        
-        .jav-status-indicator.thinking {
-            background: var(--jav-warning);
-            animation: blink 1s infinite;
-        }
-        
-        .jav-status-indicator.error {
-            background: var(--jav-error);
-            animation: none;
-        }
-        
-        .inline-hint {
-            position: absolute;
-            background: var(--jav-surface);
-            border: 1px solid var(--jav-border);
-            border-radius: 12px;
-            padding: 8px 12px;
-            font-size: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            z-index: 2000;
-            animation: popIn 0.3s ease;
-            max-width: 250px;
-        }
-        
-        .inline-hint::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 20px;
-            width: 12px;
-            height: 12px;
-            background: var(--jav-surface);
-            border: 1px solid var(--jav-border);
-            transform: rotate(45deg);
-            border-bottom: none;
-            border-right: none;
-        }
-        
-        .personality-badge {
-            font-size: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 8px;
-            border-radius: 12px;
-            margin-left: 8px;
-            animation: shimmer 3s infinite;
-        }
-        
-        .toolbar {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            gap: 8px;
-            z-index: 200;
-        }
-        
-        .toolbar-button {
-            width: 44px;
-            height: 44px;
-            background: var(--jav-surface);
-            border: 1px solid var(--jav-border);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-        
-        .toolbar-button:hover {
-            background: var(--jav-panel);
-            border-color: var(--jav-primary);
-            transform: translateY(-2px);
-        }
-        
-        .toolbar-button.active {
-            background: var(--jav-primary);
-            color: white;
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-        
-        .status-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 36px;
-            background: var(--jav-surface);
-            border-top: 1px solid var(--jav-border);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            font-size: 12px;
-            z-index: 100;
-            backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.1));
+            border: 1px solid rgba(6, 182, 212, 0.2);
         }
         
         .typing-indicator {
             display: flex;
             align-items: center;
-            gap: 4px;
-            color: var(--jav-text-muted);
-            font-style: italic;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 16px;
+            margin-left: 44px;
         }
         
         .typing-dots {
             display: flex;
-            gap: 2px;
+            gap: 4px;
         }
         
         .typing-dot {
-            width: 4px;
-            height: 4px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: var(--jav-accent);
-            animation: typingDots 1.4s infinite;
+            background: var(--jav-primary);
+            animation: typingDot 1.4s infinite;
         }
         
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         
-        @keyframes slideInStream {
-            from {
-                transform: translateX(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        .drop-zone {
+            min-height: 60px;
+            border: 2px dashed var(--jav-border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--jav-text-muted);
+            margin: 12px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.active {
+            border-color: var(--jav-primary);
+            background: rgba(99, 102, 241, 0.05);
+            color: var(--jav-primary);
+        }
+        
+        .floating-toolbar {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        
+        .toolbar-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: none;
+            background: var(--jav-surface);
+            color: var(--jav-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--jav-border);
+        }
+        
+        .toolbar-button:hover {
+            background: var(--jav-primary);
+            border-color: var(--jav-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .health-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--jav-success);
+            animation: pulse 2s infinite;
+        }
+        
+        .code-overlay {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            max-width: 300px;
+            padding: 12px 16px;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            z-index: 50;
+            animation: popIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         @keyframes popIn {
-            from {
-                transform: scale(0.8) translateY(10px);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
+            from { transform: scale(0.9) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
         }
         
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
         }
         
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-        
-        @keyframes shimmer {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
-        
-        @keyframes typingDots {
+        @keyframes typingDot {
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-8px); }
         }
         
-        .fade-in {
-            animation: fadeIn 0.4s ease;
+        .drag-helper {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.8;
+            transform: rotate(5deg);
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .reaction-menu {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            display: flex;
+            gap: 4px;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            border-radius: 20px;
+            padding: 4px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s;
+        }
+        
+        .insight-card:hover .reaction-menu {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .reaction-button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .reaction-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.2);
         }
     </style>
 </head>
 <body>
-    <div x-data="javCollaborativeWorkspace()" x-init="init()" class="workspace-container">
+    <div x-data="javStudio()" x-init="init()" class="studio-container">
         
-        <!-- Main Canvas - Code Editor -->
-        <div class="main-canvas" @click="hideInlineHints()">
+        <!-- Code Canvas -->
+        <div class="code-canvas">
             <div id="monaco-editor" class="w-full h-full"></div>
+            
+            <!-- Health Indicator -->
+            <div class="health-indicator">
+                <div class="status-dot" :class="{ 'bg-red-500': hasErrors, 'bg-yellow-500': hasWarnings }"></div>
+                <span x-text="systemHealth"></span>
+            </div>
+            
+            <!-- Code Overlay Insights -->
+            <div x-show="codeInsight" x-transition class="code-overlay">
+                <div class="text-sm font-medium mb-2" x-text="codeInsight?.title"></div>
+                <div class="text-xs text-gray-400 mb-3" x-text="codeInsight?.message"></div>
+                <div class="flex gap-2">
+                    <button @click="applyCodeSuggestion()" 
+                            class="quick-action primary text-xs">Apply</button>
+                    <button @click="codeInsight = null" 
+                            class="quick-action text-xs">Dismiss</button>
+                </div>
+            </div>
         </div>
         
-        <!-- Jav Collaborative Panel - The Creative Workshop -->
-        <div class="jav-collaborative-panel" 
-             :class="{ 
-                'minimized': panelMinimized,
-                'floating': panelFloating 
-             }"
-             x-show="panelVisible"
-             x-transition>
+        <!-- Creative Studio Panel -->
+        <div class="creative-panel">
             
-            <!-- Collaborative Header -->
-            <div class="collaborative-header" @click="togglePanel()">
+            <!-- Panel Header -->
+            <div class="panel-header">
                 <div class="flex items-center">
-                    <div class="jav-status-indicator" 
-                         :class="{ 'thinking': javThinking, 'error': hasErrors }"></div>
-                    <div>
-                        <div class="font-semibold">Creative Workshop</div>
-                        <div class="text-xs opacity-90" x-text="collaborativeStatus"></div>
+                    <div class="jav-avatar">
+                        <i class="fas fa-palette"></i>
                     </div>
-                    <div class="personality-badge" x-text="personalityMode"></div>
+                    <div>
+                        <div class="font-semibold">Creative Studio</div>
+                        <div class="text-xs opacity-90" x-text="studioStatus"></div>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="text-xs" x-text="totalInteractions + ' exchanges'"></span>
-                    <i class="fas fa-chevron-down transition-transform" 
-                       :class="{ 'rotate-180': !panelMinimized }"></i>
+                    <button @click="clearStudio()" class="text-xs opacity-75 hover:opacity-100">
+                        Clear
+                    </button>
+                    <i class="fas fa-magic"></i>
                 </div>
             </div>
             
-            <!-- Collaborative Content -->
-            <div class="collaborative-content" x-show="!panelMinimized">
+            <!-- Creative Space -->
+            <div class="creative-space">
                 
-                <!-- Creative Stream - Mixed Chat/Context/Suggestions -->
-                <div class="creative-stream" x-ref="streamContainer">
-                    <template x-for="item in creativeStream" :key="item.id">
-                        <div class="stream-item" 
+                <!-- Conversation Flow -->
+                <div class="conversation-flow" x-ref="conversationContainer">
+                    
+                    <!-- Insight Cards -->
+                    <template x-for="item in studioItems" :key="item.id">
+                        <div class="insight-card" 
                              :class="[item.type, { 'pinned': item.pinned }]"
-                             x-transition:enter="fade-in">
+                             draggable="true"
+                             @dragstart="startDrag($event, item)"
+                             @dragend="endDrag()">
                             
-                            <div class="message-content">
-                                <div class="message-avatar" 
-                                     :class="getAvatarClass(item.source)">
-                                    <i :class="getAvatarIcon(item.source)"></i>
+                            <!-- Reaction Menu -->
+                            <div class="reaction-menu">
+                                <button class="reaction-button" @click="reactToItem(item, '👍')">👍</button>
+                                <button class="reaction-button" @click="reactToItem(item, '💡')">💡</button>
+                                <button class="reaction-button" @click="reactToItem(item, '❤️')">❤️</button>
+                            </div>
+                            
+                            <!-- Card Header -->
+                            <div class="card-header">
+                                <div class="card-source">
+                                    <i :class="getSourceIcon(item.source)"></i>
+                                    <span x-text="item.source"></span>
+                                    <span class="text-xs opacity-60" x-text="timeAgo(item.timestamp)"></span>
                                 </div>
-                                
-                                <div class="flex-1">
-                                    <div class="message-bubble" 
-                                         :class="getBubbleClass(item.source)">
-                                        <div class="flex items-start justify-between mb-1">
-                                            <span class="font-medium text-sm" x-text="item.source"></span>
-                                            <span class="text-xs opacity-70" x-text="timeAgo(item.timestamp)"></span>
-                                        </div>
-                                        <div class="text-sm" x-text="item.content"></div>
-                                        
-                                        <!-- Action buttons for suggestions/errors -->
-                                        <div x-show="item.actions && item.actions.length > 0" 
-                                             class="message-actions">
-                                            <template x-for="action in item.actions" :key="action.id">
-                                                <button class="action-btn" 
-                                                        @click="executeStreamAction(action, item)"
-                                                        x-text="action.label"></button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Universal actions -->
-                                    <div class="message-actions">
-                                        <button class="action-btn" 
-                                                @click="togglePin(item)"
-                                                x-text="item.pinned ? 'Unpin' : 'Pin'"></button>
-                                        <button class="action-btn" 
-                                                @click="replyToItem(item)">Reply</button>
-                                        <button class="action-btn" 
-                                                @click="starItem(item)">⭐</button>
-                                    </div>
+                                <div class="card-actions">
+                                    <button class="action-button" 
+                                            @click="togglePin(item)"
+                                            :title="item.pinned ? 'Unpin' : 'Pin'">
+                                        <i :class="item.pinned ? 'fas fa-thumbtack' : 'far fa-thumbtack'"></i>
+                                    </button>
+                                    <button class="action-button" 
+                                            @click="expandItem(item)"
+                                            title="Expand">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                    <button class="action-button" 
+                                            @click="removeItem(item.id)"
+                                            title="Remove">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
+                            </div>
+                            
+                            <!-- Card Content -->
+                            <div class="card-content" x-text="item.content"></div>
+                            
+                            <!-- Quick Actions -->
+                            <div x-show="item.actions && item.actions.length > 0" class="quick-actions">
+                                <template x-for="action in item.actions" :key="action.id">
+                                    <button class="quick-action" 
+                                            :class="{ 'primary': action.primary }"
+                                            @click="executeAction(action, item)"
+                                            x-text="action.label"></button>
+                                </template>
+                            </div>
+                            
+                            <!-- Reactions Display -->
+                            <div x-show="item.reactions && Object.keys(item.reactions).length > 0" 
+                                 class="flex gap-1 mt-2">
+                                <template x-for="[emoji, count] in Object.entries(item.reactions || {})" :key="emoji">
+                                    <span class="text-xs bg-gray-700 px-2 py-1 rounded-full" 
+                                          x-text="`${emoji} ${count}`"></span>
+                                </template>
                             </div>
                         </div>
                     </template>
                     
-                    <!-- Typing indicator -->
-                    <div x-show="javTyping" class="stream-item">
-                        <div class="message-content">
-                            <div class="message-avatar jav-avatar-mini">
-                                <i class="fas fa-robot"></i>
+                    <!-- Conversation Bubbles -->
+                    <template x-for="message in conversationHistory" :key="message.id">
+                        <div class="conversation-bubble">
+                            <div class="bubble-avatar" 
+                                 :class="message.isJav ? 'jav-bubble-avatar' : 'user-bubble-avatar'">
+                                <i :class="message.isJav ? 'fas fa-robot' : 'fas fa-user'"></i>
                             </div>
-                            <div class="typing-indicator">
-                                <span>Jav is thinking</span>
-                                <div class="typing-dots">
-                                    <div class="typing-dot"></div>
-                                    <div class="typing-dot"></div>
-                                    <div class="typing-dot"></div>
-                                </div>
+                            <div class="bubble-content" 
+                                 :class="message.isJav ? 'jav-bubble' : 'user-bubble'">
+                                <div x-text="message.content"></div>
+                                <div x-show="message.timestamp" 
+                                     class="text-xs opacity-60 mt-1" 
+                                     x-text="timeAgo(message.timestamp)"></div>
                             </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Typing Indicator -->
+                    <div x-show="javTyping" class="typing-indicator">
+                        <span class="text-sm">Jav is thinking</span>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
                         </div>
                     </div>
                     
-                    <!-- Empty state -->
-                    <div x-show="creativeStream.length === 0" 
-                         class="p-8 text-center text-gray-400">
-                        <i class="fas fa-paint-brush text-3xl mb-4 opacity-50"></i>
-                        <div class="text-sm">Ready to create together! 🎨</div>
-                        <div class="text-xs mt-1">Ask me anything or start coding...</div>
+                    <!-- Drop Zone -->
+                    <div class="drop-zone" 
+                         :class="{ 'active': dragActive }"
+                         @dragover.prevent="dragActive = true"
+                         @dragleave="dragActive = false"
+                         @drop.prevent="handleDrop($event)">
+                        <div x-show="!dragActive">
+                            <i class="fas fa-hand-paper mr-2"></i>
+                            Drag cards here to combine or organize
+                        </div>
+                        <div x-show="dragActive">
+                            <i class="fas fa-magic mr-2"></i>
+                            Drop to organize or combine ideas
+                        </div>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div x-show="studioItems.length === 0 && conversationHistory.length === 0" 
+                         class="text-center py-12 text-gray-400">
+                        <i class="fas fa-palette text-4xl mb-4 opacity-50"></i>
+                        <div class="text-lg font-medium mb-2">Welcome to Jav Studio</div>
+                        <div class="text-sm">Start coding or ask me anything to begin our creative session</div>
                     </div>
                 </div>
                 
-                <!-- Chat Input Area -->
-                <div class="chat-input-area">
+                <!-- Chat Area -->
+                <div class="chat-area">
                     <div class="chat-input-container">
-                        <textarea x-model="chatInput" 
-                                  @keydown.enter.prevent="handleEnterKey($event)"
+                        <textarea x-model="chatMessage" 
+                                  @keydown.enter.prevent="handleEnter($event)"
                                   @input="handleInputChange()"
-                                  placeholder="What's up? Ask me anything, share ideas, or just chat..."
+                                  placeholder="What's on your mind? Let's brainstorm, debug, or just chat..."
                                   class="chat-input"
-                                  rows="1"></textarea>
+                                  :disabled="javTyping"></textarea>
                         <button @click="sendMessage()" 
-                                :disabled="!chatInput.trim() || javTyping"
-                                class="chat-send-btn">
+                                :disabled="!chatMessage.trim() || javTyping"
+                                class="send-button">
                             <i class="fas fa-paper-plane" x-show="!javTyping"></i>
                             <i class="fas fa-circle-notch fa-spin" x-show="javTyping"></i>
                         </button>
                     </div>
-                    <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+                    <div class="text-xs text-gray-400 mt-2 flex justify-between">
                         <span>Press Enter to send, Shift+Enter for new line</span>
-                        <span x-text="chatInput.length + '/500'"></span>
+                        <span x-text="chatMessage.length + '/500'"></span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Inline Hints/Tips -->
-        <div x-show="inlineHints.length > 0">
-            <template x-for="hint in inlineHints" :key="hint.id">
-                <div class="inline-hint" 
-                     :style="`top: ${hint.y}px; left: ${hint.x}px;`"
-                     x-transition>
-                    <div class="flex items-center gap-2">
-                        <i :class="hint.icon" class="text-yellow-400"></i>
-                        <span x-text="hint.message"></span>
-                        <button @click="dismissHint(hint.id)" 
-                                class="text-gray-400 hover:text-white ml-2">×</button>
-                    </div>
-                </div>
-            </template>
-        </div>
-        
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <button @click="togglePanel()" 
+        <!-- Floating Toolbar -->
+        <div class="floating-toolbar">
+            <button @click="runHealthCheck()" 
                     class="toolbar-button" 
-                    :class="{ 'active': panelVisible }"
-                    title="Toggle Workshop (Ctrl+J)">
-                <i class="fas fa-paint-brush"></i>
-            </button>
-            <button @click="runQuickAction('health')" 
-                    class="toolbar-button"
-                    title="Health Check (Ctrl+H)">
+                    title="Health Check">
                 <i class="fas fa-heart-pulse"></i>
             </button>
-            <button @click="runQuickAction('test')" 
-                    class="toolbar-button"
-                    title="Run Tests (Ctrl+T)">
-                <i class="fas fa-vial"></i>
+            <button @click="triggerInspiration()" 
+                    class="toolbar-button" 
+                    title="Get Inspiration">
+                <i class="fas fa-lightbulb"></i>
             </button>
-            <button @click="floatPanel()" 
-                    class="toolbar-button"
-                    title="Float/Dock Panel">
-                <i class="fas fa-window-restore"></i>
+            <button @click="quickSave()" 
+                    class="toolbar-button" 
+                    title="Quick Save">
+                <i class="fas fa-save"></i>
             </button>
-            <button @click="cyclePersonality()" 
-                    class="toolbar-button"
-                    title="Change Jav's Personality">
-                <i class="fas fa-theater-masks"></i>
+            <button @click="voiceInput()" 
+                    class="toolbar-button" 
+                    title="Voice Input">
+                <i class="fas fa-microphone"></i>
             </button>
         </div>
         
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="flex items-center gap-4">
-                <span class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full" 
-                         :class="javActive ? 'bg-green-400' : 'bg-gray-400'"></div>
-                    <span x-text="javActive ? 'Jav Active' : 'Jav Idle'"></span>
-                </span>
-                <span x-text="activeFile || 'No file open'"></span>
-                <span x-text="'Workshop: ' + totalInteractions + ' exchanges'"></span>
-                <span class="ml-auto flex items-center gap-2">
-                    <span x-text="'Session: ' + sessionId.substring(0, 8)"></span>
-                    <span x-show="personalityLearning" class="text-blue-400">🧠 Learning your style...</span>
-                </span>
-            </div>
+        <!-- Drag Helper -->
+        <div x-show="dragging" 
+             class="drag-helper"
+             :style="`left: ${dragX}px; top: ${dragY}px;`">
+            <div class="insight-card" 
+                 :class="draggedItem?.type"
+                 x-text="draggedItem?.content?.substring(0, 50) + '...'"></div>
         </div>
     </div>
 
     <script>
-        function javCollaborativeWorkspace() {
+        function javStudio() {
             return {
                 // Core State
-                sessionId: new Date().toISOString().replace(/[-:]/g, '').split('.')[0],
-                javActive: true,
-                javThinking: false,
-                javTyping: false,
-                hasErrors: false,
-                
-                // Panel State
-                panelVisible: true,
-                panelMinimized: false,
-                panelFloating: false,
-                collaborativeStatus: 'Ready to build together! 🚀',
-                
-                // Personality & Learning
-                personalityMode: 'Friendly',
-                personalities: ['Friendly', 'Professional', 'Casual', 'Motivational', 'Creative', 'Night Owl'],
-                personalityIndex: 0,
-                personalityLearning: false,
-                userPreferences: {
-                    workingHours: [],
-                    codingStyle: 'exploratory',
-                    feedbackLevel: 'encouraging'
-                },
-                
-                // Creative Stream (merged chat/context/suggestions)
-                creativeStream: [],
-                totalInteractions: 0,
-                chatInput: '',
-                
-                // Editor State
                 editor: null,
-                activeFile: 'main.py',
-                lastActivity: Date.now(),
-                activityStreak: 0,
+                studioItems: [],
+                conversationHistory: [],
+                chatMessage: '',
+                javTyping: false,
+                systemHealth: 'Healthy',
+                hasErrors: false,
+                hasWarnings: false,
+                studioStatus: 'Ready to create together ✨',
                 
-                // Inline Hints
-                inlineHints: [],
+                // Interaction State
+                dragging: false,
+                dragActive: false,
+                draggedItem: null,
+                dragX: 0,
+                dragY: 0,
+                codeInsight: null,
+                
+                // Creative Features
+                sessionTheme: 'collaborative',
+                creativeMode: true,
+                lastActivity: Date.now(),
                 
                 async init() {
-                    console.log('🎨 Initializing Jav Creative Workshop...');
+                    console.log('🎨 Initializing Jav Creative Studio...');
                     
-                    // Initialize Monaco Editor
-                    this.initializeEditor();
-                    
-                    // Load system data
+                    await this.initializeMonaco();
                     await this.loadSystemData();
+                    this.setupEventListeners();
+                    this.startCreativeFlow();
                     
-                    // Setup keyboard shortcuts
-                    this.setupKeyboardShortcuts();
-                    
-                    // Start collaborative intelligence
-                    this.startCollaborativeIntelligence();
-                    
-                    // Learn user patterns
-                    this.startPersonalityLearning();
-                    
-                    // Welcome message
-                    this.addToStream({
+                    // Welcome with personality
+                    this.addStudioItem({
+                        type: 'idea',
                         source: 'Jav',
-                        type: 'chat-message',
-                        content: this.getPersonalizedWelcome(),
+                        content: "Hey! 👋 Ready to create something amazing together? I'm here to brainstorm, suggest improvements, and be your creative partner. What are we building today?",
                         actions: [
-                            { id: 'tour', label: '👋 Show me around', type: 'primary' },
-                            { id: 'start-coding', label: '💻 Start coding', type: 'secondary' }
+                            { id: 'start-coding', label: '💻 Start Coding', primary: true },
+                            { id: 'brainstorm', label: '🧠 Brainstorm Ideas' },
+                            { id: 'explore', label: '🔍 Explore Project' }
                         ]
                     });
                     
-                    console.log('✅ Creative Workshop ready!');
+                    console.log('✅ Creative Studio ready!');
                 },
                 
-                initializeEditor() {
-                    require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
-                    require(['vs/editor/editor.main'], () => {
-                        this.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                            value: '# Welcome to our Creative Workshop! 🎨\n# I\'m Jav, your creative co-builder\n# Let\'s make something amazing together!\n\nprint("Building with Jav!")\n\n# Try making changes and I\'ll provide real-time insights\n# Chat with me anytime in the panel →',
-                            language: 'python',
-                            theme: 'vs-dark',
-                            automaticLayout: true,
-                            minimap: { enabled: false },
-                            fontSize: 14,
-                            lineNumbers: 'on',
-                            roundedSelection: false,
-                            scrollBeyondLastLine: false,
-                            readOnly: false
-                        });
-                        
-                        // Real-time collaborative analysis
-                        this.editor.onDidChangeModelContent(() => {
-                            this.analyzeCodeCollaboratively();
-                            this.updateActivity();
-                        });
-                        
-                        // Cursor awareness for inline hints
-                        this.editor.onDidChangeCursorPosition((e) => {
-                            this.handleCursorChange(e);
-                        });
-                        
-                        // Error detection with personality
-                        this.editor.onDidChangeMarkers(() => {
-                            this.handleErrorsWithPersonality();
+                async initializeMonaco() {
+                    return new Promise((resolve) => {
+                        require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
+                        require(['vs/editor/editor.main'], () => {
+                            this.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                                value: '# Welcome to Jav Studio! 🎨\n# Let\'s create something amazing together\n\nprint("Building with Jav!")\n\n# Start typing and I\'ll provide real-time creative insights\n# Chat with me about ideas, improvements, or just to brainstorm',
+                                language: 'python',
+                                theme: 'vs-dark',
+                                automaticLayout: true,
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                lineNumbers: 'on',
+                                wordWrap: 'on',
+                                scrollBeyondLastLine: false
+                            });
+                            
+                            // Real-time creative analysis
+                            this.editor.onDidChangeModelContent(() => {
+                                this.analyzeCodeCreatively();
+                                this.updateActivity();
+                            });
+                            
+                            // Cursor-based insights
+                            this.editor.onDidChangeCursorPosition((e) => {
+                                this.provideContextualInsights(e);
+                            });
+                            
+                            resolve();
                         });
                     });
                 },
@@ -809,48 +832,57 @@
                         ]);
                         
                         if (healthResponse.ok) {
-                            const healthData = await healthResponse.json();
-                            if (healthData.status !== 'healthy') {
-                                this.addToStream({
-                                    source: 'System',
-                                    type: 'error',
-                                    content: `System health needs attention: ${healthData.status}. Want me to investigate?`,
-                                    actions: [
-                                        { id: 'fix-health', label: '🔧 Auto-fix', type: 'primary' },
-                                        { id: 'explain-health', label: '📖 Explain', type: 'secondary' }
-                                    ]
-                                });
-                                this.hasErrors = true;
-                            }
+                            const health = await healthResponse.json();
+                            this.systemHealth = health.status === 'healthy' ? 'Healthy' : 'Needs Attention';
+                            this.hasErrors = health.status === 'unhealthy';
+                            this.hasWarnings = health.status === 'degraded';
                         }
                         
+                        if (statsResponse.ok) {
+                            const stats = await statsResponse.json();
+                            this.addStudioItem({
+                                type: 'suggestion',
+                                source: 'System',
+                                content: `System loaded with ${stats.total_memories} memories and ${stats.success_rate} success rate. Looking good! 📊`,
+                                actions: [
+                                    { id: 'view-stats', label: '📈 View Details' },
+                                    { id: 'optimize', label: '⚡ Optimize' }
+                                ]
+                            });
+                        }
                     } catch (error) {
-                        this.addToStream({
-                            source: 'Jav',
+                        this.addStudioItem({
                             type: 'error',
-                            content: 'Having trouble connecting to the backend. Let\'s work offline for now!',
+                            source: 'System',
+                            content: 'Having trouble connecting to the backend, but we can still work together! 💪',
                             actions: [
-                                { id: 'retry-connection', label: '🔄 Retry', type: 'primary' }
+                                { id: 'retry', label: '🔄 Retry Connection' },
+                                { id: 'offline-mode', label: '📱 Work Offline' }
                             ]
                         });
                     }
                 },
                 
-                setupKeyboardShortcuts() {
+                setupEventListeners() {
+                    // Global drag handling
+                    document.addEventListener('dragover', (e) => {
+                        if (this.dragging) {
+                            this.dragX = e.clientX;
+                            this.dragY = e.clientY;
+                        }
+                    });
+                    
+                    // Keyboard shortcuts
                     document.addEventListener('keydown', (e) => {
                         if (e.ctrlKey || e.metaKey) {
                             switch(e.code) {
-                                case 'KeyJ':
+                                case 'KeyI':
                                     e.preventDefault();
-                                    this.togglePanel();
+                                    this.triggerInspiration();
                                     break;
                                 case 'KeyH':
                                     e.preventDefault();
-                                    this.runQuickAction('health');
-                                    break;
-                                case 'KeyT':
-                                    e.preventDefault();
-                                    this.runQuickAction('test');
+                                    this.runHealthCheck();
                                     break;
                                 case 'KeyS':
                                     if (e.shiftKey) {
@@ -863,429 +895,494 @@
                     });
                 },
                 
-                startCollaborativeIntelligence() {
-                    // Dynamic contextual suggestions
+                startCreativeFlow() {
+                    // Periodic creative suggestions
                     setInterval(() => {
-                        this.generateCollaborativeSuggestions();
-                    }, 20000); // Every 20 seconds
+                        this.generateCreativeInsights();
+                    }, 30000); // Every 30 seconds
                     
-                    // Activity-based feedback
+                    // Activity-based encouragement
                     setInterval(() => {
-                        this.checkActivityAndRespond();
+                        this.checkActivityAndEncourage();
                     }, 60000); // Every minute
-                    
-                    // Learning and adaptation
-                    setInterval(() => {
-                        this.adaptToUserBehavior();
-                    }, 300000); // Every 5 minutes
                 },
                 
-                startPersonalityLearning() {
-                    // Detect working patterns
-                    const hour = new Date().getHours();
-                    if (hour >= 22 || hour <= 6) {
-                        this.personalityMode = 'Night Owl';
-                        this.personalityLearning = true;
-                        setTimeout(() => {
-                            this.addToStream({
-                                source: 'Jav',
-                                type: 'success',
-                                content: 'Switching to Night Owl mode since you\'re working late! 🦉 Want some ambient coding music?',
-                                actions: [
-                                    { id: 'play-music', label: '🎵 Yes please', type: 'primary' },
-                                    { id: 'stay-quiet', label: '🤫 Keep it quiet', type: 'secondary' }
-                                ]
-                            });
-                            this.personalityLearning = false;
-                        }, 3000);
-                    }
-                },
-                
-                analyzeCodeCollaboratively() {
+                analyzeCodeCreatively() {
                     if (!this.editor) return;
                     
-                    this.javThinking = true;
+                    const code = this.editor.getValue();
+                    const lineCount = code.split('\n').length;
                     
+                    // Creative suggestions based on code patterns
                     setTimeout(() => {
-                        const code = this.editor.getValue();
-                        const lineCount = code.split('\n').length;
-                        
-                        // Dynamic, contextual suggestions
                         if (code.includes('def ') && !code.includes('"""')) {
-                            this.addToStream({
-                                source: 'Jav',
+                            this.showCodeInsight({
+                                title: '💡 Documentation Opportunity',
+                                message: 'This function would benefit from a docstring. Want me to write one?',
+                                action: 'add-docstring'
+                            });
+                        }
+                        
+                        if (code.includes('TODO') || code.includes('FIXME')) {
+                            this.addStudioItem({
                                 type: 'suggestion',
-                                content: this.getPersonalizedMessage('docstring', 'I see you added a function! A docstring would make it even better. Want me to write one?'),
+                                source: 'Code Analysis',
+                                content: 'I see some TODOs in your code! 📝 Want to tackle them together or break them into smaller tasks?',
                                 actions: [
-                                    { id: 'add-docstring', label: '✍️ Write docstring', type: 'primary' },
-                                    { id: 'explain-docstring', label: '❓ Why docstrings?', type: 'secondary' }
+                                    { id: 'list-todos', label: '📋 List TODOs', primary: true },
+                                    { id: 'prioritize', label: '⭐ Prioritize' },
+                                    { id: 'create-tasks', label: '✅ Create Tasks' }
                                 ]
                             });
                         }
                         
-                        if (lineCount > 50 && !code.includes('# TODO')) {
-                            this.addToStream({
+                        if (lineCount > 50 && Math.random() < 0.3) {
+                            this.addStudioItem({
+                                type: 'idea',
                                 source: 'Jav',
-                                type: 'suggestion',
-                                content: 'Your code is growing nicely! 📈 Consider adding some TODO comments for future improvements.',
+                                content: 'Your code is growing beautifully! 🌱 Consider breaking it into modules or adding some organizational comments?',
                                 actions: [
-                                    { id: 'add-todos', label: '📝 Add TODOs', type: 'primary' },
-                                    { id: 'refactor-check', label: '🔧 Refactor check', type: 'secondary' }
+                                    { id: 'refactor', label: '🔧 Refactor', primary: true },
+                                    { id: 'organize', label: '📁 Organize' }
                                 ]
                             });
                         }
-                        
-                        // Show inline hints occasionally
-                        if (Math.random() < 0.3) {
-                            this.showInlineHint('💡 Pro tip: Ctrl+Space for autocomplete', 300, 200);
-                        }
-                        
-                        this.javThinking = false;
                     }, 1500);
                 },
                 
-                generateCollaborativeSuggestions() {
-                    const suggestions = [
+                generateCreativeInsights() {
+                    const insights = [
                         {
+                            type: 'idea',
                             source: 'Jav',
-                            type: 'suggestion',
-                            content: this.getPersonalizedMessage('check_in', 'How\'s the flow going? Need any help or just want to chat?'),
+                            content: "What if we added some error handling here? It would make the code more robust! 🛡️",
                             actions: [
-                                { id: 'doing-great', label: '🚀 Going great!', type: 'primary' },
-                                { id: 'need-help', label: '🤔 Could use help', type: 'secondary' }
+                                { id: 'add-error-handling', label: '🛡️ Add Error Handling', primary: true },
+                                { id: 'explain-why', label: '❓ Why is this important?' }
                             ]
                         },
                         {
-                            source: 'Jav',
                             type: 'suggestion',
-                            content: 'Ready for a quick win? I can run tests or check for improvements! 🎯',
+                            source: 'Jav',
+                            content: "I'm noticing a pattern in your code style. Want me to suggest some consistency improvements? ✨",
                             actions: [
-                                { id: 'run-tests', label: '🧪 Run tests', type: 'primary' },
-                                { id: 'code-review', label: '👀 Code review', type: 'secondary' }
+                                { id: 'style-check', label: '✨ Style Check', primary: true },
+                                { id: 'auto-format', label: '🎨 Auto Format' }
                             ]
                         },
                         {
-                            source: 'Jav',
-                            type: 'success',
-                            content: 'You\'ve been coding steadily! 💪 Want to commit your progress or take a quick break?',
+                            type: 'idea',
+                            source: 'Creative Assistant',
+                            content: "Ready for a quick win? I can help optimize this function or add some helpful comments! 🚀",
                             actions: [
-                                { id: 'commit-work', label: '💾 Commit progress', type: 'primary' },
-                                { id: 'quick-break', label: '☕ Quick break', type: 'secondary' }
+                                { id: 'optimize', label: '⚡ Optimize', primary: true },
+                                { id: 'add-comments', label: '💬 Add Comments' }
                             ]
                         }
                     ];
                     
-                    // Only add suggestions if not too many already
-                    if (this.creativeStream.filter(item => item.type === 'suggestion').length < 2) {
-                        const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-                        this.addToStream(suggestion);
+                    // Only add if not too many items
+                    if (this.studioItems.filter(item => item.type === 'suggestion').length < 3) {
+                        const insight = insights[Math.floor(Math.random() * insights.length)];
+                        this.addStudioItem(insight);
                     }
                 },
                 
-                checkActivityAndRespond() {
+                checkActivityAndEncourage() {
                     const timeSinceActivity = Date.now() - this.lastActivity;
                     
-                    if (timeSinceActivity > 600000) { // 10 minutes idle
-                        this.addToStream({
+                    if (timeSinceActivity > 300000) { // 5 minutes idle
+                        this.addStudioItem({
+                            type: 'idea',
                             source: 'Jav',
-                            type: 'chat-message',
-                            content: this.getPersonalizedMessage('idle', 'Taking a break or stuck on something? I\'m here if you need me! 😊'),
+                            content: "Taking a creative break? Sometimes stepping away helps with fresh perspectives! ☕✨",
                             actions: [
-                                { id: 'all-good', label: '👍 All good', type: 'primary' },
-                                { id: 'need-help', label: '🆘 Need help', type: 'secondary' }
-                            ]
-                        });
-                    }
-                    
-                    // Celebrate activity streaks
-                    if (this.activityStreak > 0 && this.activityStreak % 5 === 0) {
-                        this.addToStream({
-                            source: 'Jav',
-                            type: 'success',
-                            content: `🔥 ${this.activityStreak} minutes of solid coding! You\'re in the zone!`,
-                            actions: [
-                                { id: 'keep-going', label: '💪 Keep going!', type: 'primary' },
-                                { id: 'take-break', label: '☕ Quick break', type: 'secondary' }
+                                { id: 'continue-working', label: '💪 Keep Going' },
+                                { id: 'inspiration', label: '💡 Get Inspiration' },
+                                { id: 'review-work', label: '👀 Review Progress' }
                             ]
                         });
                     }
                 },
                 
-                handleErrorsWithPersonality() {
-                    const model = this.editor?.getModel();
-                    if (model) {
-                        const markers = monaco.editor.getModelMarkers({ resource: model.uri });
-                        if (markers.length > 0) {
-                            this.hasErrors = true;
-                            
-                            const errorMessages = {
-                                'Friendly': 'Oops! Found some syntax errors. No worries, happens to everyone! 😊',
-                                'Professional': 'Syntax errors detected. Shall I assist with resolution?',
-                                'Casual': 'Yo! Got some syntax hiccups. Want me to help fix them?',
-                                'Motivational': 'Errors are just opportunities to learn! Let\'s crush them together! 💪',
-                                'Creative': 'Think of errors as rough sketches - let\'s refine them into art! 🎨',
-                                'Night Owl': 'Late night coding errors? Been there! Let\'s fix these quickly. 🦉'
-                            };
-                            
-                            this.addToStream({
-                                source: 'Jav',
-                                type: 'error',
-                                content: errorMessages[this.personalityMode] || errorMessages['Friendly'],
-                                actions: [
-                                    { id: 'fix-errors', label: '🔧 Auto-fix', type: 'primary' },
-                                    { id: 'explain-errors', label: '📖 Explain', type: 'secondary' },
-                                    { id: 'ignore-errors', label: '👀 Ignore for now', type: 'secondary' }
-                                ]
-                            });
-                        } else {
-                            this.hasErrors = false;
-                        }
+                // Studio Management
+                addStudioItem(item) {
+                    item.id = Date.now() + Math.random();
+                    item.timestamp = new Date();
+                    item.pinned = false;
+                    item.reactions = {};
+                    
+                    this.studioItems.unshift(item);
+                    
+                    // Keep manageable
+                    if (this.studioItems.length > 20) {
+                        this.studioItems = this.studioItems.slice(0, 20);
                     }
+                    
+                    this.scrollToTop();
                 },
                 
-                // Chat and Messaging
-                async sendMessage() {
-                    if (!this.chatInput.trim() || this.javTyping) return;
-                    
-                    const userMessage = this.chatInput.trim();
-                    this.chatInput = '';
-                    
-                    // Add user message to stream
-                    this.addToStream({
-                        source: 'You',
-                        type: 'user-message',
-                        content: userMessage
+                addConversation(content, isJav = false) {
+                    this.conversationHistory.unshift({
+                        id: Date.now() + Math.random(),
+                        content,
+                        isJav,
+                        timestamp: new Date()
                     });
                     
-                    // Start typing indicator
+                    if (this.conversationHistory.length > 10) {
+                        this.conversationHistory = this.conversationHistory.slice(0, 10);
+                    }
+                },
+                
+                // Drag and Drop
+                startDrag(event, item) {
+                    this.dragging = true;
+                    this.draggedItem = item;
+                    this.dragX = event.clientX;
+                    this.dragY = event.clientY;
+                    
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', JSON.stringify(item));
+                },
+                
+                endDrag() {
+                    this.dragging = false;
+                    this.draggedItem = null;
+                    this.dragActive = false;
+                },
+                
+                handleDrop(event) {
+                    this.dragActive = false;
+                    
+                    try {
+                        const data = event.dataTransfer.getData('text/plain');
+                        const item = JSON.parse(data);
+                        
+                        this.addStudioItem({
+                            type: 'idea',
+                            source: 'Studio',
+                            content: `Combined idea: "${item.content.substring(0, 50)}..." - Let's explore this further! 🎯`,
+                            actions: [
+                                { id: 'expand-idea', label: '🔍 Expand', primary: true },
+                                { id: 'implement', label: '⚡ Implement' }
+                            ]
+                        });
+                    } catch (error) {
+                        console.log('Drop handling error:', error);
+                    }
+                },
+                
+                // Interactive Actions
+                async sendMessage() {
+                    if (!this.chatMessage.trim() || this.javTyping) return;
+                    
+                    const userMessage = this.chatMessage.trim();
+                    this.chatMessage = '';
+                    
+                    // Add user message
+                    this.addConversation(userMessage, false);
+                    
+                    // Start typing
                     this.javTyping = true;
                     
                     try {
-                        // Simulate API call or use real backend
-                        const response = await this.processUserMessage(userMessage);
-                        
+                        // Simulate creative AI response
                         setTimeout(() => {
-                            this.addToStream({
-                                source: 'Jav',
-                                type: 'chat-message',
-                                content: response.content,
-                                actions: response.actions || []
-                            });
+                            const responses = this.generateCreativeResponse(userMessage);
+                            this.addConversation(responses.message, true);
+                            
+                            if (responses.suggestion) {
+                                this.addStudioItem(responses.suggestion);
+                            }
+                            
                             this.javTyping = false;
-                        }, 1000 + Math.random() * 2000); // Realistic typing delay
+                        }, 1000 + Math.random() * 2000);
                         
                     } catch (error) {
                         setTimeout(() => {
-                            this.addToStream({
-                                source: 'Jav',
-                                type: 'chat-message',
-                                content: 'Sorry, I\'m having a moment! 😅 But I\'m still here to help however I can offline!'
-                            });
+                            this.addConversation("I'm having a creative moment! 😅 But I'm still here to brainstorm and help however I can!", true);
                             this.javTyping = false;
                         }, 1000);
                     }
                 },
                 
-                async processUserMessage(message) {
-                    // Simple response logic - could be enhanced with real AI
+                generateCreativeResponse(message) {
                     const lowerMessage = message.toLowerCase();
                     
-                    if (lowerMessage.includes('help')) {
+                    if (lowerMessage.includes('help') || lowerMessage.includes('stuck')) {
                         return {
-                            content: 'I\'m here to help! I can assist with code, run tests, check system health, or just chat about your project. What do you need?',
-                            actions: [
-                                { id: 'show-commands', label: '📋 Show commands', type: 'primary' },
-                                { id: 'code-help', label: '💻 Code help', type: 'secondary' }
-                            ]
+                            message: "I'd love to help! What specifically are you working on? We can break it down together, brainstorm solutions, or explore different approaches. 🤝",
+                            suggestion: {
+                                type: 'suggestion',
+                                source: 'Jav',
+                                content: 'Debugging session: Let\'s analyze the problem step by step',
+                                actions: [
+                                    { id: 'debug-together', label: '🔍 Debug Together', primary: true },
+                                    { id: 'explain-code', label: '📖 Explain Code' }
+                                ]
+                            }
                         };
-                    } else if (lowerMessage.includes('test')) {
+                    } else if (lowerMessage.includes('idea') || lowerMessage.includes('brainstorm')) {
                         return {
-                            content: 'Want me to run some tests? I can execute your test suite or help you write new tests!',
-                            actions: [
-                                { id: 'run-tests', label: '🧪 Run tests', type: 'primary' },
-                                { id: 'write-tests', label: '✍️ Write tests', type: 'secondary' }
-                            ]
+                            message: "Love the creative energy! 💡 Let's explore some possibilities. What domain or problem space are you thinking about?",
+                            suggestion: {
+                                type: 'idea',
+                                source: 'Creative Partner',
+                                content: 'Brainstorming session: Let\'s generate and explore ideas together',
+                                actions: [
+                                    { id: 'mind-map', label: '🗺️ Mind Map', primary: true },
+                                    { id: 'research', label: '🔍 Research' }
+                                ]
+                            }
                         };
-                    } else if (lowerMessage.includes('thanks') || lowerMessage.includes('thank you')) {
+                    } else if (lowerMessage.includes('improve') || lowerMessage.includes('better')) {
                         return {
-                            content: this.getPersonalizedMessage('thanks', 'You\'re welcome! I love working with you! 💙 What\'s next on our creative agenda?')
+                            message: "Great mindset! There's always room for improvement. Want to look at performance, readability, architecture, or user experience? 🚀",
+                            suggestion: {
+                                type: 'suggestion',
+                                source: 'Improvement Coach',
+                                content: 'Code review: Let\'s identify enhancement opportunities',
+                                actions: [
+                                    { id: 'code-review', label: '👀 Code Review', primary: true },
+                                    { id: 'performance', label: '⚡ Performance' }
+                                ]
+                            }
                         };
                     } else {
                         return {
-                            content: this.getPersonalizedMessage('general', 'That\'s interesting! Tell me more, or let me know how I can help with your project. 🤔'),
-                            actions: [
-                                { id: 'tell-more', label: '💬 Tell me more', type: 'primary' },
-                                { id: 'code-help', label: '💻 Help with code', type: 'secondary' }
-                            ]
+                            message: "That's interesting! Tell me more about what you're thinking. I'm here to bounce ideas around and help you explore possibilities. 🎨",
+                            suggestion: null
                         };
                     }
                 },
                 
-                // Stream Management
-                addToStream(item) {
-                    item.id = Date.now() + Math.random();
-                    item.timestamp = new Date();
-                    item.pinned = false;
+                executeAction(action, item) {
+                    this.addConversation(`Executed: ${action.label}`, false);
                     
-                    this.creativeStream.unshift(item);
-                    this.totalInteractions++;
-                    
-                    // Keep stream manageable
-                    if (this.creativeStream.length > 50) {
-                        this.creativeStream = this.creativeStream.slice(0, 50);
-                    }
-                    
-                    // Auto-scroll to top
-                    this.$nextTick(() => {
-                        const container = this.$refs.streamContainer;
-                        if (container) {
-                            container.scrollTop = 0;
-                        }
-                    });
-                },
-                
-                executeStreamAction(action, item) {
-                    this.addToStream({
-                        source: 'You',
-                        type: 'user-message',
-                        content: `Executed: ${action.label}`
-                    });
-                    
-                    // Execute the actual action
+                    // Simulate action execution
                     switch(action.id) {
-                        case 'run-tests':
-                            this.runQuickAction('test');
-                            break;
-                        case 'fix-health':
-                            this.runQuickAction('health');
-                            break;
-                        case 'add-docstring':
-                            this.addToStream({
+                        case 'start-coding':
+                            this.addStudioItem({
+                                type: 'suggestion',
                                 source: 'Jav',
-                                type: 'success',
-                                content: 'Added a docstring template! ✨ Check your function - looking professional now!'
+                                content: 'Great! Let\'s start with a solid foundation. What type of project are we building? 🏗️',
+                                actions: [
+                                    { id: 'web-app', label: '🌐 Web App' },
+                                    { id: 'api', label: '🔌 API' },
+                                    { id: 'script', label: '📜 Script' }
+                                ]
                             });
                             break;
-                        case 'commit-work':
-                            this.quickSave();
+                            
+                        case 'add-docstring':
+                            this.addStudioItem({
+                                type: 'suggestion',
+                                source: 'Code Assistant',
+                                content: 'Added a professional docstring! ✨ Your function is now properly documented.',
+                                actions: [
+                                    { id: 'view-changes', label: '👀 View Changes' }
+                                ]
+                            });
                             break;
+                            
+                        case 'debug-together':
+                            this.addStudioItem({
+                                type: 'idea',
+                                source: 'Debug Partner',
+                                content: 'Let\'s start debugging! First, let\'s understand what the expected behavior should be. 🔍',
+                                actions: [
+                                    { id: 'trace-execution', label: '📍 Trace Execution' },
+                                    { id: 'check-logs', label: '📋 Check Logs' }
+                                ]
+                            });
+                            break;
+                            
                         default:
-                            this.addToStream({
+                            this.addStudioItem({
+                                type: 'idea',
                                 source: 'Jav',
-                                type: 'chat-message',
-                                content: `Executed ${action.label}! 👍`
+                                content: `Executed "${action.label}" - let's see what happens next! 🎯`,
+                                actions: []
                             });
                     }
                     
                     // Remove the item after action
-                    this.creativeStream = this.creativeStream.filter(streamItem => streamItem.id !== item.id);
+                    this.removeItem(item.id);
+                },
+                
+                reactToItem(item, emoji) {
+                    if (!item.reactions) item.reactions = {};
+                    item.reactions[emoji] = (item.reactions[emoji] || 0) + 1;
+                    
+                    this.addConversation(`Reacted ${emoji} to "${item.content.substring(0, 30)}..."`, false);
                 },
                 
                 togglePin(item) {
                     item.pinned = !item.pinned;
+                    
                     if (item.pinned) {
-                        this.addToStream({
-                            source: 'System',
-                            type: 'success',
-                            content: `📌 Pinned "${item.content.substring(0, 30)}..." to your session memory!`
-                        });
+                        this.addConversation(`📌 Pinned for later: "${item.content.substring(0, 30)}..."`, false);
                     }
                 },
                 
-                replyToItem(item) {
-                    this.chatInput = `Re: "${item.content.substring(0, 50)}..." - `;
-                    const input = document.querySelector('.chat-input');
-                    if (input) {
-                        input.focus();
-                        input.setSelectionRange(input.value.length, input.value.length);
-                    }
+                removeItem(id) {
+                    this.studioItems = this.studioItems.filter(item => item.id !== id);
                 },
                 
-                starItem(item) {
-                    this.addToStream({
-                        source: 'System',
-                        type: 'success',
-                        content: `⭐ Starred for your session highlights! I'll remember this was important to you.`
-                    });
-                },
-                
-                // Personality System
-                getPersonalizedMessage(context, defaultMessage) {
-                    const personalizedMessages = {
-                        docstring: {
-                            'Friendly': 'I noticed you added a function! A docstring would make it shine even brighter! ✨',
-                            'Professional': 'Function detected. Recommend adding documentation for maintainability.',
-                            'Casual': 'Sweet function! Want me to whip up a docstring for it?',
-                            'Motivational': 'Great function! Let\'s make it legendary with a killer docstring! 🚀',
-                            'Creative': 'Your function is like a poem - let\'s give it a beautiful docstring! 📝',
-                            'Night Owl': 'Nice function! A docstring will help future-you remember what midnight-you was thinking! 🦉'
-                        },
-                        thanks: {
-                            'Friendly': 'Aww, you\'re so welcome! This is fun! 😊',
-                            'Professional': 'You\'re welcome. Happy to assist with your development objectives.',
-                            'Casual': 'No prob! We make a good team! 🤘',
-                            'Motivational': 'You\'re unstoppable! Keep crushing it! 💪',
-                            'Creative': 'Art is collaboration! Let\'s keep creating magic! 🎨',
-                            'Night Owl': 'Anytime! Night coding sessions are the best! ☕'
-                        }
-                    };
-                    
-                    return personalizedMessages[context]?.[this.personalityMode] || defaultMessage;
-                },
-                
-                getPersonalizedWelcome() {
-                    const welcomes = {
-                        'Friendly': 'Hey there! 👋 Ready to build something awesome together? I\'m excited to be your coding buddy!',
-                        'Professional': 'Good day. I\'m ready to assist with your development objectives. How may I help optimize your workflow?',
-                        'Casual': 'Yo! 😎 Let\'s make some cool stuff happen! What are we building today?',
-                        'Motivational': 'You\'re about to create something amazing! 🚀 I believe in you - let\'s crush this together!',
-                        'Creative': 'Welcome to our creative workshop! 🎨 Every line of code is a brushstroke - let\'s paint something beautiful!',
-                        'Night Owl': 'Late night coding session? Perfect! 🦉 Some of the best code is written when the world is quiet.'
-                    };
-                    
-                    return welcomes[this.personalityMode] || welcomes['Friendly'];
-                },
-                
-                cyclePersonality() {
-                    this.personalityIndex = (this.personalityIndex + 1) % this.personalities.length;
-                    this.personalityMode = this.personalities[this.personalityIndex];
-                    
-                    this.addToStream({
-                        source: 'Jav',
-                        type: 'success',
-                        content: `Switched to ${this.personalityMode} mode! ${this.getPersonalizedMessage('mode_switch', 'How does this feel?')}`,
+                expandItem(item) {
+                    this.addStudioItem({
+                        type: 'idea',
+                        source: 'Expanded View',
+                        content: `Deep dive: ${item.content} \n\nLet's explore this concept further and see what possibilities emerge! 🔍✨`,
                         actions: [
-                            { id: 'perfect-personality', label: '👌 Perfect!', type: 'primary' },
-                            { id: 'try-another', label: '🔄 Try another', type: 'secondary' }
+                            { id: 'analyze', label: '🔬 Analyze Further' },
+                            { id: 'implement', label: '⚡ Implement' },
+                            { id: 'research', label: '📚 Research' }
                         ]
                     });
                 },
                 
-                // UI Controls
-                togglePanel() {
-                    if (this.panelVisible) {
-                        this.panelMinimized = !this.panelMinimized;
-                    } else {
-                        this.panelVisible = true;
-                        this.panelMinimized = false;
+                // Toolbar Actions
+                async runHealthCheck() {
+                    this.addStudioItem({
+                        type: 'suggestion',
+                        source: 'Health Monitor',
+                        content: 'Running system health check... 🏥',
+                        actions: []
+                    });
+                    
+                    try {
+                        const response = await fetch('/health');
+                        const data = await response.json();
+                        
+                        this.addStudioItem({
+                            type: data.status === 'healthy' ? 'suggestion' : 'error',
+                            source: 'Health Monitor',
+                            content: data.status === 'healthy' ? 
+                                '✅ All systems are healthy and running smoothly!' : 
+                                `⚠️ Health check found issues: ${data.status}`,
+                            actions: data.status === 'healthy' ? [] : [
+                                { id: 'fix-issues', label: '🔧 Fix Issues', primary: true }
+                            ]
+                        });
+                    } catch (error) {
+                        this.addStudioItem({
+                            type: 'error',
+                            source: 'Health Monitor',
+                            content: '❌ Could not connect to health endpoint. System might be offline.',
+                            actions: [
+                                { id: 'retry-health', label: '🔄 Retry' }
+                            ]
+                        });
                     }
                 },
                 
-                floatPanel() {
-                    this.panelFloating = !this.panelFloating;
-                    this.addToStream({
-                        source: 'System',
-                        type: 'success',
-                        content: this.panelFloating ? '🎈 Panel is now floating!' : '📌 Panel docked back!'
+                triggerInspiration() {
+                    const inspirations = [
+                        "What if we added real-time collaboration features? 🤝",
+                        "Consider implementing a caching layer for better performance! ⚡",
+                        "How about adding some delightful animations to improve UX? ✨",
+                        "Want to explore using AI to enhance this feature? 🤖",
+                        "Think about mobile users - how would this work on smaller screens? 📱"
+                    ];
+                    
+                    const inspiration = inspirations[Math.floor(Math.random() * inspirations.length)];
+                    
+                    this.addStudioItem({
+                        type: 'idea',
+                        source: 'Inspiration Engine',
+                        content: inspiration,
+                        actions: [
+                            { id: 'explore-idea', label: '🔍 Explore', primary: true },
+                            { id: 'save-for-later', label: '💾 Save for Later' },
+                            { id: 'another-idea', label: '🎲 Another Idea' }
+                        ]
                     });
                 },
                 
-                handleEnterKey(event) {
+                quickSave() {
+                    this.addStudioItem({
+                        type: 'suggestion',
+                        source: 'Save Assistant',
+                        content: '💾 Work saved! Your creative progress is secure. Keep building! 🚀',
+                        actions: [
+                            { id: 'commit-git', label: '📝 Commit to Git' },
+                            { id: 'deploy', label: '🚀 Deploy Changes' }
+                        ]
+                    });
+                },
+                
+                voiceInput() {
+                    this.addStudioItem({
+                        type: 'idea',
+                        source: 'Voice Assistant',
+                        content: '🎤 Voice input would be amazing here! Imagine talking through your ideas while coding...',
+                        actions: [
+                            { id: 'enable-voice', label: '🎙️ Enable Voice' },
+                            { id: 'voice-commands', label: '🗣️ Voice Commands' }
+                        ]
+                    });
+                },
+                
+                clearStudio() {
+                    this.studioItems = [];
+                    this.conversationHistory = [];
+                    this.addStudioItem({
+                        type: 'idea',
+                        source: 'Jav',
+                        content: 'Fresh start! 🌟 Ready for our next creative adventure. What shall we build?',
+                        actions: [
+                            { id: 'new-project', label: '🆕 New Project', primary: true },
+                            { id: 'continue-existing', label: '📂 Continue Existing' }
+                        ]
+                    });
+                },
+                
+                // Code Insights
+                showCodeInsight(insight) {
+                    this.codeInsight = insight;
+                    setTimeout(() => {
+                        if (this.codeInsight === insight) {
+                            this.codeInsight = null;
+                        }
+                    }, 8000);
+                },
+                
+                applyCodeSuggestion() {
+                    if (this.codeInsight) {
+                        this.addStudioItem({
+                            type: 'suggestion',
+                            source: 'Code Assistant',
+                            content: `Applied suggestion: ${this.codeInsight.title}! Your code is looking better. ✨`,
+                            actions: []
+                        });
+                        this.codeInsight = null;
+                    }
+                },
+                
+                provideContextualInsights(event) {
+                    // Occasionally provide contextual hints
+                    if (Math.random() < 0.1) {
+                        const position = event.position;
+                        const model = this.editor.getModel();
+                        const line = model.getLineContent(position.lineNumber);
+                        
+                        if (line.includes('print') && Math.random() < 0.5) {
+                            this.showCodeInsight({
+                                title: '💡 Logging Suggestion',
+                                message: 'Consider using proper logging instead of print statements',
+                                action: 'improve-logging'
+                            });
+                        }
+                    }
+                },
+                
+                // Input Handling
+                handleEnter(event) {
                     if (event.shiftKey) {
-                        // Allow new line
-                        return;
+                        return; // Allow new line
                     } else {
-                        // Send message
                         this.sendMessage();
                     }
                 },
@@ -1296,131 +1393,14 @@
                     textarea.style.height = 'auto';
                     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
                     
-                    // Show typing activity to Jav
                     this.updateActivity();
                 },
                 
                 updateActivity() {
                     this.lastActivity = Date.now();
-                    this.activityStreak++;
-                    this.javActive = true;
                 },
                 
-                // Inline Hints
-                showInlineHint(message, x, y, icon = 'fas fa-lightbulb') {
-                    const hint = {
-                        id: Date.now(),
-                        message,
-                        x,
-                        y,
-                        icon
-                    };
-                    
-                    this.inlineHints.push(hint);
-                    
-                    // Auto-dismiss after 5 seconds
-                    setTimeout(() => {
-                        this.dismissHint(hint.id);
-                    }, 5000);
-                },
-                
-                dismissHint(hintId) {
-                    this.inlineHints = this.inlineHints.filter(hint => hint.id !== hintId);
-                },
-                
-                hideInlineHints() {
-                    this.inlineHints = [];
-                },
-                
-                handleCursorChange(event) {
-                    // Occasionally show contextual hints based on cursor position
-                    if (Math.random() < 0.1) { // 10% chance
-                        const position = event.position;
-                        const model = this.editor.getModel();
-                        const line = model.getLineContent(position.lineNumber);
-                        
-                        if (line.includes('TODO')) {
-                            this.showInlineHint('💡 Right-click for TODO actions', event.target.getBoundingClientRect().left, event.target.getBoundingClientRect().top - 50);
-                        }
-                    }
-                },
-                
-                // Quick Actions
-                async runQuickAction(action) {
-                    this.javThinking = true;
-                    this.addToStream({
-                        source: 'You',
-                        type: 'user-message',
-                        content: `Running ${action}...`
-                    });
-                    
-                    switch(action) {
-                        case 'health':
-                            try {
-                                const response = await fetch('/health');
-                                const data = await response.json();
-                                const message = data.status === 'healthy' ? 
-                                    '✅ All systems healthy! We\'re good to go!' : 
-                                    `⚠️ Health check found: ${data.status}`;
-                                this.addToStream({
-                                    source: 'Jav',
-                                    type: data.status === 'healthy' ? 'success' : 'error',
-                                    content: message
-                                });
-                            } catch (error) {
-                                this.addToStream({
-                                    source: 'Jav',
-                                    type: 'error',
-                                    content: '❌ Couldn\'t reach health endpoint, but I\'m still here!'
-                                });
-                            }
-                            break;
-                        case 'test':
-                            setTimeout(() => {
-                                this.addToStream({
-                                    source: 'Jav',
-                                    type: 'success',
-                                    content: '✅ Tests passed! Your code is looking solid! 🎯'
-                                });
-                            }, 2000);
-                            break;
-                    }
-                    
-                    setTimeout(() => {
-                        this.javThinking = false;
-                    }, 2000);
-                },
-                
-                quickSave() {
-                    this.addToStream({
-                        source: 'Jav',
-                        type: 'success',
-                        content: '💾 Nice work! Your progress is saved. Keep the momentum going! 🚀',
-                        actions: [
-                            { id: 'commit-git', label: '📝 Commit to Git', type: 'primary' },
-                            { id: 'deploy-now', label: '🚀 Deploy', type: 'secondary' }
-                        ]
-                    });
-                },
-                
-                adaptToUserBehavior() {
-                    // Simple adaptation based on activity patterns
-                    const now = new Date();
-                    const hour = now.getHours();
-                    
-                    if (hour >= 22 || hour <= 6) {
-                        if (this.personalityMode !== 'Night Owl') {
-                            this.personalityMode = 'Night Owl';
-                            this.addToStream({
-                                source: 'Jav',
-                                type: 'success',
-                                content: '🦉 Adapted to Night Owl mode for your late-night session! Need any coding fuel? ☕'
-                            });
-                        }
-                    }
-                },
-                
-                // Helper functions
+                // Utilities
                 timeAgo(timestamp) {
                     const diff = Date.now() - new Date(timestamp).getTime();
                     const minutes = Math.floor(diff / 60000);
@@ -1430,31 +1410,26 @@
                     return `${seconds}s ago`;
                 },
                 
-                getAvatarClass(source) {
-                    const avatarClasses = {
-                        'Jav': 'jav-avatar-mini',
-                        'You': 'user-avatar-mini',
-                        'System': 'system-avatar-mini'
-                    };
-                    return avatarClasses[source] || 'system-avatar-mini';
-                },
-                
-                getAvatarIcon(source) {
-                    const avatarIcons = {
+                getSourceIcon(source) {
+                    const icons = {
                         'Jav': 'fas fa-robot',
-                        'You': 'fas fa-user',
-                        'System': 'fas fa-cog'
+                        'Code Analysis': 'fas fa-code',
+                        'Creative Assistant': 'fas fa-palette',
+                        'Health Monitor': 'fas fa-heart-pulse',
+                        'System': 'fas fa-cog',
+                        'Debug Partner': 'fas fa-bug',
+                        'Inspiration Engine': 'fas fa-lightbulb'
                     };
-                    return avatarIcons[source] || 'fas fa-circle';
+                    return icons[source] || 'fas fa-circle';
                 },
                 
-                getBubbleClass(source) {
-                    const bubbleClasses = {
-                        'Jav': 'jav-bubble',
-                        'You': 'user-bubble',
-                        'System': 'system-bubble'
-                    };
-                    return bubbleClasses[source] || 'system-bubble';
+                scrollToTop() {
+                    this.$nextTick(() => {
+                        const container = this.$refs.conversationContainer;
+                        if (container) {
+                            container.scrollTop = 0;
+                        }
+                    });
                 }
             }
         }
