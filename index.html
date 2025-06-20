@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jav Co-Builder - Memory-Driven Workspace</title>
+    <title>Jav Co-Builder - Creative Workshop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
@@ -23,6 +23,8 @@
             --jav-success: #10B981;
             --jav-warning: #F59E0B;
             --jav-error: #EF4444;
+            --jav-chat-user: #3B82F6;
+            --jav-chat-assistant: #10B981;
         }
         
         body {
@@ -47,28 +49,34 @@
             overflow: hidden;
         }
         
-        .jav-context-panel {
+        .jav-collaborative-panel {
             position: fixed;
             right: 24px;
             top: 24px;
-            width: 380px;
-            max-height: 70vh;
+            width: 420px;
+            max-height: 80vh;
             background: var(--jav-surface);
             border: 1px solid var(--jav-border);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
             z-index: 1000;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
         }
         
-        .jav-context-panel.minimized {
-            height: 60px;
-            max-height: 60px;
+        .jav-collaborative-panel.minimized {
+            height: 70px;
+            max-height: 70px;
         }
         
-        .context-header {
-            padding: 16px 20px;
+        .jav-collaborative-panel.floating {
+            transform: scale(1.02);
+            box-shadow: 0 35px 90px rgba(59, 130, 246, 0.3);
+        }
+        
+        .collaborative-header {
+            padding: 20px 24px;
             border-bottom: 1px solid var(--jav-border);
             display: flex;
             align-items: center;
@@ -76,78 +84,232 @@
             cursor: pointer;
             background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
             color: white;
+            position: relative;
+            overflow: hidden;
         }
         
-        .context-content {
-            max-height: calc(70vh - 60px);
+        .collaborative-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .collaborative-header:hover::before {
+            left: 100%;
+        }
+        
+        .collaborative-content {
+            max-height: calc(80vh - 70px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .creative-stream {
+            flex: 1;
+            min-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             padding: 0;
+            background: rgba(0, 0, 0, 0.1);
         }
         
-        .suggestion-card {
-            margin: 12px;
-            padding: 16px;
+        .stream-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+            animation: slideInStream 0.4s ease;
+            position: relative;
+        }
+        
+        .stream-item:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .stream-item.chat-message {
+            background: rgba(16, 185, 129, 0.08);
+        }
+        
+        .stream-item.user-message {
+            background: rgba(59, 130, 246, 0.08);
+        }
+        
+        .stream-item.suggestion {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 4px solid var(--jav-warning);
+        }
+        
+        .stream-item.error {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 4px solid var(--jav-error);
+        }
+        
+        .stream-item.success {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 4px solid var(--jav-success);
+        }
+        
+        .stream-item.pinned {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .stream-item.pinned::before {
+            content: '⭐';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 12px;
+        }
+        
+        .message-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .jav-avatar-mini {
+            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
+            color: white;
+        }
+        
+        .user-avatar-mini {
+            background: linear-gradient(135deg, var(--jav-accent), var(--jav-primary));
+            color: white;
+        }
+        
+        .system-avatar-mini {
             background: var(--jav-panel);
-            border-radius: 12px;
-            border-left: 4px solid var(--jav-primary);
-            transition: all 0.2s ease;
-            animation: slideInRight 0.3s ease;
+            color: var(--jav-text-muted);
         }
         
-        .suggestion-card:hover {
-            background: #475569;
-            transform: translateX(-2px);
+        .message-bubble {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
         }
         
-        .suggestion-card.error {
-            border-left-color: var(--jav-error);
-            background: rgba(239, 68, 68, 0.1);
+        .jav-bubble {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--jav-text);
         }
         
-        .suggestion-card.warning {
-            border-left-color: var(--jav-warning);
-            background: rgba(245, 158, 11, 0.1);
+        .user-bubble {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--jav-text);
         }
         
-        .suggestion-card.success {
-            border-left-color: var(--jav-success);
-            background: rgba(16, 185, 129, 0.1);
+        .system-bubble {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: var(--jav-text-muted);
         }
         
-        .suggestion-actions {
+        .message-actions {
             display: flex;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .stream-item:hover .message-actions {
+            opacity: 1;
         }
         
         .action-btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
             border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--jav-text-muted);
         }
         
-        .action-btn.primary {
+        .action-btn:hover {
             background: var(--jav-primary);
             color: white;
+            transform: translateY(-1px);
         }
         
-        .action-btn.primary:hover {
-            background: var(--jav-primary-dark);
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid var(--jav-border);
+            background: rgba(0, 0, 0, 0.2);
         }
         
-        .action-btn.secondary {
+        .chat-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        
+        .chat-input {
+            flex: 1;
             background: var(--jav-panel);
-            color: var(--jav-text-muted);
             border: 1px solid var(--jav-border);
+            border-radius: 20px;
+            padding: 12px 16px;
+            color: var(--jav-text);
+            font-size: 14px;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            transition: all 0.2s ease;
         }
         
-        .action-btn.secondary:hover {
-            background: var(--jav-border);
-            color: var(--jav-text);
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--jav-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .chat-send-btn {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .jav-status-indicator {
@@ -169,129 +331,75 @@
             animation: none;
         }
         
-        .activity-log {
-            padding: 16px 20px;
-            border-top: 1px solid var(--jav-border);
-            background: rgba(0, 0, 0, 0.2);
-        }
-        
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 0;
-            font-size: 13px;
-            color: var(--jav-text-muted);
-        }
-        
-        .activity-item .icon {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-        }
-        
-        .mini-thread {
-            max-height: 200px;
-            overflow-y: auto;
-            border-top: 1px solid var(--jav-border);
-        }
-        
-        .thread-message {
-            padding: 12px 20px;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
-            font-size: 13px;
-        }
-        
-        .thread-message.jav {
-            background: rgba(59, 130, 246, 0.05);
-        }
-        
-        .thread-message.user {
-            background: rgba(16, 185, 129, 0.05);
-        }
-        
-        .jav-avatar {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 999;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
-        }
-        
-        .jav-avatar:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 48px rgba(59, 130, 246, 0.6);
-        }
-        
-        .jav-avatar.active {
-            background: linear-gradient(135deg, var(--jav-accent), var(--jav-primary));
-            animation: pulse 2s infinite;
-        }
-        
-        .jav-chat-panel {
-            position: fixed;
-            right: 24px;
-            bottom: 104px;
-            width: 400px;
-            height: 500px;
+        .inline-hint {
+            position: absolute;
             background: var(--jav-surface);
             border: 1px solid var(--jav-border);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            z-index: 998;
-            transform: translateY(20px) scale(0.95);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            animation: popIn 0.3s ease;
+            max-width: 250px;
         }
         
-        .jav-chat-panel.visible {
-            transform: translateY(0) scale(1);
-            opacity: 1;
+        .inline-hint::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 20px;
+            width: 12px;
+            height: 12px;
+            background: var(--jav-surface);
+            border: 1px solid var(--jav-border);
+            transform: rotate(45deg);
+            border-bottom: none;
+            border-right: none;
+        }
+        
+        .personality-badge {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+            animation: shimmer 3s infinite;
         }
         
         .toolbar {
             position: fixed;
-            top: 16px;
-            left: 16px;
+            top: 20px;
+            left: 20px;
             display: flex;
             gap: 8px;
             z-index: 200;
         }
         
         .toolbar-button {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background: var(--jav-surface);
             border: 1px solid var(--jav-border);
-            border-radius: 8px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
         .toolbar-button:hover {
             background: var(--jav-panel);
             border-color: var(--jav-primary);
+            transform: translateY(-2px);
         }
         
         .toolbar-button.active {
             background: var(--jav-primary);
             color: white;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
         }
         
         .status-bar {
@@ -299,17 +407,42 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 32px;
+            height: 36px;
             background: var(--jav-surface);
             border-top: 1px solid var(--jav-border);
             display: flex;
             align-items: center;
-            padding: 0 16px;
+            padding: 0 20px;
             font-size: 12px;
             z-index: 100;
+            backdrop-filter: blur(10px);
         }
         
-        @keyframes slideInRight {
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--jav-text-muted);
+            font-style: italic;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--jav-accent);
+            animation: typingDots 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes slideInStream {
             from {
                 transform: translateX(20px);
                 opacity: 0;
@@ -320,9 +453,20 @@
             }
         }
         
+        @keyframes popIn {
+            from {
+                transform: scale(0.8) translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+        
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
         }
         
         @keyframes blink {
@@ -330,185 +474,185 @@
             51%, 100% { opacity: 0.3; }
         }
         
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes typingDots {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+        
         .fade-in {
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.4s ease;
         }
         
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        
-        .personality-badge {
-            font-size: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-left: 8px;
-        }
     </style>
 </head>
 <body>
-    <div x-data="javWorkspace()" x-init="init()" class="workspace-container">
+    <div x-data="javCollaborativeWorkspace()" x-init="init()" class="workspace-container">
         
         <!-- Main Canvas - Code Editor -->
-        <div class="main-canvas" @click="hideContextMenus()">
+        <div class="main-canvas" @click="hideInlineHints()">
             <div id="monaco-editor" class="w-full h-full"></div>
         </div>
         
-        <!-- Jav Context Panel - The Heart of the Copilot -->
-        <div class="jav-context-panel" 
-             :class="{ 'minimized': contextMinimized }"
-             x-show="contextPanelVisible"
+        <!-- Jav Collaborative Panel - The Creative Workshop -->
+        <div class="jav-collaborative-panel" 
+             :class="{ 
+                'minimized': panelMinimized,
+                'floating': panelFloating 
+             }"
+             x-show="panelVisible"
              x-transition>
             
-            <!-- Context Header -->
-            <div class="context-header" @click="toggleContextPanel()">
+            <!-- Collaborative Header -->
+            <div class="collaborative-header" @click="togglePanel()">
                 <div class="flex items-center">
                     <div class="jav-status-indicator" 
                          :class="{ 'thinking': javThinking, 'error': hasErrors }"></div>
                     <div>
-                        <div class="font-medium">Jav Context</div>
-                        <div class="text-xs opacity-80" x-text="contextStatus"></div>
+                        <div class="font-semibold">Creative Workshop</div>
+                        <div class="text-xs opacity-90" x-text="collaborativeStatus"></div>
                     </div>
                     <div class="personality-badge" x-text="personalityMode"></div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs" x-text="activeSuggestions + ' active'"></span>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs" x-text="totalInteractions + ' exchanges'"></span>
                     <i class="fas fa-chevron-down transition-transform" 
-                       :class="{ 'rotate-180': !contextMinimized }"></i>
+                       :class="{ 'rotate-180': !panelMinimized }"></i>
                 </div>
             </div>
             
-            <!-- Context Content -->
-            <div class="context-content" x-show="!contextMinimized">
+            <!-- Collaborative Content -->
+            <div class="collaborative-content" x-show="!panelMinimized">
                 
-                <!-- Contextual Suggestions -->
-                <div x-show="suggestions.length > 0">
-                    <template x-for="suggestion in suggestions" :key="suggestion.id">
-                        <div class="suggestion-card" 
-                             :class="suggestion.type"
+                <!-- Creative Stream - Mixed Chat/Context/Suggestions -->
+                <div class="creative-stream" x-ref="streamContainer">
+                    <template x-for="item in creativeStream" :key="item.id">
+                        <div class="stream-item" 
+                             :class="[item.type, { 'pinned': item.pinned }]"
                              x-transition:enter="fade-in">
-                            <div class="flex items-start justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <i :class="suggestion.icon" class="text-sm"></i>
-                                    <span class="font-medium text-sm" x-text="suggestion.title"></span>
+                            
+                            <div class="message-content">
+                                <div class="message-avatar" 
+                                     :class="getAvatarClass(item.source)">
+                                    <i :class="getAvatarIcon(item.source)"></i>
                                 </div>
-                                <span class="text-xs text-gray-400" x-text="timeAgo(suggestion.timestamp)"></span>
-                            </div>
-                            <div class="text-sm text-gray-300 mb-3" x-text="suggestion.message"></div>
-                            <div class="suggestion-actions">
-                                <template x-for="action in suggestion.actions" :key="action.id">
-                                    <button class="action-btn" 
-                                            :class="action.type"
-                                            @click="executeAction(action, suggestion)"
-                                            x-text="action.label"></button>
-                                </template>
+                                
+                                <div class="flex-1">
+                                    <div class="message-bubble" 
+                                         :class="getBubbleClass(item.source)">
+                                        <div class="flex items-start justify-between mb-1">
+                                            <span class="font-medium text-sm" x-text="item.source"></span>
+                                            <span class="text-xs opacity-70" x-text="timeAgo(item.timestamp)"></span>
+                                        </div>
+                                        <div class="text-sm" x-text="item.content"></div>
+                                        
+                                        <!-- Action buttons for suggestions/errors -->
+                                        <div x-show="item.actions && item.actions.length > 0" 
+                                             class="message-actions">
+                                            <template x-for="action in item.actions" :key="action.id">
+                                                <button class="action-btn" 
+                                                        @click="executeStreamAction(action, item)"
+                                                        x-text="action.label"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Universal actions -->
+                                    <div class="message-actions">
+                                        <button class="action-btn" 
+                                                @click="togglePin(item)"
+                                                x-text="item.pinned ? 'Unpin' : 'Pin'"></button>
+                                        <button class="action-btn" 
+                                                @click="replyToItem(item)">Reply</button>
+                                        <button class="action-btn" 
+                                                @click="starItem(item)">⭐</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </template>
-                </div>
-                
-                <!-- What's Jav Doing Section -->
-                <div class="activity-log" x-show="currentActivity.length > 0">
-                    <div class="text-sm font-medium mb-3 flex items-center">
-                        <i class="fas fa-cog animate-spin mr-2"></i>
-                        What's Jav Doing?
+                    
+                    <!-- Typing indicator -->
+                    <div x-show="javTyping" class="stream-item">
+                        <div class="message-content">
+                            <div class="message-avatar jav-avatar-mini">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="typing-indicator">
+                                <span>Jav is thinking</span>
+                                <div class="typing-dots">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <template x-for="activity in currentActivity" :key="activity.id">
-                        <div class="activity-item">
-                            <div class="icon" :style="`background: ${activity.color}`">
-                                <i :class="activity.icon" class="text-white"></i>
-                            </div>
-                            <span x-text="activity.description"></span>
-                            <div class="ml-auto text-xs" x-text="activity.status"></div>
-                        </div>
-                    </template>
+                    
+                    <!-- Empty state -->
+                    <div x-show="creativeStream.length === 0" 
+                         class="p-8 text-center text-gray-400">
+                        <i class="fas fa-paint-brush text-3xl mb-4 opacity-50"></i>
+                        <div class="text-sm">Ready to create together! 🎨</div>
+                        <div class="text-xs mt-1">Ask me anything or start coding...</div>
+                    </div>
                 </div>
                 
-                <!-- Mini Thread / Recent Exchanges -->
-                <div class="mini-thread" x-show="recentExchanges.length > 0">
-                    <template x-for="exchange in recentExchanges.slice(-3)" :key="exchange.id">
-                        <div class="thread-message" :class="exchange.type">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-xs font-medium" 
-                                      x-text="exchange.type === 'jav' ? 'Jav' : 'You'"></span>
-                                <span class="text-xs text-gray-400" x-text="timeAgo(exchange.timestamp)"></span>
-                            </div>
-                            <div class="text-sm" x-text="exchange.message"></div>
-                        </div>
-                    </template>
-                </div>
-                
-                <!-- Empty State -->
-                <div x-show="suggestions.length === 0 && currentActivity.length === 0" 
-                     class="p-8 text-center text-gray-400">
-                    <i class="fas fa-robot text-3xl mb-4 opacity-50"></i>
-                    <div class="text-sm">I'm watching your back! 👀</div>
-                    <div class="text-xs mt-1">Ready to help when you need me.</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Jav Avatar -->
-        <div class="jav-avatar" 
-             :class="{ 'active': javActive }"
-             @click="toggleJavChat()"
-             title="Click to chat with Jav">
-            <i class="fas fa-robot text-xl text-white"></i>
-        </div>
-        
-        <!-- Jav Chat Panel -->
-        <div class="jav-chat-panel" 
-             :class="{ 'visible': javChatVisible }"
-             x-show="javChatVisible"
-             x-transition>
-            <div class="context-header">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-robot text-blue-400"></i>
-                    <span class="font-medium">Chat with Jav</span>
-                    <div class="personality-badge" x-text="personalityMode"></div>
-                </div>
-                <button @click="toggleJavChat()" class="text-xs hover:text-red-400">×</button>
-            </div>
-            <div class="flex flex-col h-full">
-                <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                    <template x-for="message in javMessages">
-                        <div class="flex gap-3" :class="message.type === 'user' ? 'justify-end' : 'justify-start'">
-                            <div x-show="message.type === 'jav'" 
-                                 class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-robot text-white text-xs"></i>
-                            </div>
-                            <div class="max-w-xs p-3 rounded-xl text-sm"
-                                 :class="message.type === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'">
-                                <div x-text="message.text"></div>
-                                <div class="text-xs opacity-70 mt-1" x-text="formatTime(message.timestamp)"></div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-                <div class="border-t border-gray-600 p-3">
-                    <div class="flex gap-2">
-                        <input x-model="javInput" 
-                               @keydown.enter="sendToJav()"
-                               placeholder="What's up?"
-                               class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                        <button @click="sendToJav()" 
-                                class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg">
-                            <i class="fas fa-paper-plane"></i>
+                <!-- Chat Input Area -->
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <textarea x-model="chatInput" 
+                                  @keydown.enter.prevent="handleEnterKey($event)"
+                                  @input="handleInputChange()"
+                                  placeholder="What's up? Ask me anything, share ideas, or just chat..."
+                                  class="chat-input"
+                                  rows="1"></textarea>
+                        <button @click="sendMessage()" 
+                                :disabled="!chatInput.trim() || javTyping"
+                                class="chat-send-btn">
+                            <i class="fas fa-paper-plane" x-show="!javTyping"></i>
+                            <i class="fas fa-circle-notch fa-spin" x-show="javTyping"></i>
                         </button>
                     </div>
+                    <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+                        <span>Press Enter to send, Shift+Enter for new line</span>
+                        <span x-text="chatInput.length + '/500'"></span>
+                    </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Inline Hints/Tips -->
+        <div x-show="inlineHints.length > 0">
+            <template x-for="hint in inlineHints" :key="hint.id">
+                <div class="inline-hint" 
+                     :style="`top: ${hint.y}px; left: ${hint.x}px;`"
+                     x-transition>
+                    <div class="flex items-center gap-2">
+                        <i :class="hint.icon" class="text-yellow-400"></i>
+                        <span x-text="hint.message"></span>
+                        <button @click="dismissHint(hint.id)" 
+                                class="text-gray-400 hover:text-white ml-2">×</button>
+                    </div>
+                </div>
+            </template>
         </div>
         
         <!-- Toolbar -->
         <div class="toolbar">
-            <button @click="toggleContextPanel()" 
+            <button @click="togglePanel()" 
                     class="toolbar-button" 
-                    :class="{ 'active': contextPanelVisible }"
-                    title="Toggle Jav Context (Ctrl+J)">
-                <i class="fas fa-brain"></i>
+                    :class="{ 'active': panelVisible }"
+                    title="Toggle Workshop (Ctrl+J)">
+                <i class="fas fa-paint-brush"></i>
             </button>
             <button @click="runQuickAction('health')" 
                     class="toolbar-button"
@@ -520,6 +664,11 @@
                     title="Run Tests (Ctrl+T)">
                 <i class="fas fa-vial"></i>
             </button>
+            <button @click="floatPanel()" 
+                    class="toolbar-button"
+                    title="Float/Dock Panel">
+                <i class="fas fa-window-restore"></i>
+            </button>
             <button @click="cyclePersonality()" 
                     class="toolbar-button"
                     title="Change Jav's Personality">
@@ -530,55 +679,64 @@
         <!-- Status Bar -->
         <div class="status-bar">
             <div class="flex items-center gap-4">
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full" 
                          :class="javActive ? 'bg-green-400' : 'bg-gray-400'"></div>
                     <span x-text="javActive ? 'Jav Active' : 'Jav Idle'"></span>
                 </span>
                 <span x-text="activeFile || 'No file open'"></span>
-                <span x-text="'Context: ' + activeSuggestions + ' suggestions'"></span>
-                <span class="ml-auto" x-text="'Session: ' + sessionId.substring(0, 8)"></span>
+                <span x-text="'Workshop: ' + totalInteractions + ' exchanges'"></span>
+                <span class="ml-auto flex items-center gap-2">
+                    <span x-text="'Session: ' + sessionId.substring(0, 8)"></span>
+                    <span x-show="personalityLearning" class="text-blue-400">🧠 Learning your style...</span>
+                </span>
             </div>
         </div>
     </div>
 
     <script>
-        function javWorkspace() {
+        function javCollaborativeWorkspace() {
             return {
                 // Core State
                 sessionId: new Date().toISOString().replace(/[-:]/g, '').split('.')[0],
                 javActive: true,
                 javThinking: false,
+                javTyping: false,
                 hasErrors: false,
                 
-                // Context Panel State
-                contextPanelVisible: true,
-                contextMinimized: false,
-                contextStatus: 'All systems go! 🚀',
-                activeSuggestions: 0,
+                // Panel State
+                panelVisible: true,
+                panelMinimized: false,
+                panelFloating: false,
+                collaborativeStatus: 'Ready to build together! 🚀',
                 
-                // Personality System
+                // Personality & Learning
                 personalityMode: 'Friendly',
-                personalities: ['Friendly', 'Professional', 'Casual', 'Motivational', 'Sarcastic'],
+                personalities: ['Friendly', 'Professional', 'Casual', 'Motivational', 'Creative', 'Night Owl'],
                 personalityIndex: 0,
+                personalityLearning: false,
+                userPreferences: {
+                    workingHours: [],
+                    codingStyle: 'exploratory',
+                    feedbackLevel: 'encouraging'
+                },
                 
-                // Chat State
-                javChatVisible: false,
-                javMessages: [],
-                javInput: '',
-                
-                // Contextual Intelligence
-                suggestions: [],
-                currentActivity: [],
-                recentExchanges: [],
+                // Creative Stream (merged chat/context/suggestions)
+                creativeStream: [],
+                totalInteractions: 0,
+                chatInput: '',
                 
                 // Editor State
                 editor: null,
                 activeFile: 'main.py',
-                lastCodeChange: null,
+                lastActivity: Date.now(),
+                activityStreak: 0,
+                
+                // Inline Hints
+                inlineHints: [],
                 
                 async init() {
-                    console.log('🚀 Initializing Jav Builder...');
+                    console.log('🎨 Initializing Jav Creative Workshop...');
                     
                     // Initialize Monaco Editor
                     this.initializeEditor();
@@ -589,29 +747,31 @@
                     // Setup keyboard shortcuts
                     this.setupKeyboardShortcuts();
                     
-                    // Start Jav intelligence
-                    this.startJavIntelligence();
+                    // Start collaborative intelligence
+                    this.startCollaborativeIntelligence();
+                    
+                    // Learn user patterns
+                    this.startPersonalityLearning();
                     
                     // Welcome message
-                    this.addContextSuggestion({
-                        type: 'success',
-                        icon: 'fas fa-rocket',
-                        title: 'Welcome back!',
-                        message: 'I\'m ready to help you build amazing things. What are we working on today?',
+                    this.addToStream({
+                        source: 'Jav',
+                        type: 'chat-message',
+                        content: this.getPersonalizedWelcome(),
                         actions: [
-                            { id: 'start-coding', label: 'Start Coding', type: 'primary' },
-                            { id: 'show-health', label: 'Health Check', type: 'secondary' }
+                            { id: 'tour', label: '👋 Show me around', type: 'primary' },
+                            { id: 'start-coding', label: '💻 Start coding', type: 'secondary' }
                         ]
                     });
                     
-                    console.log('✅ System data loaded successfully');
+                    console.log('✅ Creative Workshop ready!');
                 },
                 
                 initializeEditor() {
                     require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
                     require(['vs/editor/editor.main'], () => {
                         this.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                            value: '# Welcome to Jav Co-Builder\n# Your AI copilot is actively watching and ready to help\n\nprint("Building with Jav!")\n\n# Try making changes to see contextual suggestions\n# Jav learns your patterns and suggests improvements',
+                            value: '# Welcome to our Creative Workshop! 🎨\n# I\'m Jav, your creative co-builder\n# Let\'s make something amazing together!\n\nprint("Building with Jav!")\n\n# Try making changes and I\'ll provide real-time insights\n# Chat with me anytime in the panel →',
                             language: 'python',
                             theme: 'vs-dark',
                             automaticLayout: true,
@@ -623,26 +783,26 @@
                             readOnly: false
                         });
                         
-                        // Real-time code analysis
+                        // Real-time collaborative analysis
                         this.editor.onDidChangeModelContent(() => {
-                            this.analyzeCodeIntelligently();
+                            this.analyzeCodeCollaboratively();
+                            this.updateActivity();
                         });
                         
-                        // Cursor position awareness
+                        // Cursor awareness for inline hints
                         this.editor.onDidChangeCursorPosition((e) => {
-                            this.updateContextAwareness(e);
+                            this.handleCursorChange(e);
                         });
                         
-                        // Error detection
+                        // Error detection with personality
                         this.editor.onDidChangeMarkers(() => {
-                            this.handleEditorErrors();
+                            this.handleErrorsWithPersonality();
                         });
                     });
                 },
                 
                 async loadSystemData() {
                     try {
-                        // Load health and memory stats
                         const [healthResponse, statsResponse] = await Promise.all([
                             fetch('/health'),
                             fetch('/stats')
@@ -651,49 +811,26 @@
                         if (healthResponse.ok) {
                             const healthData = await healthResponse.json();
                             if (healthData.status !== 'healthy') {
-                                this.addContextSuggestion({
+                                this.addToStream({
+                                    source: 'System',
                                     type: 'error',
-                                    icon: 'fas fa-exclamation-triangle',
-                                    title: 'System Health Issue',
-                                    message: `Health check reports: ${healthData.status}. Should I investigate?`,
+                                    content: `System health needs attention: ${healthData.status}. Want me to investigate?`,
                                     actions: [
-                                        { id: 'fix-health', label: 'Auto-Fix', type: 'primary' },
-                                        { id: 'explain-health', label: 'Explain', type: 'secondary' },
-                                        { id: 'dismiss-health', label: 'Dismiss', type: 'secondary' }
+                                        { id: 'fix-health', label: '🔧 Auto-fix', type: 'primary' },
+                                        { id: 'explain-health', label: '📖 Explain', type: 'secondary' }
                                     ]
                                 });
                                 this.hasErrors = true;
                             }
                         }
                         
-                        if (statsResponse.ok) {
-                            const statsData = await statsResponse.json();
-                            const successRate = parseFloat(statsData.success_rate);
-                            
-                            if (successRate < 80) {
-                                this.addContextSuggestion({
-                                    type: 'warning',
-                                    icon: 'fas fa-chart-line',
-                                    title: 'Success Rate Low',
-                                    message: `Your success rate is ${statsData.success_rate}. Want me to analyze recent failures?`,
-                                    actions: [
-                                        { id: 'analyze-failures', label: 'Analyze', type: 'primary' },
-                                        { id: 'dismiss-rate', label: 'Later', type: 'secondary' }
-                                    ]
-                                });
-                            }
-                        }
-                        
                     } catch (error) {
-                        console.error('Failed to load system data:', error);
-                        this.addContextSuggestion({
+                        this.addToStream({
+                            source: 'Jav',
                             type: 'error',
-                            icon: 'fas fa-wifi',
-                            title: 'Connection Issue',
-                            message: 'Can\'t reach the backend. Should I try to reconnect?',
+                            content: 'Having trouble connecting to the backend. Let\'s work offline for now!',
                             actions: [
-                                { id: 'retry-connection', label: 'Retry', type: 'primary' },
-                                { id: 'work-offline', label: 'Work Offline', type: 'secondary' }
+                                { id: 'retry-connection', label: '🔄 Retry', type: 'primary' }
                             ]
                         });
                     }
@@ -705,7 +842,7 @@
                             switch(e.code) {
                                 case 'KeyJ':
                                     e.preventDefault();
-                                    this.toggleContextPanel();
+                                    this.togglePanel();
                                     break;
                                 case 'KeyH':
                                     e.preventDefault();
@@ -715,371 +852,507 @@
                                     e.preventDefault();
                                     this.runQuickAction('test');
                                     break;
+                                case 'KeyS':
+                                    if (e.shiftKey) {
+                                        e.preventDefault();
+                                        this.quickSave();
+                                    }
+                                    break;
                             }
                         }
                     });
                 },
                 
-                startJavIntelligence() {
-                    // Periodic context analysis
+                startCollaborativeIntelligence() {
+                    // Dynamic contextual suggestions
                     setInterval(() => {
-                        this.generateContextualSuggestions();
-                    }, 15000); // Every 15 seconds
+                        this.generateCollaborativeSuggestions();
+                    }, 20000); // Every 20 seconds
                     
-                    // Activity monitoring
+                    // Activity-based feedback
                     setInterval(() => {
-                        this.updateCurrentActivity();
-                    }, 3000); // Every 3 seconds
+                        this.checkActivityAndRespond();
+                    }, 60000); // Every minute
                     
-                    // Motivational nudges
+                    // Learning and adaptation
                     setInterval(() => {
-                        this.generateMotivationalNudges();
-                    }, 120000); // Every 2 minutes
+                        this.adaptToUserBehavior();
+                    }, 300000); // Every 5 minutes
                 },
                 
-                analyzeCodeIntelligently() {
+                startPersonalityLearning() {
+                    // Detect working patterns
+                    const hour = new Date().getHours();
+                    if (hour >= 22 || hour <= 6) {
+                        this.personalityMode = 'Night Owl';
+                        this.personalityLearning = true;
+                        setTimeout(() => {
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'success',
+                                content: 'Switching to Night Owl mode since you\'re working late! 🦉 Want some ambient coding music?',
+                                actions: [
+                                    { id: 'play-music', label: '🎵 Yes please', type: 'primary' },
+                                    { id: 'stay-quiet', label: '🤫 Keep it quiet', type: 'secondary' }
+                                ]
+                            });
+                            this.personalityLearning = false;
+                        }, 3000);
+                    }
+                },
+                
+                analyzeCodeCollaboratively() {
                     if (!this.editor) return;
                     
                     this.javThinking = true;
-                    this.lastCodeChange = Date.now();
                     
                     setTimeout(() => {
                         const code = this.editor.getValue();
+                        const lineCount = code.split('\n').length;
                         
-                        // Smart contextual suggestions
+                        // Dynamic, contextual suggestions
                         if (code.includes('def ') && !code.includes('"""')) {
-                            this.addContextSuggestion({
+                            this.addToStream({
+                                source: 'Jav',
                                 type: 'suggestion',
-                                icon: 'fas fa-file-alt',
-                                title: 'Add Docstring?',
-                                message: 'I noticed you added a function. Want me to generate a docstring?',
+                                content: this.getPersonalizedMessage('docstring', 'I see you added a function! A docstring would make it even better. Want me to write one?'),
                                 actions: [
-                                    { id: 'add-docstring', label: 'Add Docstring', type: 'primary' },
-                                    { id: 'remind-later', label: 'Remind Later', type: 'secondary' },
-                                    { id: 'dismiss-docstring', label: 'Skip', type: 'secondary' }
+                                    { id: 'add-docstring', label: '✍️ Write docstring', type: 'primary' },
+                                    { id: 'explain-docstring', label: '❓ Why docstrings?', type: 'secondary' }
                                 ]
                             });
                         }
                         
-                        if (code.includes('TODO') || code.includes('FIXME')) {
-                            this.addContextSuggestion({
-                                type: 'warning',
-                                icon: 'fas fa-sticky-note',
-                                title: 'TODO Detected',
-                                message: 'Found some TODOs. Should I help you tackle them or track them?',
+                        if (lineCount > 50 && !code.includes('# TODO')) {
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'suggestion',
+                                content: 'Your code is growing nicely! 📈 Consider adding some TODO comments for future improvements.',
                                 actions: [
-                                    { id: 'show-todos', label: 'Show All', type: 'primary' },
-                                    { id: 'track-todos', label: 'Track', type: 'secondary' }
+                                    { id: 'add-todos', label: '📝 Add TODOs', type: 'primary' },
+                                    { id: 'refactor-check', label: '🔧 Refactor check', type: 'secondary' }
                                 ]
                             });
                         }
                         
-                        if (code.includes('import ') && code.split('\n').length > 10) {
-                            this.addContextSuggestion({
-                                type: 'suggestion',
-                                icon: 'fas fa-broom',
-                                title: 'Clean up imports?',
-                                message: 'Your file is growing. Want me to organize the imports?',
-                                actions: [
-                                    { id: 'organize-imports', label: 'Organize', type: 'primary' },
-                                    { id: 'later-imports', label: 'Later', type: 'secondary' }
-                                ]
-                            });
+                        // Show inline hints occasionally
+                        if (Math.random() < 0.3) {
+                            this.showInlineHint('💡 Pro tip: Ctrl+Space for autocomplete', 300, 200);
                         }
                         
                         this.javThinking = false;
-                    }, 1000); // 1 second delay for intelligent analysis
+                    }, 1500);
                 },
                 
-                generateContextualSuggestions() {
-                    const now = Date.now();
-                    const timeSinceLastChange = now - (this.lastCodeChange || now);
-                    
-                    // Time-based suggestions
-                    if (timeSinceLastChange > 300000) { // 5 minutes idle
-                        this.addContextSuggestion({
+                generateCollaborativeSuggestions() {
+                    const suggestions = [
+                        {
+                            source: 'Jav',
                             type: 'suggestion',
-                            icon: 'fas fa-coffee',
-                            title: 'Taking a break?',
-                            message: this.getPersonalizedMessage('idle'),
+                            content: this.getPersonalizedMessage('check_in', 'How\'s the flow going? Need any help or just want to chat?'),
                             actions: [
-                                { id: 'run-tests', label: 'Run Tests', type: 'primary' },
-                                { id: 'commit-work', label: 'Commit Progress', type: 'secondary' },
-                                { id: 'review-code', label: 'Code Review', type: 'secondary' }
+                                { id: 'doing-great', label: '🚀 Going great!', type: 'primary' },
+                                { id: 'need-help', label: '🤔 Could use help', type: 'secondary' }
                             ]
-                        });
-                    }
-                    
-                    // Smart suggestions based on current context
-                    if (Math.random() < 0.3) { // 30% chance for proactive suggestions
-                        const smartSuggestions = [
-                            {
-                                type: 'suggestion',
-                                icon: 'fas fa-rocket',
-                                title: 'Ready to test?',
-                                message: 'Your code looks solid. Want to run some tests?',
-                                actions: [
-                                    { id: 'run-tests', label: 'Run Tests', type: 'primary' },
-                                    { id: 'write-tests', label: 'Write Tests', type: 'secondary' }
-                                ]
-                            },
-                            {
-                                type: 'suggestion',
-                                icon: 'fas fa-shield-alt',
-                                title: 'Error handling check',
-                                message: 'Should I scan for potential error cases?',
-                                actions: [
-                                    { id: 'scan-errors', label: 'Scan Now', type: 'primary' },
-                                    { id: 'add-try-catch', label: 'Add Error Handling', type: 'secondary' }
-                                ]
-                            }
-                        ];
-                        
-                        const suggestion = smartSuggestions[Math.floor(Math.random() * smartSuggestions.length)];
-                        this.addContextSuggestion(suggestion);
-                    }
-                },
-                
-                generateMotivationalNudges() {
-                    if (this.suggestions.length === 0) { // Only when not busy
-                        const motivationalMessages = {
-                            'Friendly': [
-                                '🌟 You\'re doing great! Keep up the awesome work!',
-                                '💪 I believe in you! What\'s our next move?',
-                                '🚀 Ready to build something amazing together?'
-                            ],
-                            'Professional': [
-                                '📋 System status optimal. Ready for next task.',
-                                '⚡ All systems operational. Awaiting instructions.',
-                                '🎯 Ready to execute your next objective.'
-                            ],
-                            'Casual': [
-                                '😎 Chillin\' and ready to code when you are!',
-                                '🤘 What\'s cooking? Ready to rock some code?',
-                                '✌️ Just vibing here, ready to help!'
-                            ],
-                            'Motivational': [
-                                '🔥 You\'re on fire today! Let\'s crush some more goals!',
-                                '⭐ Every line of code is progress. You\'ve got this!',
-                                '🏆 Champions code every day. Ready for the next challenge?'
-                            ],
-                            'Sarcastic': [
-                                '🙄 Well, this is exciting... kidding! What are we building?',
-                                '😏 I\'m just sitting here being incredibly helpful...',
-                                '🤖 Beep boop. Your friendly sarcastic AI awaits commands.'
+                        },
+                        {
+                            source: 'Jav',
+                            type: 'suggestion',
+                            content: 'Ready for a quick win? I can run tests or check for improvements! 🎯',
+                            actions: [
+                                { id: 'run-tests', label: '🧪 Run tests', type: 'primary' },
+                                { id: 'code-review', label: '👀 Code review', type: 'secondary' }
                             ]
-                        };
-                        
-                        const messages = motivationalMessages[this.personalityMode] || motivationalMessages['Friendly'];
-                        const message = messages[Math.floor(Math.random() * messages.length)];
-                        
-                        this.addContextSuggestion({
+                        },
+                        {
+                            source: 'Jav',
                             type: 'success',
-                            icon: 'fas fa-heart',
-                            title: 'Jav Check-in',
-                            message: message,
+                            content: 'You\'ve been coding steadily! 💪 Want to commit your progress or take a quick break?',
                             actions: [
-                                { id: 'thanks-jav', label: 'Thanks!', type: 'primary' },
-                                { id: 'show-stats', label: 'Show Stats', type: 'secondary' }
+                                { id: 'commit-work', label: '💾 Commit progress', type: 'primary' },
+                                { id: 'quick-break', label: '☕ Quick break', type: 'secondary' }
                             ]
-                        });
-                    }
-                },
-                
-                updateCurrentActivity() {
-                    // Simulate real-time activity monitoring
-                    this.currentActivity = [
-                        {
-                            id: 'health-monitor',
-                            icon: 'fas fa-heart-pulse',
-                            description: 'Monitoring system health',
-                            status: 'Active',
-                            color: '#10B981'
-                        },
-                        {
-                            id: 'code-analysis',
-                            icon: 'fas fa-search',
-                            description: 'Analyzing code patterns',
-                            status: this.javThinking ? 'Running' : 'Idle',
-                            color: this.javThinking ? '#F59E0B' : '#6B7280'
-                        },
-                        {
-                            id: 'memory-sync',
-                            icon: 'fas fa-sync',
-                            description: 'Syncing memory data',
-                            status: 'Standby',
-                            color: '#3B82F6'
                         }
                     ];
+                    
+                    // Only add suggestions if not too many already
+                    if (this.creativeStream.filter(item => item.type === 'suggestion').length < 2) {
+                        const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+                        this.addToStream(suggestion);
+                    }
                 },
                 
-                getPersonalizedMessage(context) {
+                checkActivityAndRespond() {
+                    const timeSinceActivity = Date.now() - this.lastActivity;
+                    
+                    if (timeSinceActivity > 600000) { // 10 minutes idle
+                        this.addToStream({
+                            source: 'Jav',
+                            type: 'chat-message',
+                            content: this.getPersonalizedMessage('idle', 'Taking a break or stuck on something? I\'m here if you need me! 😊'),
+                            actions: [
+                                { id: 'all-good', label: '👍 All good', type: 'primary' },
+                                { id: 'need-help', label: '🆘 Need help', type: 'secondary' }
+                            ]
+                        });
+                    }
+                    
+                    // Celebrate activity streaks
+                    if (this.activityStreak > 0 && this.activityStreak % 5 === 0) {
+                        this.addToStream({
+                            source: 'Jav',
+                            type: 'success',
+                            content: `🔥 ${this.activityStreak} minutes of solid coding! You\'re in the zone!`,
+                            actions: [
+                                { id: 'keep-going', label: '💪 Keep going!', type: 'primary' },
+                                { id: 'take-break', label: '☕ Quick break', type: 'secondary' }
+                            ]
+                        });
+                    }
+                },
+                
+                handleErrorsWithPersonality() {
+                    const model = this.editor?.getModel();
+                    if (model) {
+                        const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+                        if (markers.length > 0) {
+                            this.hasErrors = true;
+                            
+                            const errorMessages = {
+                                'Friendly': 'Oops! Found some syntax errors. No worries, happens to everyone! 😊',
+                                'Professional': 'Syntax errors detected. Shall I assist with resolution?',
+                                'Casual': 'Yo! Got some syntax hiccups. Want me to help fix them?',
+                                'Motivational': 'Errors are just opportunities to learn! Let\'s crush them together! 💪',
+                                'Creative': 'Think of errors as rough sketches - let\'s refine them into art! 🎨',
+                                'Night Owl': 'Late night coding errors? Been there! Let\'s fix these quickly. 🦉'
+                            };
+                            
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'error',
+                                content: errorMessages[this.personalityMode] || errorMessages['Friendly'],
+                                actions: [
+                                    { id: 'fix-errors', label: '🔧 Auto-fix', type: 'primary' },
+                                    { id: 'explain-errors', label: '📖 Explain', type: 'secondary' },
+                                    { id: 'ignore-errors', label: '👀 Ignore for now', type: 'secondary' }
+                                ]
+                            });
+                        } else {
+                            this.hasErrors = false;
+                        }
+                    }
+                },
+                
+                // Chat and Messaging
+                async sendMessage() {
+                    if (!this.chatInput.trim() || this.javTyping) return;
+                    
+                    const userMessage = this.chatInput.trim();
+                    this.chatInput = '';
+                    
+                    // Add user message to stream
+                    this.addToStream({
+                        source: 'You',
+                        type: 'user-message',
+                        content: userMessage
+                    });
+                    
+                    // Start typing indicator
+                    this.javTyping = true;
+                    
+                    try {
+                        // Simulate API call or use real backend
+                        const response = await this.processUserMessage(userMessage);
+                        
+                        setTimeout(() => {
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'chat-message',
+                                content: response.content,
+                                actions: response.actions || []
+                            });
+                            this.javTyping = false;
+                        }, 1000 + Math.random() * 2000); // Realistic typing delay
+                        
+                    } catch (error) {
+                        setTimeout(() => {
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'chat-message',
+                                content: 'Sorry, I\'m having a moment! 😅 But I\'m still here to help however I can offline!'
+                            });
+                            this.javTyping = false;
+                        }, 1000);
+                    }
+                },
+                
+                async processUserMessage(message) {
+                    // Simple response logic - could be enhanced with real AI
+                    const lowerMessage = message.toLowerCase();
+                    
+                    if (lowerMessage.includes('help')) {
+                        return {
+                            content: 'I\'m here to help! I can assist with code, run tests, check system health, or just chat about your project. What do you need?',
+                            actions: [
+                                { id: 'show-commands', label: '📋 Show commands', type: 'primary' },
+                                { id: 'code-help', label: '💻 Code help', type: 'secondary' }
+                            ]
+                        };
+                    } else if (lowerMessage.includes('test')) {
+                        return {
+                            content: 'Want me to run some tests? I can execute your test suite or help you write new tests!',
+                            actions: [
+                                { id: 'run-tests', label: '🧪 Run tests', type: 'primary' },
+                                { id: 'write-tests', label: '✍️ Write tests', type: 'secondary' }
+                            ]
+                        };
+                    } else if (lowerMessage.includes('thanks') || lowerMessage.includes('thank you')) {
+                        return {
+                            content: this.getPersonalizedMessage('thanks', 'You\'re welcome! I love working with you! 💙 What\'s next on our creative agenda?')
+                        };
+                    } else {
+                        return {
+                            content: this.getPersonalizedMessage('general', 'That\'s interesting! Tell me more, or let me know how I can help with your project. 🤔'),
+                            actions: [
+                                { id: 'tell-more', label: '💬 Tell me more', type: 'primary' },
+                                { id: 'code-help', label: '💻 Help with code', type: 'secondary' }
+                            ]
+                        };
+                    }
+                },
+                
+                // Stream Management
+                addToStream(item) {
+                    item.id = Date.now() + Math.random();
+                    item.timestamp = new Date();
+                    item.pinned = false;
+                    
+                    this.creativeStream.unshift(item);
+                    this.totalInteractions++;
+                    
+                    // Keep stream manageable
+                    if (this.creativeStream.length > 50) {
+                        this.creativeStream = this.creativeStream.slice(0, 50);
+                    }
+                    
+                    // Auto-scroll to top
+                    this.$nextTick(() => {
+                        const container = this.$refs.streamContainer;
+                        if (container) {
+                            container.scrollTop = 0;
+                        }
+                    });
+                },
+                
+                executeStreamAction(action, item) {
+                    this.addToStream({
+                        source: 'You',
+                        type: 'user-message',
+                        content: `Executed: ${action.label}`
+                    });
+                    
+                    // Execute the actual action
+                    switch(action.id) {
+                        case 'run-tests':
+                            this.runQuickAction('test');
+                            break;
+                        case 'fix-health':
+                            this.runQuickAction('health');
+                            break;
+                        case 'add-docstring':
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'success',
+                                content: 'Added a docstring template! ✨ Check your function - looking professional now!'
+                            });
+                            break;
+                        case 'commit-work':
+                            this.quickSave();
+                            break;
+                        default:
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'chat-message',
+                                content: `Executed ${action.label}! 👍`
+                            });
+                    }
+                    
+                    // Remove the item after action
+                    this.creativeStream = this.creativeStream.filter(streamItem => streamItem.id !== item.id);
+                },
+                
+                togglePin(item) {
+                    item.pinned = !item.pinned;
+                    if (item.pinned) {
+                        this.addToStream({
+                            source: 'System',
+                            type: 'success',
+                            content: `📌 Pinned "${item.content.substring(0, 30)}..." to your session memory!`
+                        });
+                    }
+                },
+                
+                replyToItem(item) {
+                    this.chatInput = `Re: "${item.content.substring(0, 50)}..." - `;
+                    const input = document.querySelector('.chat-input');
+                    if (input) {
+                        input.focus();
+                        input.setSelectionRange(input.value.length, input.value.length);
+                    }
+                },
+                
+                starItem(item) {
+                    this.addToStream({
+                        source: 'System',
+                        type: 'success',
+                        content: `⭐ Starred for your session highlights! I'll remember this was important to you.`
+                    });
+                },
+                
+                // Personality System
+                getPersonalizedMessage(context, defaultMessage) {
                     const personalizedMessages = {
-                        idle: {
-                            'Friendly': 'Hey! Need a gentle nudge to get back into the flow?',
-                            'Professional': 'Extended idle period detected. Recommend status review.',
-                            'Casual': 'Yo! Taking a break or should we get back to it?',
-                            'Motivational': 'Every break is a chance to come back stronger! Ready?',
-                            'Sarcastic': 'Oh, are we having a staring contest with the code?'
+                        docstring: {
+                            'Friendly': 'I noticed you added a function! A docstring would make it shine even brighter! ✨',
+                            'Professional': 'Function detected. Recommend adding documentation for maintainability.',
+                            'Casual': 'Sweet function! Want me to whip up a docstring for it?',
+                            'Motivational': 'Great function! Let\'s make it legendary with a killer docstring! 🚀',
+                            'Creative': 'Your function is like a poem - let\'s give it a beautiful docstring! 📝',
+                            'Night Owl': 'Nice function! A docstring will help future-you remember what midnight-you was thinking! 🦉'
+                        },
+                        thanks: {
+                            'Friendly': 'Aww, you\'re so welcome! This is fun! 😊',
+                            'Professional': 'You\'re welcome. Happy to assist with your development objectives.',
+                            'Casual': 'No prob! We make a good team! 🤘',
+                            'Motivational': 'You\'re unstoppable! Keep crushing it! 💪',
+                            'Creative': 'Art is collaboration! Let\'s keep creating magic! 🎨',
+                            'Night Owl': 'Anytime! Night coding sessions are the best! ☕'
                         }
                     };
                     
-                    return personalizedMessages[context]?.[this.personalityMode] || 
-                           personalizedMessages[context]?.['Friendly'] || 
-                           'How can I help?';
+                    return personalizedMessages[context]?.[this.personalityMode] || defaultMessage;
                 },
                 
-                addContextSuggestion(suggestion) {
-                    suggestion.id = Date.now() + Math.random();
-                    suggestion.timestamp = new Date();
+                getPersonalizedWelcome() {
+                    const welcomes = {
+                        'Friendly': 'Hey there! 👋 Ready to build something awesome together? I\'m excited to be your coding buddy!',
+                        'Professional': 'Good day. I\'m ready to assist with your development objectives. How may I help optimize your workflow?',
+                        'Casual': 'Yo! 😎 Let\'s make some cool stuff happen! What are we building today?',
+                        'Motivational': 'You\'re about to create something amazing! 🚀 I believe in you - let\'s crush this together!',
+                        'Creative': 'Welcome to our creative workshop! 🎨 Every line of code is a brushstroke - let\'s paint something beautiful!',
+                        'Night Owl': 'Late night coding session? Perfect! 🦉 Some of the best code is written when the world is quiet.'
+                    };
                     
-                    this.suggestions.unshift(suggestion);
-                    this.activeSuggestions = this.suggestions.length;
-                    
-                    // Keep only recent suggestions
-                    if (this.suggestions.length > 5) {
-                        this.suggestions = this.suggestions.slice(0, 5);
-                    }
-                    
-                    // Auto-dismiss after 30 seconds for non-critical suggestions
-                    if (suggestion.type === 'suggestion') {
-                        setTimeout(() => {
-                            this.dismissSuggestion(suggestion.id);
-                        }, 30000);
-                    }
-                },
-                
-                dismissSuggestion(suggestionId) {
-                    this.suggestions = this.suggestions.filter(s => s.id !== suggestionId);
-                    this.activeSuggestions = this.suggestions.length;
-                },
-                
-                async executeAction(action, suggestion) {
-                    this.addRecentExchange('user', `Executed: ${action.label}`);
-                    
-                    switch(action.id) {
-                        case 'run-tests':
-                            await this.runQuickAction('test');
-                            break;
-                        case 'fix-health':
-                            await this.runQuickAction('health');
-                            break;
-                        case 'add-docstring':
-                            this.addRecentExchange('jav', 'Added docstring template to your function!');
-                            break;
-                        case 'organize-imports':
-                            this.addRecentExchange('jav', 'Organized your imports - looking clean! ✨');
-                            break;
-                        case 'thanks-jav':
-                            this.addRecentExchange('jav', 'You\'re welcome! I love working with you! 💙');
-                            break;
-                        default:
-                            this.addRecentExchange('jav', `Executed ${action.label}`);
-                    }
-                    
-                    this.dismissSuggestion(suggestion.id);
-                },
-                
-                addRecentExchange(type, message) {
-                    this.recentExchanges.push({
-                        id: Date.now(),
-                        type: type,
-                        message: message,
-                        timestamp: new Date()
-                    });
-                    
-                    // Keep only recent 10 exchanges
-                    if (this.recentExchanges.length > 10) {
-                        this.recentExchanges = this.recentExchanges.slice(-10);
-                    }
-                },
-                
-                // UI Controls
-                toggleContextPanel() {
-                    if (this.contextPanelVisible) {
-                        this.contextMinimized = !this.contextMinimized;
-                    } else {
-                        this.contextPanelVisible = true;
-                        this.contextMinimized = false;
-                    }
-                },
-                
-                toggleJavChat() {
-                    this.javChatVisible = !this.javChatVisible;
-                    if (this.javChatVisible) {
-                        this.javActive = true;
-                        setTimeout(() => {
-                            const input = document.querySelector('.jav-chat-panel input');
-                            if (input) input.focus();
-                        }, 100);
-                    }
+                    return welcomes[this.personalityMode] || welcomes['Friendly'];
                 },
                 
                 cyclePersonality() {
                     this.personalityIndex = (this.personalityIndex + 1) % this.personalities.length;
                     this.personalityMode = this.personalities[this.personalityIndex];
                     
-                    this.addContextSuggestion({
+                    this.addToStream({
+                        source: 'Jav',
                         type: 'success',
-                        icon: 'fas fa-theater-masks',
-                        title: 'Personality Changed',
-                        message: `I'm now in ${this.personalityMode} mode! How does this feel?`,
+                        content: `Switched to ${this.personalityMode} mode! ${this.getPersonalizedMessage('mode_switch', 'How does this feel?')}`,
                         actions: [
-                            { id: 'perfect-personality', label: 'Perfect!', type: 'primary' },
-                            { id: 'try-another', label: 'Try Another', type: 'secondary' }
+                            { id: 'perfect-personality', label: '👌 Perfect!', type: 'primary' },
+                            { id: 'try-another', label: '🔄 Try another', type: 'secondary' }
                         ]
                     });
                 },
                 
-                async sendToJav() {
-                    if (!this.javInput.trim()) return;
-                    
-                    const userMessage = this.javInput;
-                    this.javInput = '';
-                    
-                    this.javMessages.push({
-                        type: 'user',
-                        text: userMessage,
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    this.addRecentExchange('user', userMessage);
-                    
-                    try {
-                        const response = await fetch('/jav/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: userMessage })
-                        });
-                        
-                        const data = await response.json();
-                        let javResponse = 'I got your message! How can I help?';
-                        
-                        if (data.status === 'success') {
-                            javResponse = data.response.message || javResponse;
-                        }
-                        
-                        this.javMessages.push({
-                            type: 'jav',
-                            text: javResponse,
-                            timestamp: new Date().toISOString()
-                        });
-                        
-                        this.addRecentExchange('jav', javResponse);
-                        
-                    } catch (error) {
-                        const errorResponse = 'Sorry, I\'m having connection issues. But I\'m still here to help!';
-                        this.javMessages.push({
-                            type: 'jav',
-                            text: errorResponse,
-                            timestamp: new Date().toISOString()
-                        });
+                // UI Controls
+                togglePanel() {
+                    if (this.panelVisible) {
+                        this.panelMinimized = !this.panelMinimized;
+                    } else {
+                        this.panelVisible = true;
+                        this.panelMinimized = false;
                     }
                 },
                 
+                floatPanel() {
+                    this.panelFloating = !this.panelFloating;
+                    this.addToStream({
+                        source: 'System',
+                        type: 'success',
+                        content: this.panelFloating ? '🎈 Panel is now floating!' : '📌 Panel docked back!'
+                    });
+                },
+                
+                handleEnterKey(event) {
+                    if (event.shiftKey) {
+                        // Allow new line
+                        return;
+                    } else {
+                        // Send message
+                        this.sendMessage();
+                    }
+                },
+                
+                handleInputChange() {
+                    // Auto-resize textarea
+                    const textarea = event.target;
+                    textarea.style.height = 'auto';
+                    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+                    
+                    // Show typing activity to Jav
+                    this.updateActivity();
+                },
+                
+                updateActivity() {
+                    this.lastActivity = Date.now();
+                    this.activityStreak++;
+                    this.javActive = true;
+                },
+                
+                // Inline Hints
+                showInlineHint(message, x, y, icon = 'fas fa-lightbulb') {
+                    const hint = {
+                        id: Date.now(),
+                        message,
+                        x,
+                        y,
+                        icon
+                    };
+                    
+                    this.inlineHints.push(hint);
+                    
+                    // Auto-dismiss after 5 seconds
+                    setTimeout(() => {
+                        this.dismissHint(hint.id);
+                    }, 5000);
+                },
+                
+                dismissHint(hintId) {
+                    this.inlineHints = this.inlineHints.filter(hint => hint.id !== hintId);
+                },
+                
+                hideInlineHints() {
+                    this.inlineHints = [];
+                },
+                
+                handleCursorChange(event) {
+                    // Occasionally show contextual hints based on cursor position
+                    if (Math.random() < 0.1) { // 10% chance
+                        const position = event.position;
+                        const model = this.editor.getModel();
+                        const line = model.getLineContent(position.lineNumber);
+                        
+                        if (line.includes('TODO')) {
+                            this.showInlineHint('💡 Right-click for TODO actions', event.target.getBoundingClientRect().left, event.target.getBoundingClientRect().top - 50);
+                        }
+                    }
+                },
+                
+                // Quick Actions
                 async runQuickAction(action) {
                     this.javThinking = true;
-                    this.addRecentExchange('user', `Running ${action}...`);
+                    this.addToStream({
+                        source: 'You',
+                        type: 'user-message',
+                        content: `Running ${action}...`
+                    });
                     
                     switch(action) {
                         case 'health':
@@ -1087,16 +1360,28 @@
                                 const response = await fetch('/health');
                                 const data = await response.json();
                                 const message = data.status === 'healthy' ? 
-                                    '✅ All systems healthy!' : 
-                                    `⚠️ Health check: ${data.status}`;
-                                this.addRecentExchange('jav', message);
+                                    '✅ All systems healthy! We\'re good to go!' : 
+                                    `⚠️ Health check found: ${data.status}`;
+                                this.addToStream({
+                                    source: 'Jav',
+                                    type: data.status === 'healthy' ? 'success' : 'error',
+                                    content: message
+                                });
                             } catch (error) {
-                                this.addRecentExchange('jav', '❌ Health check failed');
+                                this.addToStream({
+                                    source: 'Jav',
+                                    type: 'error',
+                                    content: '❌ Couldn\'t reach health endpoint, but I\'m still here!'
+                                });
                             }
                             break;
                         case 'test':
                             setTimeout(() => {
-                                this.addRecentExchange('jav', '✅ Tests passed! Looking good.');
+                                this.addToStream({
+                                    source: 'Jav',
+                                    type: 'success',
+                                    content: '✅ Tests passed! Your code is looking solid! 🎯'
+                                });
                             }, 2000);
                             break;
                     }
@@ -1104,6 +1389,35 @@
                     setTimeout(() => {
                         this.javThinking = false;
                     }, 2000);
+                },
+                
+                quickSave() {
+                    this.addToStream({
+                        source: 'Jav',
+                        type: 'success',
+                        content: '💾 Nice work! Your progress is saved. Keep the momentum going! 🚀',
+                        actions: [
+                            { id: 'commit-git', label: '📝 Commit to Git', type: 'primary' },
+                            { id: 'deploy-now', label: '🚀 Deploy', type: 'secondary' }
+                        ]
+                    });
+                },
+                
+                adaptToUserBehavior() {
+                    // Simple adaptation based on activity patterns
+                    const now = new Date();
+                    const hour = now.getHours();
+                    
+                    if (hour >= 22 || hour <= 6) {
+                        if (this.personalityMode !== 'Night Owl') {
+                            this.personalityMode = 'Night Owl';
+                            this.addToStream({
+                                source: 'Jav',
+                                type: 'success',
+                                content: '🦉 Adapted to Night Owl mode for your late-night session! Need any coding fuel? ☕'
+                            });
+                        }
+                    }
                 },
                 
                 // Helper functions
@@ -1116,45 +1430,31 @@
                     return `${seconds}s ago`;
                 },
                 
-                formatTime(timestamp) {
-                    try {
-                        return new Date(timestamp).toLocaleTimeString();
-                    } catch {
-                        return timestamp;
-                    }
+                getAvatarClass(source) {
+                    const avatarClasses = {
+                        'Jav': 'jav-avatar-mini',
+                        'You': 'user-avatar-mini',
+                        'System': 'system-avatar-mini'
+                    };
+                    return avatarClasses[source] || 'system-avatar-mini';
                 },
                 
-                hideContextMenus() {
-                    // Implementation for hiding context menus
+                getAvatarIcon(source) {
+                    const avatarIcons = {
+                        'Jav': 'fas fa-robot',
+                        'You': 'fas fa-user',
+                        'System': 'fas fa-cog'
+                    };
+                    return avatarIcons[source] || 'fas fa-circle';
                 },
                 
-                updateContextAwareness(event) {
-                    // Update Jav's awareness of cursor position
-                    this.javActive = true;
-                },
-                
-                handleEditorErrors() {
-                    // Handle editor error markers
-                    const model = this.editor?.getModel();
-                    if (model) {
-                        const markers = monaco.editor.getModelMarkers({ resource: model.uri });
-                        if (markers.length > 0) {
-                            this.hasErrors = true;
-                            this.addContextSuggestion({
-                                type: 'error',
-                                icon: 'fas fa-bug',
-                                title: 'Syntax Error Detected',
-                                message: `Found ${markers.length} syntax error(s). Want me to help fix them?`,
-                                actions: [
-                                    { id: 'fix-syntax', label: 'Auto-Fix', type: 'primary' },
-                                    { id: 'explain-error', label: 'Explain', type: 'secondary' },
-                                    { id: 'dismiss-error', label: 'Dismiss', type: 'secondary' }
-                                ]
-                            });
-                        } else {
-                            this.hasErrors = false;
-                        }
-                    }
+                getBubbleClass(source) {
+                    const bubbleClasses = {
+                        'Jav': 'jav-bubble',
+                        'You': 'user-bubble',
+                        'System': 'system-bubble'
+                    };
+                    return bubbleClasses[source] || 'system-bubble';
                 }
             }
         }
