@@ -1163,3 +1163,77 @@ if __name__ == '__main__':
         exit(1)
 
 # Refactor git_sync to use a coordinated approach, removing the recovery scripts and relying on a single function.
+from typing import Dict, Any
+class ConnectionValidator:
+    """Validate connection to backend services"""
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+
+    def validate_fresh_connection(self, feature_name, endpoints):
+        """Validate connection with fresh data"""
+        validation = self.test_endpoints(endpoints)
+        if validation['confirmation_allowed']:
+            logging.info(f"{feature_name} validated successfully")
+        else:
+            logging.warning(f"{feature_name} validation failed: {validation}")
+        return validation
+
+    def test_endpoints(self, endpoints):
+        """Test multiple endpoints and return overall health score"""
+        results = {}
+        healthy_count = 0
+        failed_endpoints = []
+
+        for endpoint in endpoints:
+            result = self._test_endpoint(endpoint)
+            results[endpoint] = result
+
+            if result.get('status') == 'success':
+                healthy_count += 1
+            else:
+                failed_endpoints.append(endpoint)
+
+        overall_health_score = (healthy_count / len(endpoints)) * 100
+        confirmation_allowed = overall_health_score >= 80 # Require 80% or higher
+
+        return {
+            "overall_health_score": overall_health_score,
+            "confirmation_allowed": confirmation_allowed,
+            "results": results,
+            "failed_endpoints": failed_endpoints
+        }
+
+    
+    def _test_endpoint(self, endpoint: str) -> Dict[str, Any]:
+        """Test individual endpoint connectivity"""
+        try:
+            # Use deployment URL for production validation
+            base_url = os.getenv('DEPLOYMENT_URL', 'https://memoryos.replit.app')
+            url = f"{base_url}{endpoint}"
+            
+            # Check for timeout issues
+            start_time = time.time()
+            result = subprocess.run(['curl', '-s', '-f', '-X', 'GET', url], capture_output=True, text=True, timeout=5)
+            end_time = time.time()
+            
+            # Check the elapsed time
+            elapsed_time = end_time - start_time
+            logging.info(f"Endpoint {endpoint} took {elapsed_time:.2f} seconds to respond")
+
+            # Check for HTTP errors
+            if result.returncode == 0:
+                return {"status": "success", "response": result.stdout.strip()}
+            else:
+                error_message = f"HTTP error {result.returncode}: {result.stderr.strip()}"
+                logging.warning(error_message)
+                return {"status": "error", "error": error_message}
+
+        except subprocess.TimeoutExpired:
+            timeout_message = f"Timeout: Endpoint {endpoint} did not respond in 5 seconds."
+            logging.warning(timeout_message)
+            return {"status": "error", "error": timeout_message}
+
+        except Exception as e:
+            error_message = f"Connection error: {str(e)}"
+            logging.error(error_message)
+            return {"status": "error", "error": error_message}
