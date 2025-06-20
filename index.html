@@ -915,13 +915,15 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .onboarding-avatar-stage {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 250px;
+            height: 250px;
             margin-bottom: 60px;
+            perspective: 1000px;
         }
 
         .stage-avatar {
@@ -930,7 +932,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transform: scale(2.5);
+            transform: scale(3);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .stage-avatar .javlin-avatar {
@@ -944,171 +947,315 @@
         }
 
         .stage-avatar.breathing {
-            animation: gentle-breathing 3s ease-in-out infinite;
+            animation: gentle-breathing 4s ease-in-out infinite;
         }
 
         .stage-avatar.excited {
-            animation: excited-pulse 2s ease-in-out infinite;
+            animation: excited-pulse 1.5s ease-in-out infinite, float 3s ease-in-out infinite;
         }
 
         .stage-avatar.listening {
-            animation: listening-glow 2.5s ease-in-out infinite;
+            animation: listening-glow 2s ease-in-out infinite, subtle-rotate 8s linear infinite;
+        }
+
+        .stage-avatar.creative {
+            animation: creative-flare 1.5s ease-in-out infinite, sparkle 2s ease-in-out infinite;
+        }
+
+        .stage-avatar.dev {
+            animation: dev-pulse 2.5s ease-in-out infinite, steady-glow 4s ease-in-out infinite;
         }
 
         @keyframes gentle-breathing {
             0%, 100% { 
-                transform: scale(2.5);
+                transform: scale(3) translateY(0px);
                 opacity: 0.9;
             }
             50% { 
-                transform: scale(2.7);
+                transform: scale(3.2) translateY(-5px);
                 opacity: 1;
             }
         }
 
         @keyframes excited-pulse {
             0%, 100% { 
-                transform: scale(2.5);
+                transform: scale(3);
                 box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
             }
             50% { 
-                transform: scale(2.8);
-                box-shadow: 0 0 60px rgba(168, 85, 247, 0.9);
+                transform: scale(3.3);
+                box-shadow: 0 0 80px rgba(168, 85, 247, 0.9);
             }
         }
 
         @keyframes listening-glow {
             0%, 100% { 
-                transform: scale(2.5);
+                transform: scale(3) rotateY(0deg);
                 box-shadow: 0 0 50px rgba(124, 58, 237, 0.7);
             }
             50% { 
-                transform: scale(2.7);
+                transform: scale(3.2) rotateY(180deg);
                 box-shadow: 0 0 80px rgba(59, 130, 246, 0.9);
             }
         }
 
+        @keyframes creative-flare {
+            0%, 100% { 
+                box-shadow: 0 0 60px rgba(168, 85, 247, 0.8);
+            }
+            25% { 
+                box-shadow: 0 0 80px rgba(236, 72, 153, 0.9);
+            }
+            50% { 
+                box-shadow: 0 0 70px rgba(244, 114, 182, 0.8);
+            }
+            75% { 
+                box-shadow: 0 0 90px rgba(168, 85, 247, 0.9);
+            }
+        }
+
+        @keyframes dev-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+            }
+            50% { 
+                box-shadow: 0 0 60px rgba(20, 184, 166, 0.7);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: scale(3) translateY(0px); }
+            50% { transform: scale(3.1) translateY(-10px); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { filter: brightness(1) hue-rotate(0deg); }
+            25% { filter: brightness(1.2) hue-rotate(90deg); }
+            50% { filter: brightness(1.1) hue-rotate(180deg); }
+            75% { filter: brightness(1.3) hue-rotate(270deg); }
+        }
+
+        @keyframes steady-glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.1); }
+        }
+
         .onboarding-content {
             text-align: center;
-            max-width: 600px;
+            max-width: 700px;
             padding: 0 40px;
+            position: relative;
+            z-index: 310;
         }
 
         .onboarding-title {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 300;
-            margin-bottom: 16px;
-            background: linear-gradient(45deg, #a855f7, #ec4899);
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #a855f7, #ec4899, #f472b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             animation: title-glow 3s ease-in-out infinite;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .onboarding-subtitle {
-            font-size: 1.5rem;
-            color: #8b5cf6;
+            font-size: 1.8rem;
+            color: #a78bfa;
             margin-bottom: 24px;
             font-weight: 400;
+            animation: subtitle-fade 0.8s ease-in-out;
         }
 
         .onboarding-description {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.6;
-            margin-bottom: 40px;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            margin-bottom: 50px;
+            animation: description-slide 1s ease-in-out;
         }
 
         @keyframes title-glow {
             0%, 100% { 
-                text-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+                text-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+                background: linear-gradient(45deg, #a855f7, #ec4899, #f472b6);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
             50% { 
-                text-shadow: 0 0 30px rgba(236, 72, 153, 0.5);
+                text-shadow: 0 0 50px rgba(236, 72, 153, 0.6);
+                background: linear-gradient(45deg, #ec4899, #f472b6, #a855f7);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
+        }
+
+        @keyframes subtitle-fade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes description-slide {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .onboarding-actions {
             display: flex;
-            gap: 20px;
+            gap: 24px;
             justify-content: center;
             align-items: center;
+            animation: actions-appear 1.2s ease-in-out;
+        }
+
+        @keyframes actions-appear {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .onboarding-button {
             background: linear-gradient(45deg, #6366f1, #8b5cf6);
             border: none;
-            border-radius: 16px;
-            padding: 16px 32px;
+            border-radius: 20px;
+            padding: 18px 36px;
             color: white;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .onboarding-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .onboarding-button:hover:before {
+            left: 100%;
         }
 
         .onboarding-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
         }
 
         .onboarding-button.secondary {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .onboarding-button.secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) scale(1.02);
         }
 
         .onboarding-progress {
             position: absolute;
-            bottom: 60px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 12px;
+            gap: 16px;
         }
 
         .progress-dot {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-dot:before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: transparent;
             transition: all 0.3s ease;
         }
 
         .progress-dot.active {
             background: #8b5cf6;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+            transform: scale(1.2);
+
+        @keyframes demo-highlight {
+            0%, 100% { 
+                background: rgba(255, 255, 255, 0.05);
+                transform: scale(1);
+            }
+            50% { 
+                background: rgba(139, 92, 246, 0.2);
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        }
+
+        .progress-dot.active:before {
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .progress-dot:hover {
+            transform: scale(1.3);
+            background: rgba(255, 255, 255, 0.6);
         }
 
         .onboarding-skip {
             position: absolute;
             top: 40px;
             right: 40px;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
         .onboarding-skip:hover {
             color: white;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
         }
 
         .demo-highlight {
             position: absolute;
-            border: 2px solid #8b5cf6;
-            border-radius: 12px;
-            background: rgba(139, 92, 246, 0.1);
+            border: 3px solid #8b5cf6;
+            border-radius: 16px;
+            background: rgba(139, 92, 246, 0.15);
             pointer-events: none;
             z-index: 310;
             animation: highlight-pulse 2s ease-in-out infinite;
@@ -1116,18 +1263,20 @@
 
         @keyframes highlight-pulse {
             0%, 100% { 
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+                box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+                border-color: #8b5cf6;
             }
             50% { 
-                box-shadow: 0 0 40px rgba(139, 92, 246, 0.8);
+                box-shadow: 0 0 50px rgba(139, 92, 246, 0.9);
+                border-color: #a78bfa;
             }
         }
 
         .typewriter-text {
             overflow: hidden;
-            border-right: 2px solid #8b5cf6;
+            border-right: 3px solid #8b5cf6;
             white-space: nowrap;
-            animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
+            animation: typing 3s steps(40, end), blink-caret 1s step-end infinite;
             max-width: fit-content;
             margin: 0 auto;
         }
@@ -1141,52 +1290,219 @@
             from, to { border-color: transparent; }
             50% { border-color: #8b5cf6; }
         }
+
+        /* Demo Interactive Elements */
+        .demo-chat-preview {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .demo-mode-switch {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .demo-memory {
+            max-width: 400px;
+            margin: 0 auto;
+            opacity: 0.9;
+            transform: scale(0.95);
+            animation: demo-appear 0.8s ease-in-out;
+        }
+
+        @keyframes demo-appear {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 0.9; transform: scale(0.95) translateY(0); }
+        }
+
+        .shortcut-demo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .shortcut-demo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .shortcut-demo-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .shortcut-demo-item .shortcut {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body x-data="javWorkspace()" x-init="init()" class="text-white">
 
-    <!-- Onboarding Overlay -->
-    <div x-show="showOnboarding" 
-         x-transition:enter="transition ease-out duration-300"
+    <!-- Immersive Onboarding Experience -->
+    <div x-show="showOnboarding || showImmersiveOnboarding" 
+         x-transition:enter="transition ease-out duration-500"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         class="onboarding-overlay">
+         class="immersive-onboarding">
 
-        <div class="onboarding-card">
-            <div class="floating-jav mx-auto mb-6 action-glow" style="position: static;">
-                <!-- Animated Javlin Avatar -->
-            <div class="javlin-avatar" 
+        <!-- Skip Button -->
+        <button @click="skipOnboarding()" class="onboarding-skip">
+            Skip Tour
+        </button>
+
+        <!-- Main Onboarding Stage -->
+        <div class="onboarding-avatar-stage">
+            <div class="stage-avatar" 
                  :class="{
-                    'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
-                    'listening': javIsThinking || panelOpen,
-                    'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
-                    'dev': workspaceMode === 'dev',
-                    'excited': avatarReaction === 'success',
-                    'alert': avatarReaction === 'error'
+                    'breathing': onboardingStep === 0,
+                    'excited': onboardingStep === 1 || onboardingStep === 5,
+                    'listening': onboardingStep === 2,
+                    'creative': onboardingStep === 3,
+                    'dev': onboardingStep === 4
                  }">
-                <div class="avatar-orb">
-                    <div class="orb-core"></div>
-                    <div class="orb-glow"></div>
-                    <div class="orb-particles" x-show="workspaceMode === 'creative'">
-                        <div class="particle"></div>
-                        <div class="particle"></div>
-                        <div class="particle"></div>
+                <div class="javlin-avatar" 
+                     :class="getCurrentStepAvatarClass()">
+                    <div class="avatar-orb">
+                        <div class="orb-core"></div>
+                        <div class="orb-glow"></div>
+                        <div class="orb-particles" x-show="onboardingStep >= 3">
+                            <div class="particle"></div>
+                            <div class="particle"></div>
+                            <div class="particle"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="avatar-reaction" 
-                     :class="{ 'show': avatarReaction }" 
-                     x-text="avatarReactionIcon"></div>
             </div>
-            </div>
-            <h2 class="text-2xl font-light mb-4">Welcome to your creative workspace</h2>
-            <p class="text-gray-300 mb-8 leading-relaxed">
-                I'm Jav, your floating creative assistant. I'll help you build, ideate, and solve problems without getting in your way.
-            </p>
-            <button @click="completeOnboarding()" 
-                    class="send-button mx-auto">
-                Let's create together
-            </button>
         </div>
+
+        <!-- Onboarding Content -->
+        <div class="onboarding-content">
+            <h1 class="onboarding-title typewriter-text" 
+                x-text="getCurrentStepData().title"
+                :key="onboardingStep"></h1>
+            
+            <h2 class="onboarding-subtitle" 
+                x-text="getCurrentStepData().subtitle"></h2>
+            
+            <p class="onboarding-description" 
+               x-text="getCurrentStepData().description"></p>
+
+            <!-- Interactive Demo Areas -->
+            <div x-show="onboardingStep === 1" class="mt-8">
+                <div class="demo-chat-preview">
+                    <input type="text" 
+                           placeholder="Try typing something to me..."
+                           @input="handleDemoInput($event)"
+                           class="creative-input"
+                           style="max-width: 400px; margin: 0 auto;">
+                </div>
+            </div>
+
+            <div x-show="onboardingStep === 2" class="mt-8">
+                <div class="demo-mode-switch">
+                    <button @click="demonstrateModeSwitch()" 
+                            class="onboarding-button secondary">
+                        Try switching modes (⌘⇧M)
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="onboardingStep === 3" class="mt-8">
+                <div class="demo-memory-preview">
+                    <div class="memory-card demo-memory">
+                        <div class="memory-header">
+                            <span class="memory-category">Example</span>
+                            <span class="memory-success success">✅</span>
+                        </div>
+                        <h4 class="memory-title">Built amazing creative workspace</h4>
+                        <p class="memory-preview">Successfully created an immersive onboarding experience with animated avatar guide...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="onboardingStep === 4" class="mt-8">
+                <div class="demo-shortcuts">
+                    <div class="shortcut-demo-grid">
+                        <div class="shortcut-demo-item">
+                            <kbd class="shortcut">⌘J</kbd>
+                            <span>Open Jav</span>
+                        </div>
+                        <div class="shortcut-demo-item">
+                            <kbd class="shortcut">⌘K</kbd>
+                            <span>Memory Search</span>
+                        </div>
+                        <div class="shortcut-demo-item">
+                            <kbd class="shortcut">⌘M</kbd>
+                            <span>Timeline</span>
+                        </div>
+                        <div class="shortcut-demo-item">
+                            <kbd class="shortcut">⌘Q</kbd>
+                            <span>Quick Actions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Actions -->
+            <div class="onboarding-actions">
+                <button x-show="onboardingStep > 0" 
+                        @click="previousOnboardingStep()" 
+                        class="onboarding-button secondary">
+                    ← Previous
+                </button>
+
+                <button x-show="onboardingStep < onboardingSteps.length - 1" 
+                        @click="nextOnboardingStep()" 
+                        class="onboarding-button">
+                    <span x-text="getNextButtonText()"></span>
+                </button>
+
+                <button x-show="onboardingStep === onboardingSteps.length - 1" 
+                        @click="completeOnboarding()" 
+                        class="onboarding-button">
+                    🚀 Start Creating!
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Indicators -->
+        <div class="onboarding-progress">
+            <template x-for="(step, index) in onboardingSteps" :key="index">
+                <div class="progress-dot" 
+                     :class="{ 'active': index <= onboardingStep }"
+                     @click="goToOnboardingStep(index)"></div>
+            </template>
+        </div>
+
+        <!-- Feature Highlights (Contextual) -->
+        <div x-show="onboardingStep === 2" class="demo-highlight" 
+             style="bottom: 60px; right: 60px; width: 100px; height: 100px;"></div>
+        
+        <div x-show="onboardingStep === 3" class="demo-highlight" 
+             style="top: 60px; left: 60px; width: 200px; height: 50px;"></div>
+        
+        <div x-show="onboardingStep === 4" class="demo-highlight" 
+             style="bottom: 100px; left: 50%; transform: translateX(-50%); width: 400px; height: 60px;"></div>
     </div>
 
     <!-- Main Workspace Canvas -->
@@ -1598,7 +1914,7 @@
 
                     if (isFirstVisit) {
                         setTimeout(() => {
-                            this.showOnboarding = true;
+                            this.showImmersiveOnboarding = true;
                         }, 1000);
                     }
 
@@ -1662,12 +1978,163 @@
                     });
                 },
 
-                completeOnboarding() {
+                // Immersive Onboarding Management
+                getCurrentStepData() {
+                    return this.onboardingSteps[this.onboardingStep] || this.onboardingSteps[0];
+                },
+
+                getCurrentStepAvatarClass() {
+                    const step = this.getCurrentStepData();
+                    return step.avatarState || 'idle';
+                },
+
+                nextOnboardingStep() {
+                    if (this.onboardingStep < this.onboardingSteps.length - 1) {
+                        this.onboardingStep++;
+                        this.triggerStepTransition();
+                    }
+                },
+
+                previousOnboardingStep() {
+                    if (this.onboardingStep > 0) {
+                        this.onboardingStep--;
+                        this.triggerStepTransition();
+                    }
+                },
+
+                goToOnboardingStep(stepIndex) {
+                    if (stepIndex >= 0 && stepIndex < this.onboardingSteps.length) {
+                        this.onboardingStep = stepIndex;
+                        this.triggerStepTransition();
+                    }
+                },
+
+                triggerStepTransition() {
+                    // Add visual feedback for step transitions
+                    this.triggerAvatarReaction('success');
+                    
+                    // Play step-specific actions
+                    const currentStep = this.getCurrentStepData();
+                    if (currentStep.action === 'demo_chat') {
+                        this.simulateChatDemo();
+                    } else if (currentStep.action === 'demo_mode_switch') {
+                        this.simulateModeSwitch();
+                    } else if (currentStep.action === 'demo_memory') {
+                        this.simulateMemoryDemo();
+                    } else if (currentStep.action === 'demo_shortcuts') {
+                        this.simulateShortcutsDemo();
+                    }
+                },
+
+                getNextButtonText() {
+                    const step = this.getCurrentStepData();
+                    if (step.action === 'demo_chat') return 'Try it! →';
+                    if (step.action === 'demo_mode_switch') return 'Switch modes →';
+                    if (step.action === 'demo_memory') return 'Explore memory →';
+                    if (step.action === 'demo_shortcuts') return 'Got it! →';
+                    return 'Next →';
+                },
+
+                handleDemoInput(event) {
+                    const input = event.target.value;
+                    if (input.length > 5) {
+                        // Show demo response
+                        setTimeout(() => {
+                            this.showDemoResponse(input);
+                        }, 800);
+                    }
+                },
+
+                showDemoResponse(input) {
+                    // Create a demo response overlay
+                    const demoResponse = document.createElement('div');
+                    demoResponse.className = 'demo-response';
+                    demoResponse.style.cssText = `
+                        position: absolute;
+                        top: 60px;
+                        left: 0;
+                        right: 0;
+                        background: rgba(99, 102, 241, 0.1);
+                        border: 1px solid rgba(99, 102, 241, 0.3);
+                        border-radius: 12px;
+                        padding: 16px;
+                        color: #818cf8;
+                        font-size: 14px;
+                        text-align: center;
+                        animation: slideDown 0.5s ease-out;
+                    `;
+                    demoResponse.innerHTML = `🎨 "I'd love to help you with: ${input.slice(0, 30)}..." - Ready when you are!`;
+                    
+                    const demoContainer = event.target.closest('.demo-chat-preview');
+                    demoContainer.style.position = 'relative';
+                    demoContainer.appendChild(demoResponse);
+                    
+                    setTimeout(() => {
+                        demoResponse.remove();
+                    }, 3000);
+                },
+
+                demonstrateModeSwitch() {
+                    this.workspaceMode = this.workspaceMode === 'creative' ? 'dev' : 'creative';
+                    this.showModeSwitch = true;
+                    
+                    setTimeout(() => {
+                        this.showModeSwitch = false;
+                    }, 2000);
+                },
+
+                simulateChatDemo() {
+                    // Visual hint about chat functionality
+                    setTimeout(() => {
+                        this.triggerAvatarReaction('success');
+                    }, 1000);
+                },
+
+                simulateModeSwitch() {
+                    // Demonstrate mode switching
+                    setTimeout(() => {
+                        this.demonstrateModeSwitch();
+                    }, 500);
+                },
+
+                simulateMemoryDemo() {
+                    // Highlight memory functionality
+                    this.showMemoryIndicator = true;
+                    this.memoryIndicatorText = "Building onboarding experience...";
+                    
+                    setTimeout(() => {
+                        this.showMemoryIndicator = false;
+                    }, 3000);
+                },
+
+                simulateShortcutsDemo() {
+                    // Animate shortcuts demonstration
+                    const shortcuts = document.querySelectorAll('.shortcut-demo-item');
+                    shortcuts.forEach((shortcut, index) => {
+                        setTimeout(() => {
+                            shortcut.style.animation = 'demo-highlight 0.8s ease-in-out';
+                        }, index * 200);
+                    });
+                },
+
+                skipOnboarding() {
+                    this.showImmersiveOnboarding = false;
                     this.showOnboarding = false;
                     localStorage.setItem('jav-workspace-visited', 'true');
+                    localStorage.setItem('jav-onboarding-skipped', 'true');
+                },
+
+                completeOnboarding() {
+                    this.showImmersiveOnboarding = false;
+                    this.showOnboarding = false;
+                    localStorage.setItem('jav-workspace-visited', 'true');
+                    localStorage.setItem('jav-onboarding-completed', 'true');
+                    
+                    // Graceful transition to workspace
                     setTimeout(() => {
+                        this.triggerAvatarReaction('success');
                         this.openCreativePanel();
-                    }, 500);
+                    }, 800);
                 },
 
                 openCreativePanel() {
