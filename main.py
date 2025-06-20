@@ -21,6 +21,7 @@ from json.decoder import JSONDecodeError
 import re
 from collections import Counter
 import subprocess
+import inspect
 
 # Use absolute path for memory file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1005,8 +1006,13 @@ def git_sync():
         result = syncer.run_auto_sync(force=force)
 
         # Don't log to memory if this was called from memory logging (prevent recursion)
-        caller_frame = inspect.currentframe().f_back
-        if caller_frame and 'log_to_memory' not in str(caller_frame.f_code.co_filename):
+        try:
+            caller_frame = inspect.currentframe().f_back
+            should_log_to_memory = caller_frame and 'log_to_memory' not in str(caller_frame.f_code.co_filename)
+        except:
+            should_log_to_memory = True  # Default to logging if inspection fails
+            
+        if should_log_to_memory:
             # Log the sync attempt to memory (only if not called from memory system)
             try:
                 with open(MEMORY_FILE, 'r') as f:
