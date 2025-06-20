@@ -22,6 +22,9 @@ import re
 from collections import Counter
 import subprocess
 import inspect
+import time
+import fcntl
+import tempfile
 
 # Use absolute path for memory file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -998,37 +1001,65 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Sync changes to GitHub with circuit breaker"""
-
-    # Circuit breaker: check for recent failures
+    """Sync changes to GitHub with robust error handling and locking"""
+    
+    # Use file locking to prevent concurrent git operations
+    lock_file_path = os.path.join(tempfile.gettempdir(), 'memoryos_git_sync.lock')
+    
     try:
-        with open('git_sync_status.json', 'r') as f:
-            sync_status = json.load(f)
-    except:
-        sync_status = {"last_success": None, "failure_count": 0, "last_failure": None}
+        # Create lock file with timeout
+        lock_file = open(lock_file_path, 'w')
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        
+        # Check circuit breaker
+        try:
+            with open('git_sync_status.json', 'r') as f:
+                sync_status = json.load(f)
+        except:
+            sync_status = {"last_success": None, "failure_count": 0, "last_failure": None}
 
-    # If we've had 3+ failures in the last 5 minutes, block sync
-    if sync_status.get("failure_count", 0) >= 3:
-        last_failure = sync_status.get("last_failure")
-        if last_failure:
-            try:
-                from datetime import datetime, timedelta
-                last_fail_time = datetime.fromisoformat(last_failure.replace('Z', '+00:00'))
-                if datetime.now(timezone.utc) - last_fail_time < timedelta(minutes=5):
-                    return jsonify({"status": "blocked", "message": "Too many recent failures, sync blocked"}), 429
-            except:
-                pass
+        # Block if too many recent failures
+        if sync_status.get("failure_count", 0) >= 3:
+            last_failure = sync_status.get("last_failure")
+            if last_failure:
+                try:
+                    from datetime import datetime, timedelta
+                    last_fail_time = datetime.fromisoformat(last_failure.replace('Z', '+00:00'))
+                    if datetime.now(timezone.utc) - last_fail_time < timedelta(minutes=5):
+                        return jsonify({"status": "blocked", "message": "Too many recent failures, sync blocked"}), 429
+                except:
+                    pass
 
-    try:
         force = request.args.get('force', 'false').lower() == 'true'
 
+        # Try shell script first as fallback
+        try:
+            shell_result = subprocess.run(['bash', 'force_git_push.sh'], 
+                                        capture_output=True, text=True, timeout=120, cwd=BASE_DIR)
+            if shell_result.returncode == 0:
+                sync_status["last_success"] = datetime.now(timezone.utc).isoformat()
+                sync_status["failure_count"] = 0
+                with open('git_sync_status.json', 'w') as f:
+                    json.dump(sync_status, f)
+                
+                return jsonify({
+                    "status": "success", 
+                    "message": "Git sync completed via shell script",
+                    "method": "shell_script"
+                })
+        except subprocess.TimeoutExpired:
+            logging.warning("Shell script git push timed out")
+        except Exception as e:
+            logging.warning(f"Shell script failed: {e}")
+
+        # Fallback to GitHubSyncer
         syncer = GitHubSyncer(BASE_DIR)
         result = syncer.run_auto_sync(force=force)
 
         # Update sync status
         if result.get('status') == 'success':
             sync_status["last_success"] = datetime.now(timezone.utc).isoformat()
-            sync_status["failure_count"] = 0  # Reset failures
+            sync_status["failure_count"] = 0
         else:
             sync_status["failure_count"] = sync_status.get("failure_count", 0) + 1
             sync_status["last_failure"] = datetime.now(timezone.utc).isoformat()

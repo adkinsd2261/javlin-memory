@@ -536,20 +536,41 @@ class GitHubSyncer:
         """Force clear all git lock files with process checking"""
         import time
         import subprocess
+        import psutil
         
-        # Use system pkill to terminate all git processes
+        # Kill all git processes using psutil for better reliability
         try:
-            subprocess.run(['pkill', '-f', 'git'], capture_output=True, timeout=5)
-            time.sleep(2)  # Give processes time to die
-        except:
-            pass
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'git' in proc.info['name'] or any('git' in cmd for cmd in (proc.info['cmdline'] or [])):
+                        proc.kill()
+                        self.logger.info(f"Killed git process: {proc.info['pid']}")
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            time.sleep(2)
+        except ImportError:
+            # Fallback to system commands if psutil not available
+            try:
+                subprocess.run(['pkill', '-9', '-f', 'git'], capture_output=True, timeout=5)
+                time.sleep(2)
+            except:
+                pass
         
-        # More aggressive process killing
-        try:
-            subprocess.run(['killall', 'git'], capture_output=True, timeout=5)
-            time.sleep(1)
-        except:
-            pass
+        # Force remove all git lock files with glob patterns
+        import glob
+        lock_patterns = [
+            os.path.join(self.base_dir, '.git', '*.lock'),
+            os.path.join(self.base_dir, '.git', 'refs', '**', '*.lock'),
+            os.path.join(self.base_dir, '.git', 'objects', '**', '*.lock')
+        ]
+        
+        for pattern in lock_patterns:
+            for lock_file in glob.glob(pattern, recursive=True):
+                try:
+                    os.remove(lock_file)
+                    self.logger.info(f"Removed lock file: {lock_file}")
+                except Exception as e:
+                    self.logger.warning(f"Could not remove {lock_file}: {e}")
         
         # Clear all possible git lock files
         lock_patterns = [
