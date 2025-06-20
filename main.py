@@ -1490,7 +1490,14 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
 
 if __name__ == '__main__':
     try:
+        print("🚀 Starting MemoryOS Flask API...")
         logging.info("Starting MemoryOS Flask API...")
+
+        # Create memory file if it doesn't exist
+        if not os.path.exists(MEMORY_FILE):
+            with open(MEMORY_FILE, 'w') as f:
+                json.dump([], f)
+            print(f"✅ Created memory file: {MEMORY_FILE}")
 
         # Optimize memory file on startup
         try:
@@ -1502,13 +1509,18 @@ if __name__ == '__main__':
             pass
 
         # Use threaded mode for better concurrent performance
-        # Bind to 0.0.0.0 for Cloud Run deployment compatibility
-        # Cloud Run expects port 8080 by default
-        port = int(os.environ.get('PORT', 8080))
+        # Bind to 0.0.0.0 for Replit deployment compatibility
+        port = int(os.environ.get('PORT', 5000))
+        print(f"🌐 Starting server on 0.0.0.0:{port}")
+        
         app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     except Exception as e:
         logging.error(f"Failed to start Flask app: {e}")
-        print(f"Error starting app: {e}")
+        print(f"❌ Error starting app: {e}")
+        print("📋 Troubleshooting steps:")
+        print("1. Check if all required files exist")
+        print("2. Verify memory.json is valid JSON")
+        print("3. Check for import errors in modules")
         exit(1)
 
 # Refactor git_sync to use a coordinated approach, removing the recovery scripts and relying on a single function.
