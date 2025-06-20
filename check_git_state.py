@@ -18,19 +18,28 @@ def run_command(cmd):
         return "", str(e), 1
 
 def check_git_processes():
-    """Check if any git processes are currently running"""
+    """Check if any git processes are currently running, excluding self"""
     git_processes = []
+    current_pid = os.getpid()
+    
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
-            if proc.info['name'] and 'git' in proc.info['name'].lower():
+            # Skip current process
+            if proc.info['pid'] == current_pid:
+                continue
+                
+            # Check for actual git processes (not just scripts checking git)
+            if proc.info['name'] and proc.info['name'].lower() == 'git':
                 git_processes.append(proc.info)
-            elif proc.info['cmdline'] and any('git' in str(cmd).lower() for cmd in proc.info['cmdline']):
-                git_processes.append(proc.info)
+            elif proc.info['cmdline'] and len(proc.info['cmdline']) > 0:
+                # Only flag if the first command is git (not python scripts)
+                if proc.info['cmdline'][0].endswith('git') or proc.info['cmdline'][0] == 'git':
+                    git_processes.append(proc.info)
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return git_processes
 
-def safe_cleanup_git_locks():
+def safe_cleanup_git_locks(force_override=False):
     """Safely clean up git lock files if no git processes are running"""
     print("🔒 Checking for git lock files...")
     
@@ -55,14 +64,19 @@ def safe_cleanup_git_locks():
     
     # Check for active git processes
     git_processes = check_git_processes()
-    if git_processes:
+    if git_processes and not force_override:
         print("❌ Active git processes detected:")
         for proc in git_processes:
             print(f"   PID {proc['pid']}: {proc['name']} - {proc['cmdline']}")
         print("   Cannot safely remove locks while git is running")
+        print("   Use --force-override if you're certain no git operations are active")
         return False
-    
-    print("✅ No active git processes found - safe to remove locks")
+    elif git_processes and force_override:
+        print("⚠️  Force override enabled - removing locks despite active processes:")
+        for proc in git_processes:
+            print(f"   PID {proc['pid']}: {proc['name']} - {proc['cmdline']}")
+    else:
+        print("✅ No active git processes found - safe to remove locks")
     
     # Remove lock files
     removed_count = 0
@@ -85,12 +99,12 @@ def safe_cleanup_git_locks():
     
     return True
 
-def check_git_state():
+def check_git_state(force_override=False, auto_proceed=False):
     print("🔍 Git State Analysis")
     print("====================")
     
     # First, clean up any stale git locks
-    if not safe_cleanup_git_locks():
+    if not safe_cleanup_git_locks(force_override):
         print("❌ Could not safely clean up git locks")
         return False
     
@@ -178,7 +192,61 @@ def check_git_state():
             print(f"⚠️  Local is {local_commits} commits ahead")
     
     print("\n🔄 Ready for merge operation")
-    return True
+    
+    # Final safety check and summary
+    final_git_processes = check_git_processes()
+    final_locks = [f for f in ['.git/index.lock', '.git/HEAD.lock', '.git/config.lock', 
+                              '.git/refs/heads/main.lock', '.git/refs/heads/master.lock'] 
+                   if os.path.exists(f)]
+    
+    print("\n" + "="*50)
+    print("🛡️  FINAL SAFETY SUMMARY")
+    print("="*50)
+    
+    if not final_git_processes and not final_locks:
+        print("✅ SAFE TO CONTINUE")
+        print("   ▶ No active git processes detected")
+        print("   ▶ No git lock files present") 
+        print("   ▶ Repository is ready for merge operations")
+        
+        if auto_proceed:
+            print("\n🚀 Auto-proceeding to merge...")
+            return "auto_proceed"
+        else:
+            print("\n💡 Run with --auto-proceed to automatically start merge")
+        
+        return True
+    else:
+        print("⚠️  PROCEED WITH CAUTION")
+        if final_git_processes:
+            print(f"   ▶ {len(final_git_processes)} git process(es) still active")
+        if final_locks:
+            print(f"   ▶ {len(final_locks)} lock file(s) still present")
+        print("   ▶ Manual intervention may be required")
+        return False
 
 if __name__ == "__main__":
-    check_git_state()
+    import sys
+    
+    force_override = "--force-override" in sys.argv
+    auto_proceed = "--auto-proceed" in sys.argv
+    
+    if force_override:
+        print("⚠️  Force override mode enabled")
+    
+    result = check_git_state(force_override, auto_proceed)
+    
+    if result == "auto_proceed":
+        print("Starting automated merge workflow...")
+        try:
+            import subprocess
+            subprocess.run(["python3", "git_merge_divergent.py"], check=True)
+        except Exception as e:
+            print(f"❌ Failed to start merge workflow: {e}")
+            sys.exit(1)
+    elif result:
+        print("\n✅ Pre-check completed successfully!")
+        sys.exit(0)
+    else:
+        print("\n❌ Pre-check failed!")
+        sys.exit(1)

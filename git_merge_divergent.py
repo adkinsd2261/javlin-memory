@@ -111,7 +111,7 @@ class GitDivergenceResolver:
             return []
 
     def cleanup_git_locks(self):
-        """Safely remove git lock files with process checking"""
+        """Safely remove git lock files with enhanced process checking"""
         self.log("Checking for git lock files...")
         
         lock_files = [
@@ -134,7 +134,7 @@ class GitDivergenceResolver:
         
         self.log(f"Found {len(found_locks)} git lock files: {found_locks}")
         
-        # Check for active git processes
+        # Check for active git processes (exclude self)
         git_processes = self.check_git_processes()
         if git_processes:
             self.log("Active git processes detected:", "ERROR")
