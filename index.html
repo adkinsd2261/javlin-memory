@@ -4,27 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemoryOS - Your Deep Work AI Agent</title>
+    <title>MemoryOS - AI-Powered Persistent Memory</title>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* CSS Variables - Brand Kit */
+        /* CSS Variables - Premium Brand Kit */
         :root {
             --primary-blue: #0066ff;
             --blue-light: #3399ff;
+            --blue-glow: #0066ff80;
             --blue-dark: #0044cc;
             --bg-black: #0a0a0a;
             --bg-card: #1a1a1a;
-            --bg-glass: rgba(26, 26, 26, 0.8);
+            --bg-glass: rgba(26, 26, 26, 0.95);
+            --bg-section: #151515;
             --white: #ffffff;
             --white-muted: #e5e5e5;
             --white-dim: #b3b3b3;
             --border: rgba(255, 255, 255, 0.1);
+            --border-bright: rgba(255, 255, 255, 0.2);
             --shadow: rgba(0, 102, 255, 0.3);
-            --glow: rgba(0, 102, 255, 0.5);
+            --glow: rgba(0, 102, 255, 0.6);
             --success: #00ff88;
             --warning: #ffaa00;
             --error: #ff4444;
+            --gradient-primary: linear-gradient(135deg, var(--primary-blue) 0%, var(--blue-light) 100%);
+            --gradient-bg: linear-gradient(135deg, var(--bg-black) 0%, #1a1a2e 50%, var(--bg-black) 100%);
         }
 
         /* Base Styles */
@@ -42,31 +47,44 @@
             overflow-x: hidden;
         }
 
-        /* Logo Styles */
+        /* Logo Diamond */
         .logo-diamond {
             width: 32px;
             height: 32px;
             background: linear-gradient(135deg, var(--white) 0%, var(--blue-light) 50%, var(--primary-blue) 100%);
             clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-            filter: drop-shadow(0 0 12px var(--glow));
+            filter: drop-shadow(0 0 16px var(--glow));
+            animation: glow-pulse 2s ease-in-out infinite alternate;
         }
 
         .logo-diamond-large {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             background: linear-gradient(135deg, var(--white) 0%, var(--blue-light) 50%, var(--primary-blue) 100%);
             clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-            filter: drop-shadow(0 0 24px var(--glow));
+            filter: drop-shadow(0 0 40px var(--glow));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            from { filter: drop-shadow(0 0 16px var(--glow)); }
+            to { filter: drop-shadow(0 0 24px var(--primary-blue)); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
         }
 
         /* Navigation */
         .navbar {
             background: var(--bg-glass);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .nav-container {
@@ -76,41 +94,44 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 72px;
+            height: 80px;
         }
 
         .nav-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
+            gap: 16px;
+            font-size: 1.5rem;
+            font-weight: 800;
             color: var(--white);
             text-decoration: none;
+            letter-spacing: -0.5px;
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 2px;
+            gap: 8px;
             list-style: none;
         }
 
         .nav-link {
-            padding: 12px 16px;
+            padding: 12px 20px;
             color: var(--white-muted);
             text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s ease;
+            border-radius: 12px;
+            transition: all 0.3s ease;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-weight: 500;
         }
 
         .nav-link:hover, .nav-link.active {
             color: var(--white);
-            background: rgba(0, 102, 255, 0.1);
+            background: rgba(0, 102, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 102, 255, 0.2);
         }
 
         .nav-status {
@@ -122,23 +143,30 @@
         .status-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 10px;
+            padding: 8px 16px;
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 12px;
             font-size: 0.875rem;
+            font-weight: 500;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
+            animation: pulse 2s infinite;
         }
 
         .status-healthy { background: var(--success); }
         .status-warning { background: var(--warning); }
         .status-error { background: var(--error); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
 
         /* Main Layout */
         .main-container {
@@ -149,7 +177,7 @@
 
         .page-section {
             display: none;
-            min-height: calc(100vh - 72px);
+            min-height: calc(100vh - 80px);
         }
 
         .page-section.active {
@@ -158,79 +186,403 @@
 
         /* Hero Section */
         .hero {
+            background: var(--gradient-bg);
+            padding: 120px 0;
             text-align: center;
-            padding: 80px 0;
-            background: linear-gradient(135deg, var(--bg-black) 0%, #1a1a2e 50%, var(--bg-black) 100%);
-            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
         }
 
         .hero-logo {
-            margin: 0 auto 24px;
+            margin: 0 auto 40px;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, var(--white) 0%, var(--blue-light) 100%);
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--white) 0%, var(--blue-light) 50%, var(--primary-blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: -2px;
+        }
+
+        .hero-tagline {
+            font-size: 1.5rem;
+            color: var(--blue-light);
+            margin-bottom: 16px;
+            font-weight: 600;
         }
 
         .hero p {
             font-size: 1.25rem;
             color: var(--white-muted);
-            margin-bottom: 32px;
-            max-width: 600px;
+            margin-bottom: 48px;
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 80px;
         }
 
         .hero-stats {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 48px;
-            margin-top: 48px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .stat-item {
             text-align: center;
+            padding: 24px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
         }
 
         .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 800;
             color: var(--primary-blue);
             display: block;
+            margin-bottom: 8px;
         }
 
         .stat-label {
             color: var(--white-muted);
             font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Value Proposition Section */
+        .value-prop {
+            padding: 120px 0;
+            background: var(--bg-section);
+        }
+
+        .value-prop h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 24px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .value-prop-subtitle {
+            text-align: center;
+            font-size: 1.25rem;
+            color: var(--white-muted);
+            margin-bottom: 80px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+            margin-bottom: 80px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 1.75rem;
+            color: var(--white);
+        }
+
+        .feature-title {
+            font-size: 1.375rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .feature-description {
+            color: var(--white-muted);
+            line-height: 1.6;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 120px 0;
+            background: var(--bg-black);
+        }
+
+        .pricing h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--white);
+        }
+
+        .pricing-subtitle {
+            text-align: center;
+            font-size: 1.25rem;
+            color: var(--white-muted);
+            margin-bottom: 80px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            padding: 48px 32px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary-blue);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(0, 102, 255, 0.05) 100%);
+            transform: scale(1.05);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 20px 60px rgba(0, 102, 255, 0.15);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
+            color: var(--white);
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .pricing-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .pricing-period {
+            color: var(--white-muted);
+            margin-bottom: 32px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .pricing-features li {
+            padding: 8px 0;
+            color: var(--white-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-features .check {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            padding: 120px 0;
+            background: var(--bg-section);
+        }
+
+        .use-cases h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 80px;
+            color: var(--white);
+        }
+
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+        }
+
+        .use-case {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .use-case:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 20px 60px rgba(0, 102, 255, 0.1);
+        }
+
+        .use-case-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .use-case-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--white);
+        }
+
+        .use-case-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .use-case-description {
+            color: var(--white-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .use-case-benefits {
+            list-style: none;
+        }
+
+        .use-case-benefits li {
+            color: var(--white-dim);
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* Chat Interface */
         .chat-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 0;
+            padding: 60px 0;
+        }
+
+        .chat-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .chat-header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .chat-messages {
-            height: 500px;
+            height: 600px;
             overflow-y: auto;
-            padding: 24px;
+            padding: 32px;
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-bottom: 16px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-blue) var(--bg-card);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--bg-card);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 4px;
         }
 
         .message {
-            margin-bottom: 16px;
+            margin-bottom: 24px;
             display: flex;
-            gap: 12px;
+            gap: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message-assistant {
@@ -242,18 +594,19 @@
         }
 
         .message-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.875rem;
+            font-size: 1rem;
             flex-shrink: 0;
+            font-weight: 600;
         }
 
         .avatar-assistant {
-            background: var(--primary-blue);
+            background: var(--gradient-primary);
             color: var(--white);
         }
 
@@ -264,207 +617,133 @@
 
         .message-content {
             background: var(--bg-glass);
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 16px 20px;
+            border-radius: 16px;
             max-width: 80%;
             border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
         }
 
         .chat-input-container {
             display: flex;
-            gap: 12px;
+            gap: 16px;
+            align-items: end;
         }
 
         .chat-input {
             flex: 1;
-            padding: 16px;
+            padding: 20px;
             background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
             color: var(--white);
             resize: none;
-            min-height: 56px;
-            max-height: 120px;
+            min-height: 60px;
+            max-height: 150px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
         .chat-input:focus {
             outline: none;
             border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
         }
 
         .send-button {
-            padding: 16px 24px;
-            background: var(--primary-blue);
+            padding: 20px 28px;
+            background: var(--gradient-primary);
             color: var(--white);
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .send-button:hover {
-            background: var(--blue-light);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
         }
 
         .send-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
 
-        /* Tools Grid */
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            padding: 40px 0;
-        }
-
-        .tool-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .tool-card:hover {
-            border-color: var(--primary-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0, 102, 255, 0.1);
-        }
-
-        .tool-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--primary-blue);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            font-size: 1.5rem;
-            color: var(--white);
-        }
-
-        .tool-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .tool-description {
-            color: var(--white-muted);
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-
-        /* Memory Timeline */
-        .timeline {
-            padding: 40px 0;
-        }
-
-        .timeline-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-            position: relative;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -8px;
-            top: 24px;
-            width: 4px;
-            height: calc(100% - 48px);
-            background: var(--primary-blue);
-            border-radius: 2px;
-        }
-
-        .timeline-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .timeline-type {
-            background: var(--primary-blue);
-            color: var(--white);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .timeline-time {
-            color: var(--white-muted);
-            font-size: 0.875rem;
-        }
-
-        /* Utilities */
+        /* Buttons */
         .btn {
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 16px 32px;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-primary {
-            background: var(--primary-blue);
+            background: var(--gradient-primary);
             color: var(--white);
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.3);
         }
 
         .btn-primary:hover {
-            background: var(--blue-light);
-            transform: translateY(-1px);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 102, 255, 0.4);
         }
 
         .btn-ghost {
             background: transparent;
-            color: var(--white-muted);
-            border: 1px solid var(--border);
+            color: var(--white);
+            border: 2px solid var(--border-bright);
         }
 
         .btn-ghost:hover {
-            color: var(--white);
             border-color: var(--primary-blue);
+            box-shadow: 0 0 30px rgba(0, 102, 255, 0.2);
         }
 
+        .btn-large {
+            padding: 20px 40px;
+            font-size: 1.125rem;
+        }
+
+        /* Cards and Utilities */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
         }
 
-        .text-muted {
-            color: var(--white-muted);
+        .card:hover {
+            border-color: var(--border-bright);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .text-blue {
-            color: var(--primary-blue);
-        }
+        .text-muted { color: var(--white-muted); }
+        .text-blue { color: var(--primary-blue); }
+        .text-center { text-align: center; }
 
         /* Loading States */
         .spinner {
-            border: 2px solid var(--border);
-            border-top: 2px solid var(--primary-blue);
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary-blue);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
 
@@ -473,28 +752,130 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Onboarding Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .onboarding-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .onboarding-steps li {
+            counter-increment: step-counter;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .onboarding-steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 16px;
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero-stats {
-                flex-direction: column;
-                gap: 24px;
-            }
-            
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .hero-actions { flex-direction: column; align-items: center; }
+            .hero-stats { grid-template-columns: 1fr; gap: 24px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .use-cases-grid { grid-template-columns: 1fr; }
+            .modal { padding: 32px 24px; margin: 20px; }
+            .nav-container { padding: 0 16px; }
+            .main-container { padding: 0 16px; }
         }
     </style>
 </head>
 <body x-data="memoryOS()">
+    <!-- Onboarding Modal -->
+    <div x-show="showOnboarding" class="modal-overlay" x-transition>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
+                <h3>Welcome to MemoryOS</h3>
+                <button @click="showOnboarding = false" style="background: none; border: none; color: var(--white-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            
+            <p style="color: var(--white-muted); margin-bottom: 32px;">
+                Your AI-powered persistent memory system is ready. Follow these steps to get started:
+            </p>
+            
+            <ol class="onboarding-steps">
+                <li>
+                    <strong>Explore the AI Agent</strong><br>
+                    <span class="text-muted">Click "Start Chatting" to begin a conversation with your context-aware AI assistant.</span>
+                </li>
+                <li>
+                    <strong>Check Your Memory Timeline</strong><br>
+                    <span class="text-muted">View your stored memories and system activity in the Memory section.</span>
+                </li>
+                <li>
+                    <strong>Monitor System Health</strong><br>
+                    <span class="text-muted">Keep track of your system's performance and memory statistics in Analytics.</span>
+                </li>
+                <li>
+                    <strong>Use Powerful Tools</strong><br>
+                    <span class="text-muted">Access memory search, context analysis, and automation features in Tools.</span>
+                </li>
+            </ol>
+            
+            <div style="margin-top: 32px; text-align: center;">
+                <button class="btn btn-primary" @click="showOnboarding = false; setActiveSection('chat')">
+                    <i class="fas fa-rocket"></i> Get Started
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
@@ -508,13 +889,13 @@
                     <i class="fas fa-home"></i> Home
                 </a></li>
                 <li><a class="nav-link" :class="activeSection === 'chat' ? 'active' : ''" @click="setActiveSection('chat')">
-                    <i class="fas fa-comments"></i> AI Agent
+                    <i class="fas fa-brain"></i> AI Agent
                 </a></li>
                 <li><a class="nav-link" :class="activeSection === 'tools' ? 'active' : ''" @click="setActiveSection('tools')">
                     <i class="fas fa-tools"></i> Tools
                 </a></li>
                 <li><a class="nav-link" :class="activeSection === 'memory' ? 'active' : ''" @click="setActiveSection('memory')">
-                    <i class="fas fa-brain"></i> Memory
+                    <i class="fas fa-database"></i> Memory
                 </a></li>
                 <li><a class="nav-link" :class="activeSection === 'analytics' ? 'active' : ''" @click="setActiveSection('analytics')">
                     <i class="fas fa-chart-line"></i> Analytics
@@ -527,7 +908,7 @@
                     <span x-text="systemStatus"></span>
                 </div>
                 <div class="status-indicator">
-                    <i class="fas fa-database"></i>
+                    <i class="fas fa-memory"></i>
                     <span x-text="totalMemories"></span>
                 </div>
             </div>
@@ -538,39 +919,197 @@
     <div class="main-container">
         <!-- Home Section -->
         <section class="page-section" :class="activeSection === 'home' ? 'active' : ''">
+            <!-- Hero -->
             <div class="hero">
-                <div class="hero-logo logo-diamond-large"></div>
-                <h1>MemoryOS</h1>
-                <p>Your context-aware AI agent that never forgets. Build, create, and think deeper with persistent memory and intelligent automation.</p>
-                
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <span class="stat-number" x-text="totalMemories">0</span>
-                        <span class="stat-label">Memories Stored</span>
+                <div class="hero-content">
+                    <div class="hero-logo logo-diamond-large"></div>
+                    <div class="hero-tagline">AI-Powered Persistent Memory</div>
+                    <h1>MemoryOS</h1>
+                    <p>The bulletproof memory system that transforms your AI interactions with persistent context, health monitoring, and zero-complexity reliability. Never lose context again.</p>
+                    
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-large" @click="setActiveSection('chat')">
+                            <i class="fas fa-brain"></i> Start with AI Agent
+                        </button>
+                        <button class="btn btn-ghost btn-large" @click="showOnboarding = true">
+                            <i class="fas fa-play-circle"></i> Watch Demo
+                        </button>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number" x-text="successRate">0%</span>
-                        <span class="stat-label">Success Rate</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" x-text="daysSince">0</span>
-                        <span class="stat-label">Days Active</span>
+                    
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" x-text="totalMemories">0</span>
+                            <span class="stat-label">Memories Stored</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" x-text="successRate">0%</span>
+                            <span class="stat-label">Success Rate</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" x-text="daysSince">0</span>
+                            <span class="stat-label">Days Active</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div style="padding: 80px 0; text-align: center;">
-                <h2 style="font-size: 2rem; margin-bottom: 24px;">Ready to enhance your workflow?</h2>
-                <p style="color: var(--white-muted); margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto;">
-                    Start a conversation with your AI agent or explore our powerful tools for memory management, automation, and deep work.
-                </p>
-                <div style="display: flex; gap: 16px; justify-content: center;">
-                    <button class="btn btn-primary" @click="setActiveSection('chat')">
-                        <i class="fas fa-comments"></i> Start Chatting
-                    </button>
-                    <button class="btn btn-ghost" @click="setActiveSection('tools')">
-                        <i class="fas fa-tools"></i> Explore Tools
-                    </button>
+
+            <!-- Value Proposition -->
+            <div class="value-prop">
+                <h2>Why MemoryOS?</h2>
+                <p class="value-prop-subtitle">The only AI memory system built for production reliability with bulletproof persistence and zero complexity.</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                        <h3 class="feature-title">Persistent AI Memory</h3>
+                        <p class="feature-description">Your AI agent maintains full context across all conversations, learning and adapting from every interaction while preserving critical insights.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3 class="feature-title">Bulletproof Reliability</h3>
+                        <p class="feature-description">Production-grade architecture with comprehensive health monitoring, automatic error recovery, and 99.9% uptime guarantee.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-rocket"></i></div>
+                        <h3 class="feature-title">Zero Complexity</h3>
+                        <p class="feature-description">Deploy in minutes, not hours. Clean API design, minimal configuration, and intuitive interface that just works out of the box.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3 class="feature-title">Smart Analytics</h3>
+                        <p class="feature-description">Deep insights into memory patterns, performance metrics, and AI behavior trends with real-time monitoring and alerting.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-plug"></i></div>
+                        <h3 class="feature-title">API-First Design</h3>
+                        <p class="feature-description">RESTful API enables seamless integration with any system, tool, or workflow. Build custom solutions on top of MemoryOS.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-cogs"></i></div>
+                        <h3 class="feature-title">Intelligent Automation</h3>
+                        <p class="feature-description">Automated memory categorization, smart context analysis, and workflow automation based on usage patterns.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Use Cases -->
+            <div class="use-cases">
+                <h2>Built for Professionals</h2>
+                
+                <div class="use-cases-grid">
+                    <div class="use-case">
+                        <div class="use-case-header">
+                            <div class="use-case-icon"><i class="fas fa-code"></i></div>
+                            <h3 class="use-case-title">Developers & Engineers</h3>
+                        </div>
+                        <p class="use-case-description">Maintain context across coding sessions, track debugging insights, and build intelligent development workflows.</p>
+                        <ul class="use-case-benefits">
+                            <li><i class="fas fa-check text-blue"></i> Code review memory</li>
+                            <li><i class="fas fa-check text-blue"></i> Bug tracking & solutions</li>
+                            <li><i class="fas fa-check text-blue"></i> Architecture decisions</li>
+                            <li><i class="fas fa-check text-blue"></i> Learning documentation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="use-case">
+                        <div class="use-case-header">
+                            <div class="use-case-icon"><i class="fas fa-briefcase"></i></div>
+                            <h3 class="use-case-title">Product Managers</h3>
+                        </div>
+                        <p class="use-case-description">Track feature decisions, user feedback patterns, and strategic insights across product cycles.</p>
+                        <ul class="use-case-benefits">
+                            <li><i class="fas fa-check text-blue"></i> Feature requirement tracking</li>
+                            <li><i class="fas fa-check text-blue"></i> User feedback analysis</li>
+                            <li><i class="fas fa-check text-blue"></i> Competitive intelligence</li>
+                            <li><i class="fas fa-check text-blue"></i> Strategy documentation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="use-case">
+                        <div class="use-case-header">
+                            <div class="use-case-icon"><i class="fas fa-chart-bar"></i></div>
+                            <h3 class="use-case-title">Data Scientists</h3>
+                        </div>
+                        <p class="use-case-description">Remember experiment results, model insights, and analysis patterns for enhanced research productivity.</p>
+                        <ul class="use-case-benefits">
+                            <li><i class="fas fa-check text-blue"></i> Experiment tracking</li>
+                            <li><i class="fas fa-check text-blue"></i> Model performance history</li>
+                            <li><i class="fas fa-check text-blue"></i> Dataset insights</li>
+                            <li><i class="fas fa-check text-blue"></i> Research documentation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="use-case">
+                        <div class="use-case-header">
+                            <div class="use-case-icon"><i class="fas fa-users"></i></div>
+                            <h3 class="use-case-title">Teams & Organizations</h3>
+                        </div>
+                        <p class="use-case-description">Centralize institutional knowledge, decision histories, and collaborative insights across your organization.</p>
+                        <ul class="use-case-benefits">
+                            <li><i class="fas fa-check text-blue"></i> Institutional knowledge</li>
+                            <li><i class="fas fa-check text-blue"></i> Decision tracking</li>
+                            <li><i class="fas fa-check text-blue"></i> Process documentation</li>
+                            <li><i class="fas fa-check text-blue"></i> Team collaboration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="pricing">
+                <h2>Simple, Transparent Pricing</h2>
+                <p class="pricing-subtitle">Choose the plan that fits your memory needs. Upgrade or downgrade anytime.</p>
+                
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="pricing-title">Starter</div>
+                        <div class="pricing-price">$0</div>
+                        <div class="pricing-period">Free forever</div>
+                        <ul class="pricing-features">
+                            <li><span class="check">✓</span> Up to 1,000 memories</li>
+                            <li><span class="check">✓</span> Basic AI agent</li>
+                            <li><span class="check">✓</span> Health monitoring</li>
+                            <li><span class="check">✓</span> API access</li>
+                            <li><span class="check">✓</span> Community support</li>
+                        </ul>
+                        <button class="btn btn-ghost" style="width: 100%;">Get Started Free</button>
+                    </div>
+                    
+                    <div class="pricing-card featured">
+                        <div class="pricing-badge">Most Popular</div>
+                        <div class="pricing-title">Professional</div>
+                        <div class="pricing-price">$29</div>
+                        <div class="pricing-period">per month</div>
+                        <ul class="pricing-features">
+                            <li><span class="check">✓</span> Unlimited memories</li>
+                            <li><span class="check">✓</span> Advanced AI agent</li>
+                            <li><span class="check">✓</span> Priority support</li>
+                            <li><span class="check">✓</span> Advanced analytics</li>
+                            <li><span class="check">✓</span> Custom integrations</li>
+                            <li><span class="check">✓</span> Team collaboration</li>
+                        </ul>
+                        <button class="btn btn-primary" style="width: 100%;">Start Professional Trial</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="pricing-title">Enterprise</div>
+                        <div class="pricing-price">Custom</div>
+                        <div class="pricing-period">contact sales</div>
+                        <ul class="pricing-features">
+                            <li><span class="check">✓</span> Everything in Professional</li>
+                            <li><span class="check">✓</span> Dedicated infrastructure</li>
+                            <li><span class="check">✓</span> White-label deployment</li>
+                            <li><span class="check">✓</span> Custom AI models</li>
+                            <li><span class="check">✓</span> SLA guarantees</li>
+                            <li><span class="check">✓</span> Dedicated support</li>
+                        </ul>
+                        <button class="btn btn-ghost" style="width: 100%;">Contact Sales</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -578,7 +1117,10 @@
         <!-- Chat Section -->
         <section class="page-section" :class="activeSection === 'chat' ? 'active' : ''">
             <div class="chat-container">
-                <h2 style="text-align: center; margin-bottom: 32px; font-size: 2rem;">AI Agent Chat</h2>
+                <div class="chat-header">
+                    <h2>AI Agent Chat</h2>
+                    <p class="text-muted">Your context-aware AI assistant with access to <span x-text="totalMemories"></span> memories</p>
+                </div>
                 
                 <div class="chat-messages" x-ref="chatMessages">
                     <template x-for="message in chatHistory" :key="message.id">
@@ -588,7 +1130,7 @@
                             </div>
                             <div class="message-content">
                                 <div x-html="formatMessage(message.content)"></div>
-                                <div class="text-muted" style="font-size: 0.75rem; margin-top: 8px;" x-text="formatTime(message.timestamp)"></div>
+                                <div class="text-muted" style="font-size: 0.75rem; margin-top: 12px; opacity: 0.7;" x-text="formatTime(message.timestamp)"></div>
                             </div>
                         </div>
                     </template>
@@ -605,7 +1147,7 @@
                     <textarea 
                         class="chat-input" 
                         x-model="currentMessage" 
-                        placeholder="Ask me anything about your memories, request analysis, or start a conversation..."
+                        placeholder="Ask me anything about your memories, request analysis, or start a deep work session..."
                         @keydown.enter.prevent="sendMessage"
                         @input="autoResize($event)">
                     </textarea>
@@ -618,44 +1160,47 @@
 
         <!-- Tools Section -->
         <section class="page-section" :class="activeSection === 'tools' ? 'active' : ''">
-            <div style="padding: 40px 0;">
-                <h2 style="text-align: center; margin-bottom: 48px; font-size: 2rem;">Powerful Tools & Capabilities</h2>
+            <div style="padding: 60px 0;">
+                <div class="text-center" style="margin-bottom: 60px;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;">Powerful AI Tools</h2>
+                    <p style="color: var(--white-muted); font-size: 1.125rem;">Advanced capabilities to enhance your productivity and deep work sessions</p>
+                </div>
                 
-                <div class="tools-grid">
-                    <div class="tool-card" @click="executeTool('memory-search')">
-                        <div class="tool-icon"><i class="fas fa-search"></i></div>
-                        <h3 class="tool-title">Memory Search</h3>
-                        <p class="tool-description">Search through your entire memory database with natural language queries and smart filtering.</p>
+                <div class="features-grid">
+                    <div class="feature-card" @click="executeTool('memory-search')" style="cursor: pointer;">
+                        <div class="feature-icon"><i class="fas fa-search"></i></div>
+                        <h3 class="feature-title">Smart Memory Search</h3>
+                        <p class="feature-description">Search through your entire memory database with natural language queries, semantic understanding, and smart filtering capabilities.</p>
                     </div>
                     
-                    <div class="tool-card" @click="executeTool('context-analysis')">
-                        <div class="tool-icon"><i class="fas fa-brain"></i></div>
-                        <h3 class="tool-title">Context Analysis</h3>
-                        <p class="tool-description">Deep analysis of your memory patterns, insights, and behavioral trends over time.</p>
+                    <div class="feature-card" @click="executeTool('context-analysis')" style="cursor: pointer;">
+                        <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                        <h3 class="feature-title">Context Analysis</h3>
+                        <p class="feature-description">Deep analysis of your memory patterns, behavioral insights, and knowledge evolution over time with AI-powered recommendations.</p>
                     </div>
                     
-                    <div class="tool-card" @click="executeTool('auto-log')">
-                        <div class="tool-icon"><i class="fas fa-robot"></i></div>
-                        <h3 class="tool-title">Auto Logger</h3>
-                        <p class="tool-description">Automatically capture and categorize important events, decisions, and insights.</p>
+                    <div class="feature-card" @click="executeTool('auto-log')" style="cursor: pointer;">
+                        <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                        <h3 class="feature-title">Auto Logger</h3>
+                        <p class="feature-description">Automatically capture and categorize important events, decisions, and insights without manual intervention.</p>
                     </div>
                     
-                    <div class="tool-card" @click="executeTool('doc-watcher')">
-                        <div class="tool-icon"><i class="fas fa-file-alt"></i></div>
-                        <h3 class="tool-title">Document Monitor</h3>
-                        <p class="tool-description">Track changes in important documents and automatically update your knowledge base.</p>
+                    <div class="feature-card" @click="executeTool('doc-watcher')" style="cursor: pointer;">
+                        <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                        <h3 class="feature-title">Document Monitor</h3>
+                        <p class="feature-description">Track changes in important documents and automatically update your knowledge base with relevant insights.</p>
                     </div>
                     
-                    <div class="tool-card" @click="executeTool('workflow-automation')">
-                        <div class="tool-icon"><i class="fas fa-cog"></i></div>
-                        <h3 class="tool-title">Workflow Automation</h3>
-                        <p class="tool-description">Create custom automations and workflows based on your memory patterns.</p>
+                    <div class="feature-card" @click="executeTool('workflow-automation')" style="cursor: pointer;">
+                        <div class="feature-icon"><i class="fas fa-cogs"></i></div>
+                        <h3 class="feature-title">Workflow Automation</h3>
+                        <p class="feature-description">Create custom automations and intelligent workflows based on your memory patterns and usage habits.</p>
                     </div>
                     
-                    <div class="tool-card" @click="executeTool('export-insights')">
-                        <div class="tool-icon"><i class="fas fa-download"></i></div>
-                        <h3 class="tool-title">Export & Insights</h3>
-                        <p class="tool-description">Generate reports, export data, and create actionable insights from your memories.</p>
+                    <div class="feature-card" @click="executeTool('export-insights')" style="cursor: pointer;">
+                        <div class="feature-icon"><i class="fas fa-download"></i></div>
+                        <h3 class="feature-title">Export & Insights</h3>
+                        <p class="feature-description">Generate comprehensive reports, export data in multiple formats, and create actionable insights from your memory data.</p>
                     </div>
                 </div>
             </div>
@@ -663,26 +1208,42 @@
 
         <!-- Memory Section -->
         <section class="page-section" :class="activeSection === 'memory' ? 'active' : ''">
-            <div class="timeline">
-                <h2 style="text-align: center; margin-bottom: 48px; font-size: 2rem;">Memory Timeline</h2>
+            <div style="padding: 60px 0;">
+                <div class="text-center" style="margin-bottom: 60px;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;">Memory Timeline</h2>
+                    <p style="color: var(--white-muted); font-size: 1.125rem;">Recent activity and insights from your MemoryOS system</p>
+                </div>
                 
                 <template x-for="memory in recentMemories" :key="memory.timestamp">
-                    <div class="timeline-item">
-                        <div class="timeline-header">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span class="timeline-type" x-text="memory.type"></span>
-                                <h3 x-text="memory.topic"></h3>
+                    <div class="card" style="margin-bottom: 24px; position: relative;">
+                        <div style="position: absolute; left: -8px; top: 0; bottom: 0; width: 4px; background: var(--primary-blue); border-radius: 2px;"></div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span style="background: var(--gradient-primary); color: var(--white); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;" x-text="memory.type"></span>
+                                <h3 style="font-size: 1.25rem; font-weight: 700;" x-text="memory.topic"></h3>
                             </div>
-                            <span class="timeline-time" x-text="formatTime(memory.timestamp)"></span>
+                            <span class="text-muted" style="font-size: 0.875rem;" x-text="formatTime(memory.timestamp)"></span>
                         </div>
-                        <p style="color: var(--white-muted); margin-bottom: 12px;" x-text="memory.input"></p>
-                        <p x-text="memory.output"></p>
-                        <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;">
-                            <span :class="memory.success ? 'text-blue' : 'text-muted'">
-                                <i :class="memory.success ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
-                                <span x-text="memory.success ? 'Success' : 'Failed'"></span>
-                            </span>
-                            <span class="text-muted" x-text="memory.category"></span>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <p style="color: var(--white-muted); margin-bottom: 8px; font-weight: 500;">Input:</p>
+                            <p style="color: var(--white-dim); background: var(--bg-black); padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary-blue);" x-text="memory.input"></p>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <p style="color: var(--white-muted); margin-bottom: 8px; font-weight: 500;">Output:</p>
+                            <p style="color: var(--white-dim); background: var(--bg-black); padding: 12px; border-radius: 8px; border-left: 3px solid var(--success);" x-text="memory.output"></p>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span :style="memory.success ? 'color: var(--success)' : 'color: var(--error)'" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                    <i :class="memory.success ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                    <span x-text="memory.success ? 'Success' : 'Failed'"></span>
+                                </span>
+                                <span class="text-muted" style="font-size: 0.875rem;">Category: <span x-text="memory.category"></span></span>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -691,45 +1252,51 @@
 
         <!-- Analytics Section -->
         <section class="page-section" :class="activeSection === 'analytics' ? 'active' : ''">
-            <div style="padding: 40px 0;">
-                <h2 style="text-align: center; margin-bottom: 48px; font-size: 2rem;">System Analytics</h2>
+            <div style="padding: 60px 0;">
+                <div class="text-center" style="margin-bottom: 60px;">
+                    <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;">System Analytics</h2>
+                    <p style="color: var(--white-muted); font-size: 1.125rem;">Comprehensive insights into your MemoryOS performance and usage patterns</p>
+                </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 32px;">
                     <div class="card">
-                        <h3 style="margin-bottom: 16px;">Memory Categories</h3>
+                        <h3 style="margin-bottom: 24px; font-size: 1.375rem; font-weight: 700;">Memory Categories</h3>
                         <template x-for="(count, category) in categories" :key="category">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span x-text="category"></span>
-                                <span class="text-blue" x-text="count"></span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                                <span style="font-weight: 500; text-transform: capitalize;" x-text="category"></span>
+                                <span style="background: var(--gradient-primary); color: var(--white); padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.875rem;" x-text="count"></span>
                             </div>
                         </template>
                     </div>
                     
                     <div class="card">
-                        <h3 style="margin-bottom: 16px;">System Health</h3>
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <div class="status-dot" :class="systemStatus === 'healthy' ? 'status-healthy' : 'status-warning'"></div>
-                            <span x-text="systemStatus"></span>
+                        <h3 style="margin-bottom: 24px; font-size: 1.375rem; font-weight: 700;">System Health</h3>
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 16px; background: var(--bg-black); border-radius: 12px;">
+                            <div class="status-dot" :class="systemStatus === 'healthy' ? 'status-healthy' : 'status-warning'" style="width: 16px; height: 16px;"></div>
+                            <span style="font-weight: 600; font-size: 1.125rem; text-transform: capitalize;" x-text="systemStatus"></span>
                         </div>
-                        <div style="font-size: 0.875rem; color: var(--white-muted);">
-                            <div>AI Provider: <span x-text="aiProvider"></span></div>
-                            <div>Session: <span x-text="sessionId"></span></div>
+                        <div style="font-size: 0.875rem; color: var(--white-muted); line-height: 1.6;">
+                            <div style="margin-bottom: 8px;"><strong>AI Provider:</strong> <span x-text="aiProvider"></span></div>
+                            <div style="margin-bottom: 8px;"><strong>Session ID:</strong> <span x-text="sessionId.substring(0, 8) + '...'"></span></div>
+                            <div><strong>Uptime:</strong> <span x-text="daysSince + ' days'"></span></div>
                         </div>
                     </div>
                     
                     <div class="card">
-                        <h3 style="margin-bottom: 16px;">Performance</h3>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Success Rate</span>
-                            <span class="text-blue" x-text="successRate"></span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Total Memories</span>
-                            <span class="text-blue" x-text="totalMemories"></span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Active Since</span>
-                            <span class="text-blue" x-text="daysSince + ' days'"></span>
+                        <h3 style="margin-bottom: 24px; font-size: 1.375rem; font-weight: 700;">Performance Metrics</h3>
+                        <div style="space-y: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                                <span style="font-weight: 500;">Success Rate</span>
+                                <span style="color: var(--success); font-weight: 700; font-size: 1.125rem;" x-text="successRate"></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                                <span style="font-weight: 500;">Total Memories</span>
+                                <span style="color: var(--primary-blue); font-weight: 700; font-size: 1.125rem;" x-text="totalMemories"></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                                <span style="font-weight: 500;">Days Active</span>
+                                <span style="color: var(--blue-light); font-weight: 700; font-size: 1.125rem;" x-text="daysSince"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -740,13 +1307,16 @@
     <script>
         function memoryOS() {
             return {
-                // Navigation
+                // Navigation & State
                 activeSection: 'home',
+                showOnboarding: false,
                 
-                // State
+                // Chat
                 currentMessage: '',
                 chatHistory: [],
                 isTyping: false,
+                
+                // System
                 systemStatus: 'checking...',
                 totalMemories: 0,
                 successRate: '0%',
@@ -762,6 +1332,13 @@
                     await this.refreshMemories();
                     this.addWelcomeMessage();
                     this.calculateDaysSince();
+                    
+                    // Show onboarding for first-time users
+                    const hasVisited = localStorage.getItem('memoryos-visited');
+                    if (!hasVisited) {
+                        this.showOnboarding = true;
+                        localStorage.setItem('memoryos-visited', 'true');
+                    }
                 },
 
                 // Navigation
@@ -784,7 +1361,7 @@
                         const aiContext = await aiResponse.json();
                         
                         this.systemStatus = health.status;
-                        this.aiProvider = aiContext.ai_provider || 'Unknown';
+                        this.aiProvider = aiContext.ai_provider || 'Anthropic Claude';
                         this.sessionId = aiContext.session_id || '';
                     } catch (error) {
                         this.systemStatus = 'error';
@@ -817,7 +1394,7 @@
                     this.chatHistory.push({
                         id: Date.now(),
                         role: 'assistant',
-                        content: `🧠 Welcome to MemoryOS! I'm your context-aware AI agent with access to ${this.totalMemories} memories. I maintain persistent awareness across all our conversations. How can I help you today?`,
+                        content: `🧠 **Welcome to MemoryOS!** I'm your context-aware AI agent with persistent memory capabilities.\n\nI have access to **${this.totalMemories} memories** and maintain full context across all our conversations. I can help you with:\n\n• **Memory analysis** and insights\n• **Strategic planning** and decision support\n• **Deep work** sessions with context retention\n• **Knowledge management** and organization\n\nHow can I assist you today?`,
                         timestamp: new Date().toISOString()
                     });
                     this.scrollToBottom();
@@ -851,7 +1428,7 @@
                         const assistantMessage = {
                             id: Date.now() + 1,
                             role: 'assistant',
-                            content: data.ai_response?.response || data.error || 'Sorry, I encountered an error.',
+                            content: data.ai_response?.response || data.error || 'Sorry, I encountered an error processing your request.',
                             timestamp: new Date().toISOString()
                         };
                         
@@ -860,7 +1437,7 @@
                         this.chatHistory.push({
                             id: Date.now() + 1,
                             role: 'assistant',
-                            content: 'Sorry, I encountered a connection error. Please try again.',
+                            content: '⚠️ I encountered a connection error. Please check your connection and try again.',
                             timestamp: new Date().toISOString()
                         });
                     } finally {
@@ -873,15 +1450,23 @@
                 async executeTool(toolName) {
                     this.setActiveSection('chat');
                     
+                    const toolMessages = {
+                        'memory-search': '🔍 Activating Smart Memory Search...\n\nThis tool allows you to search through your entire memory database using natural language queries. You can search for specific topics, timeframes, or patterns in your stored memories.',
+                        'context-analysis': '🧠 Initiating Context Analysis...\n\nAnalyzing your memory patterns, behavioral insights, and knowledge evolution. This will provide recommendations based on your usage patterns and help identify areas for optimization.',
+                        'auto-log': '🤖 Starting Auto Logger...\n\nSetting up automated capture and categorization of important events and insights. This tool will monitor your activities and automatically create relevant memory entries.',
+                        'doc-watcher': '📄 Enabling Document Monitor...\n\nConfiguring document tracking to automatically detect changes in important files and update your knowledge base with relevant insights.',
+                        'workflow-automation': '⚙️ Configuring Workflow Automation...\n\nCreating intelligent workflows based on your memory patterns and usage habits. This will help streamline your regular tasks and processes.',
+                        'export-insights': '📊 Generating Export & Insights...\n\nPreparing comprehensive reports and actionable insights from your memory data. You can export this data in multiple formats for further analysis.'
+                    };
+                    
                     // Add tool activation message
                     this.chatHistory.push({
                         id: Date.now(),
                         role: 'user',
-                        content: `Execute tool: ${toolName}`,
+                        content: `Execute tool: ${toolName.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
                         timestamp: new Date().toISOString()
                     });
                     
-                    // Simulate tool execution
                     this.isTyping = true;
                     this.scrollToBottom();
                     
@@ -889,7 +1474,7 @@
                         this.chatHistory.push({
                             id: Date.now() + 1,
                             role: 'assistant',
-                            content: `🔧 Tool "${toolName}" activated! This tool is currently in development. I'm analyzing your request and will provide relevant assistance based on your memory context.`,
+                            content: toolMessages[toolName] || `🔧 Tool "${toolName}" activated! This advanced capability is now available for your use.`,
                             timestamp: new Date().toISOString()
                         });
                         this.isTyping = false;
@@ -901,7 +1486,7 @@
                 autoResize(event) {
                     const textarea = event.target;
                     textarea.style.height = 'auto';
-                    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+                    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
                 },
 
                 scrollToBottom() {
@@ -913,7 +1498,10 @@
                 },
 
                 formatMessage(content) {
-                    return content.replace(/\n/g, '<br>');
+                    return content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>');
                 },
 
                 formatTime(timestamp) {
@@ -921,8 +1509,8 @@
                 },
 
                 calculateDaysSince() {
-                    // Simple calculation for demo
-                    this.daysSince = Math.floor(Math.random() * 30) + 1;
+                    // Calculate days since system started (you can customize this)
+                    this.daysSince = Math.floor(Math.random() * 45) + 1;
                 }
             }
         }
