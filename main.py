@@ -96,7 +96,7 @@ try:
     from bible_compliance import init_bible_compliance, requires_confirmation
     bible_compliance = init_bible_compliance(BASE_DIR)
     logging.info("Bible compliance loaded successfully")
-except ImportError as e:
+except Exception as e:
     logging.warning(f"Bible compliance import failed: {e}")
     bible_compliance = None
     def requires_confirmation(func):
@@ -107,7 +107,7 @@ try:
     from connection_validator import ConnectionValidator
     connection_validator = ConnectionValidator(BASE_DIR)
     logging.info("Connection validator loaded successfully")
-except ImportError as e:
+except Exception as e:
     logging.warning(f"Connection validator import failed: {e}")
     # Create minimal fallback
     class MockConnectionValidator:
@@ -121,7 +121,7 @@ try:
     from compliance_middleware import init_compliance_middleware, send_user_output, log_and_respond, OutputChannel, api_output, ui_output
     compliance_middleware = init_compliance_middleware(BASE_DIR)
     logging.info("Compliance middleware loaded successfully")
-except ImportError as e:
+except Exception as e:
     logging.warning(f"Compliance middleware import failed: {e}")
     compliance_middleware = None
     # Create enhanced fallback functions
@@ -1493,11 +1493,25 @@ if __name__ == '__main__':
         print("🚀 Starting MemoryOS Flask API...")
         logging.info("Starting MemoryOS Flask API...")
 
+        # Validate critical modules loaded correctly
+        print("🔍 Checking system components...")
+        if bible_compliance is None:
+            print("⚠️ Bible compliance in fallback mode")
+        else:
+            print("✅ Bible compliance loaded")
+            
+        if compliance_middleware is None:
+            print("⚠️ Compliance middleware in fallback mode")
+        else:
+            print("✅ Compliance middleware loaded")
+
         # Create memory file if it doesn't exist
         if not os.path.exists(MEMORY_FILE):
             with open(MEMORY_FILE, 'w') as f:
                 json.dump([], f)
             print(f"✅ Created memory file: {MEMORY_FILE}")
+        else:
+            print(f"✅ Memory file exists: {MEMORY_FILE}")
 
         # Optimize memory file on startup
         try:
