@@ -986,5 +986,87 @@
     "related_to": [],
     "timestamp": "2025-06-20T00:46:29.566294+00:00",
     "context": "Working on: Git Identity Verification Flow Finalized."
+  },
+  {
+    "topic": "Git Commit: Checkpoint before assistant change: Record improve...",
+    "type": "Feature",
+    "input": "Git commit: Checkpoint before assistant change: Record improvements to the Git setup and project initializationAdds new commit logs, Git debugging entries to memory, and a project readme.Replit-Commit-Author: Assistant",
+    "output": "Committed changes with hash 4dac05e1",
+    "score": 15,
+    "maxScore": 25,
+    "success": true,
+    "category": "development",
+    "tags": [
+      "git",
+      "commit",
+      "feature"
+    ],
+    "context": "Code changes committed to repository",
+    "related_to": [],
+    "reviewed": false,
+    "timestamp": "2025-06-20T00:49:25.598267+00:00",
+    "auto_generated": true
+  },
+  {
+    "topic": "Git Commit: Assistant checkpoint: Create task execution system...",
+    "type": "Feature",
+    "input": "Git commit: Assistant checkpoint: Create task execution system with queue and runnerAssistant generated file changes:- task_queue.json: Create task queue file- task_output.json: Create task output file- task_runner.py: Create task runner with 5-second polling---User prompt:Set up a local task execution system with the following files:1. Create task_queue.json and task_output.json in the root:   - task_queue.json: will contain a list of shell commands to run   - task_output.json: will store the results of those commands2. Create task_runner.py with the following logic:   - Every 5 seconds, check task_queue.json   - If it contains commands, run them in the shell one by one   - Capture stdout and stderr for each command   - Write the results to task_output.json   - Then clear task_queue.json3. Use subprocess in Python with shell=True to execute safely4. Ensure it prints logs to the console so I can monitor outputThis allows my AI assistant to enqueue commands and get responses automatically.Replit-Commit-Author: AssistantReplit-Commit-Session-Id: 123af9d8-1e8f-4592-82e4-585aa9a47bd9",
+    "output": "Committed changes with hash addb4d8c",
+    "score": 15,
+    "maxScore": 25,
+    "success": true,
+    "category": "development",
+    "tags": [
+      "git",
+      "commit",
+      "feature"
+    ],
+    "context": "Code changes committed to repository",
+    "related_to": [],
+    "reviewed": false,
+    "timestamp": "2025-06-20T00:50:38.929196+00:00",
+    "auto_generated": true
+  },
+  {
+    "topic": "Split Internal Tooling from Consumer Product",
+    "type": "Decision",
+    "input": "Recognized that current build blends Darryl's internal developer ops tools with what should be a clean, installable product for users. Risk of leaking internal scaffolding into consumer-facing code. Prompted by building a task runner for Replit that was deeply personalized.",
+    "output": "Will split the system into two modes: builder_mode (internal ops, autologs, AI-triggered commands) and user_mode (simple interface, opt-in logging). Tag internal-only features and create two Replit templates: Javlin Builder Stack and Javlin Memory Agent (Public).",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "strategy",
+    "reviewed": false,
+    "tags": [
+      "darryl",
+      "recognized",
+      "feature",
+      "install",
+      "risk"
+    ],
+    "related_to": [],
+    "timestamp": "2025-06-20T00:50:43.541409+00:00",
+    "context": "Working on: Split Internal Tooling from Consumer Product."
+  },
+  {
+    "topic": "Replit Local Task Execution System Setup",
+    "type": "BuildLog",
+    "input": "Set up task_queue.json, task_output.json, and task_runner.py in Replit based on assistant-generated prompt. This system enables the AI assistant to enqueue shell commands and receive structured output via polling.",
+    "output": "Replit now has a working local task execution system that supports automated shell interaction via JSON queue. Features include 5-sec polling, command batching, error handling, and flexible input format.",
+    "score": 25,
+    "maxScore": 25,
+    "success": true,
+    "category": "infrastructure",
+    "reviewed": false,
+    "tags": [
+      "error",
+      "replit",
+      "feature",
+      "setup",
+      "this"
+    ],
+    "related_to": [],
+    "timestamp": "2025-06-20T00:52:37.783984+00:00",
+    "context": "Working on: Replit Local Task Execution System Setup. Encountered issues requiring resolution."
   }
 ]
