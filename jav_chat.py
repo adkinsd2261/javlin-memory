@@ -1025,3 +1025,512 @@ I maintain full context of your work and can proactively warn about issues."""
                 'message': "I understand you want to interact with the system. I can help with health checks, file management, testing, commits, and system auditing. What would you like me to assist with?",
                 'action_needed': False
             }
+"""
+Jav Chat - Memory-Driven Creative Conversation Handler
+Every conversation becomes memory, every memory fuels creativity
+"""
+
+import json
+import logging
+from datetime import datetime, timezone
+from typing import Dict, List, Any, Optional
+import re
+
+class JavChat:
+    """
+    Jav Chat Interface - Creative AI Partner
+    Transforms conversations into actionable memories and implementations
+    """
+    
+    def __init__(self, jav_agent):
+        self.jav = jav_agent
+        self.logger = logging.getLogger('JavChat')
+        self.conversation_memory = []
+        
+    def process_command(self, message: str, context: str = "creative_studio") -> Dict[str, Any]:
+        """
+        Process user message with full memory awareness and creative context
+        """
+        try:
+            # Analyze message intent and creative context
+            intent = self.analyze_creative_intent(message)
+            
+            # Load relevant memories for context
+            contextual_memories = self.load_contextual_memories(message, intent)
+            
+            # Generate creative response with implementation suggestions
+            response = self.generate_creative_response(message, intent, contextual_memories, context)
+            
+            # Store conversation as memory
+            self.store_conversation_memory(message, response, intent, context)
+            
+            return {
+                'type': 'success',
+                'message': response['content'],
+                'implementations': response.get('implementations', []),
+                'memory_connections': len(contextual_memories),
+                'creative_insights': response.get('insights', []),
+                'next_suggestions': response.get('suggestions', [])
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Chat processing error: {e}")
+            return {
+                'type': 'error',
+                'message': f"I encountered an issue: {str(e)}. But our conversation is still being saved to memory!",
+                'error': str(e)
+            }
+    
+    def analyze_creative_intent(self, message: str) -> Dict[str, Any]:
+        """
+        Analyze the creative intent behind the user's message
+        """
+        message_lower = message.lower()
+        
+        # Creative intent patterns
+        intents = {
+            'build': ['build', 'create', 'make', 'develop', 'implement', 'code'],
+            'ideate': ['idea', 'think', 'brainstorm', 'concept', 'design', 'plan'],
+            'debug': ['fix', 'error', 'bug', 'broken', 'issue', 'problem'],
+            'analyze': ['analyze', 'review', 'examine', 'explain', 'understand'],
+            'improve': ['better', 'optimize', 'enhance', 'upgrade', 'refactor'],
+            'learn': ['how', 'what', 'why', 'learn', 'teach', 'explain'],
+            'memory': ['remember', 'memory', 'recall', 'history', 'before']
+        }
+        
+        detected_intents = []
+        for intent_type, keywords in intents.items():
+            if any(keyword in message_lower for keyword in keywords):
+                detected_intents.append(intent_type)
+        
+        # Determine primary intent
+        primary_intent = detected_intents[0] if detected_intents else 'conversation'
+        
+        # Detect technical context
+        tech_patterns = {
+            'frontend': ['html', 'css', 'javascript', 'react', 'ui', 'interface'],
+            'backend': ['python', 'flask', 'api', 'server', 'database'],
+            'memory': ['memory', 'memoryos', 'brain', 'remember', 'context'],
+            'creative': ['creative', 'studio', 'design', 'artistic', 'innovative']
+        }
+        
+        tech_context = []
+        for tech_type, keywords in tech_patterns.items():
+            if any(keyword in message_lower for keyword in keywords):
+                tech_context.append(tech_type)
+        
+        return {
+            'primary': primary_intent,
+            'all_intents': detected_intents,
+            'tech_context': tech_context,
+            'complexity': self.estimate_complexity(message),
+            'creativity_level': self.estimate_creativity(message)
+        }
+    
+    def load_contextual_memories(self, message: str, intent: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Load relevant memories based on message content and intent
+        """
+        try:
+            import requests
+            
+            # Build search terms from message and intent
+            search_terms = []
+            
+            # Extract key terms from message
+            words = re.findall(r'\b\w+\b', message.lower())
+            important_words = [w for w in words if len(w) > 3 and w not in ['with', 'that', 'this', 'want', 'need']]
+            search_terms.extend(important_words[:5])  # Top 5 important words
+            
+            # Add intent-based terms
+            search_terms.extend(intent['tech_context'])
+            search_terms.append(intent['primary'])
+            
+            # Search memories
+            memories_response = requests.get(f"{self.jav.memory_api}/memory?limit=10")
+            all_memories = memories_response.json().get('memories', [])
+            
+            # Score memories by relevance
+            relevant_memories = []
+            for memory in all_memories:
+                score = self.calculate_memory_relevance(memory, search_terms, intent)
+                if score > 0.3:  # Relevance threshold
+                    memory['relevance_score'] = score
+                    relevant_memories.append(memory)
+            
+            # Sort by relevance and return top matches
+            relevant_memories.sort(key=lambda x: x['relevance_score'], reverse=True)
+            return relevant_memories[:5]
+            
+        except Exception as e:
+            self.logger.error(f"Failed to load contextual memories: {e}")
+            return []
+    
+    def calculate_memory_relevance(self, memory: Dict[str, Any], search_terms: List[str], intent: Dict[str, Any]) -> float:
+        """
+        Calculate how relevant a memory is to the current context
+        """
+        score = 0.0
+        
+        # Check content relevance
+        memory_text = f"{memory.get('topic', '')} {memory.get('input', '')} {memory.get('output', '')}".lower()
+        
+        for term in search_terms:
+            if term in memory_text:
+                score += 0.2
+        
+        # Boost score for matching intent
+        if intent['primary'] in memory_text:
+            score += 0.3
+        
+        # Boost score for matching tech context
+        for tech in intent['tech_context']:
+            if tech in memory_text:
+                score += 0.2
+        
+        # Boost recent memories slightly
+        try:
+            memory_time = datetime.fromisoformat(memory.get('timestamp', '').replace('Z', '+00:00'))
+            hours_ago = (datetime.now(timezone.utc) - memory_time).total_seconds() / 3600
+            if hours_ago < 24:  # Recent memory
+                score += 0.1
+        except:
+            pass
+        
+        return min(score, 1.0)  # Cap at 1.0
+    
+    def generate_creative_response(self, message: str, intent: Dict[str, Any], 
+                                  memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
+        """
+        Generate creative, contextual response with implementation suggestions
+        """
+        
+        # Build memory context
+        memory_context = ""
+        if memories:
+            memory_context = "Relevant memories:\n"
+            for i, memory in enumerate(memories[:3], 1):
+                memory_context += f"{i}. {memory.get('topic', 'Untitled')}: {memory.get('output', 'No details')[:100]}...\n"
+        
+        # Generate response based on intent
+        if intent['primary'] == 'build':
+            return self.generate_build_response(message, memories, context)
+        elif intent['primary'] == 'ideate':
+            return self.generate_ideation_response(message, memories, context)
+        elif intent['primary'] == 'debug':
+            return self.generate_debug_response(message, memories, context)
+        elif intent['primary'] == 'memory':
+            return self.generate_memory_response(message, memories, context)
+        else:
+            return self.generate_conversational_response(message, memories, context, intent)
+    
+    def generate_build_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
+        """Generate response for build/create requests"""
+        
+        # Analyze what they want to build
+        implementations = []
+        
+        if 'ui' in message.lower() or 'interface' in message.lower():
+            implementations.append({
+                'id': f'ui_impl_{datetime.now().timestamp()}',
+                'title': 'UI Component Implementation',
+                'description': 'Create the user interface component based on your requirements',
+                'type': 'frontend',
+                'code': '<!-- Generated UI code will go here -->',
+                'files': ['index.html', 'styles.css']
+            })
+        
+        if 'api' in message.lower() or 'endpoint' in message.lower():
+            implementations.append({
+                'id': f'api_impl_{datetime.now().timestamp()}',
+                'title': 'API Endpoint Implementation',
+                'description': 'Create the API endpoint functionality',
+                'type': 'backend',
+                'code': '# Generated API code will go here',
+                'files': ['main.py']
+            })
+        
+        memory_insights = ""
+        if memories:
+            memory_insights = f"\n\n💡 **Memory Insight**: I found {len(memories)} related memories that might help inform this implementation. "
+            recent_builds = [m for m in memories if 'build' in m.get('type', '').lower() or 'feature' in m.get('type', '').lower()]
+            if recent_builds:
+                memory_insights += f"You've built similar features before - let's build on that experience!"
+        
+        response_content = f"""🚀 **Ready to Build!**
+
+I understand you want to create something new. Based on our conversation and memory context, here's my approach:
+
+**What I'm Planning:**
+- Analyze your specific requirements
+- Leverage our previous work and patterns
+- Create clean, maintainable implementations
+- Ensure everything integrates with your existing project
+
+{memory_insights}
+
+**Next Steps:**
+1. I'll create the implementation based on your specifications
+2. You can review, edit, or apply the changes
+3. We'll test and iterate together
+4. Everything gets saved to memory for future reference
+
+What specific aspect would you like me to focus on first?"""
+
+        return {
+            'content': response_content,
+            'implementations': implementations,
+            'insights': ['build_ready', 'memory_informed'],
+            'suggestions': ['Review implementation', 'Test changes', 'Iterate design']
+        }
+    
+    def generate_ideation_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
+        """Generate response for ideation/brainstorming"""
+        
+        memory_connections = ""
+        if memories:
+            related_ideas = [m for m in memories if 'idea' in m.get('input', '').lower() or 'concept' in m.get('input', '').lower()]
+            if related_ideas:
+                memory_connections = f"\n\n🔗 **Memory Connections**: I see connections to {len(related_ideas)} previous ideas we've discussed. Let's build on those concepts!"
+        
+        response_content = f"""💡 **Creative Ideation Mode Activated**
+
+I love brainstorming with you! Let's explore this idea space together.
+
+**My Creative Process:**
+1. **Expand** - What are all the possibilities?
+2. **Connect** - How does this relate to our previous work?
+3. **Synthesize** - What unique combinations can we create?
+4. **Implement** - Which ideas are ready to become reality?
+
+{memory_connections}
+
+**Let's Explore:**
+- What's the core problem or opportunity?
+- Who would benefit from this?
+- What would make this uniquely valuable?
+- How can we prototype this quickly?
+
+I'm ready to dive deep into creative exploration. What aspect excites you most?"""
+
+        return {
+            'content': response_content,
+            'insights': ['creative_mode', 'ideation_ready'],
+            'suggestions': ['Explore concepts', 'Create prototypes', 'Connect ideas']
+        }
+    
+    def generate_debug_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
+        """Generate response for debugging/fixing issues"""
+        
+        error_history = ""
+        if memories:
+            error_memories = [m for m in memories if not m.get('success', True) or 'error' in m.get('type', '').lower()]
+            if error_memories:
+                error_history = f"\n\n🔍 **Error Pattern Analysis**: I found {len(error_memories)} related issues in our history. Let me apply those lessons here."
+        
+        response_content = f"""🔧 **Debug Mode Engaged**
+
+I'm here to help solve this issue systematically.
+
+**My Debug Approach:**
+1. **Understand** - What exactly is happening vs. what should happen?
+2. **Isolate** - Where is the problem occurring?
+3. **Analyze** - What are the root causes?
+4. **Fix** - Implement the solution
+5. **Prevent** - How do we avoid this in the future?
+
+{error_history}
+
+**Let's Diagnose:**
+- Can you share the specific error or unexpected behavior?
+- When did this start happening?
+- What were you trying to accomplish?
+- Have you made any recent changes?
+
+I'll combine my debugging skills with our project memory to find the best solution!"""
+
+        return {
+            'content': response_content,
+            'insights': ['debug_mode', 'systematic_approach'],
+            'suggestions': ['Identify root cause', 'Test solution', 'Document fix']
+        }
+    
+    def generate_memory_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
+        """Generate response for memory-related queries"""
+        
+        memory_stats = f"I currently have access to {len(memories)} relevant memories"
+        if memories:
+            categories = {}
+            for memory in memories:
+                cat = memory.get('category', 'unknown')
+                categories[cat] = categories.get(cat, 0) + 1
+            
+            memory_stats += f" across categories: {', '.join([f'{k}({v})' for k, v in categories.items()])}"
+        
+        response_content = f"""🧠 **Memory Recall Active**
+
+{memory_stats}.
+
+**What I Remember:**
+- Every conversation we've had
+- All implementations and their outcomes
+- Creative decisions and their rationale
+- Patterns in your development style
+- Solutions that worked (and ones that didn't)
+
+**Memory Powers Our Partnership:**
+- I never forget context between sessions
+- I can connect ideas across time
+- I learn from our successes and failures
+- I compound our creative breakthroughs
+
+**Recent Memory Highlights:**
+"""
+
+        if memories:
+            for i, memory in enumerate(memories[:3], 1):
+                response_content += f"\n{i}. **{memory.get('topic', 'Memory')}** ({self.get_time_ago(memory.get('timestamp'))}):\n   {memory.get('output', 'No details')[:100]}...\n"
+        else:
+            response_content += "\nThis is the start of our journey together - every interaction from now on becomes part of our shared memory!"
+
+        response_content += "\nWhat specific memories would you like me to recall or connect to our current work?"
+
+        return {
+            'content': response_content,
+            'insights': ['memory_active', 'context_aware'],
+            'suggestions': ['Explore connections', 'Review history', 'Build on past work']
+        }
+    
+    def generate_conversational_response(self, message: str, memories: List[Dict[str, Any]], 
+                                       context: str, intent: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate general conversational response"""
+        
+        contextual_note = ""
+        if memories:
+            contextual_note = f"\n\n💭 I'm drawing from {len(memories)} related memories to inform my response."
+        
+        response_content = f"""👋 **Creative Partnership Mode**
+
+I'm here as your memory-driven creative partner, ready to build, brainstorm, and solve problems together.
+
+**What Makes Our Partnership Special:**
+- **Memory-Driven**: I remember everything we create together
+- **Context-Aware**: I understand your project and style
+- **Creative**: I help generate and refine ideas
+- **Implementation-Ready**: I can turn conversations into code
+
+{contextual_note}
+
+**How Can I Help?**
+- Brainstorm new features or improvements
+- Debug and solve technical challenges  
+- Review and analyze your code
+- Connect current work to past insights
+- Turn ideas into actionable implementations
+
+What would you like to explore or create together?"""
+
+        return {
+            'content': response_content,
+            'insights': ['partnership_ready', 'creative_mode'],
+            'suggestions': ['Start creating', 'Explore ideas', 'Solve problems']
+        }
+    
+    def store_conversation_memory(self, user_message: str, response: Dict[str, Any], 
+                                 intent: Dict[str, Any], context: str):
+        """
+        Store the conversation as memory for future context
+        """
+        try:
+            # Store user input as memory
+            user_memory = {
+                "topic": f"User Creative Input: {user_message[:50]}...",
+                "type": "user_input",
+                "input": user_message,
+                "output": f"Intent: {intent['primary']}, Context: {context}",
+                "success": True,
+                "category": "conversation",
+                "tags": ["conversation", "user_input", intent['primary'], context] + intent['tech_context'],
+                "context": f"Creative studio conversation - Intent: {intent['primary']}"
+            }
+            
+            self.jav.log_to_memory(
+                user_memory["topic"],
+                user_memory["type"],
+                user_memory["input"],
+                user_memory["output"],
+                user_memory["success"],
+                user_memory["category"]
+            )
+            
+            # Store Jav response as memory
+            jav_memory = {
+                "topic": f"Jav Creative Response: {response.get('insights', ['response'])[0]}",
+                "type": "ai_response",
+                "input": f"Responding to: {user_message[:100]}...",
+                "output": response['content'][:200] + "..." if len(response['content']) > 200 else response['content'],
+                "success": True,
+                "category": "conversation",
+                "tags": ["conversation", "ai_response", intent['primary'], context] + intent['tech_context'],
+                "context": f"Creative studio response - Generated {len(response.get('implementations', []))} implementations"
+            }
+            
+            self.jav.log_to_memory(
+                jav_memory["topic"],
+                jav_memory["type"],
+                jav_memory["input"],
+                jav_memory["output"],
+                jav_memory["success"],
+                jav_memory["category"]
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Failed to store conversation memory: {e}")
+    
+    def estimate_complexity(self, message: str) -> str:
+        """Estimate the complexity of the user's request"""
+        word_count = len(message.split())
+        technical_terms = len([w for w in message.lower().split() if w in ['api', 'database', 'algorithm', 'optimization', 'integration']])
+        
+        if word_count > 50 or technical_terms > 2:
+            return 'high'
+        elif word_count > 20 or technical_terms > 0:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def estimate_creativity(self, message: str) -> str:
+        """Estimate the creativity level needed for the request"""
+        creative_terms = len([w for w in message.lower().split() if w in ['creative', 'innovative', 'unique', 'design', 'artistic', 'brainstorm']])
+        
+        if creative_terms > 1:
+            return 'high'
+        elif creative_terms > 0:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def get_time_ago(self, timestamp: str) -> str:
+        """Get human-readable time ago string"""
+        if not timestamp:
+            return 'unknown time'
+        
+        try:
+            time_obj = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            now = datetime.now(timezone.utc)
+            diff = now - time_obj
+            
+            days = diff.days
+            hours = diff.seconds // 3600
+            minutes = (diff.seconds // 60) % 60
+            
+            if days > 0:
+                return f"{days} day{'s' if days > 1 else ''} ago"
+            elif hours > 0:
+                return f"{hours} hour{'s' if hours > 1 else ''} ago"
+            elif minutes > 0:
+                return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+            else:
+                return "just now"
+        except:
+            return 'unknown time'
