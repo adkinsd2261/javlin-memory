@@ -60,6 +60,14 @@ CORS(app)
 from routes.task_output import task_output_bp
 app.register_blueprint(task_output_bp)
 
+# Import session management and bible compliance
+from session_manager import SessionManager
+from bible_compliance import init_bible_compliance, requires_confirmation
+
+# Initialize bible compliance and session management
+bible_compliance = init_bible_compliance(BASE_DIR)
+session_manager = SessionManager(BASE_DIR)
+
 logging.basicConfig(level=logging.DEBUG)
 
 MEMORY_FILE = os.path.join(BASE_DIR, 'memory.json')
@@ -144,6 +152,37 @@ def add_memory():
             if not isinstance(data["success"], bool) or not isinstance(data["reviewed"], bool):
                 logging.warning("Success or reviewed not boolean")
                 return jsonify({"error": "Success and reviewed must be booleans."}), 400
+
+        # Bible compliance validation
+        validation_result = bible_compliance.validate_memory_entry(data)
+        if not validation_result['valid']:
+            return jsonify({
+                "error": "Memory entry failed bible compliance validation",
+                "validation_errors": validation_result['errors'],
+                "compliance_score": validation_result['compliance_score']
+            }), 400
+
+        # Add bible compliance fields
+        if 'confirmed' not in data:
+            data['confirmed'] = False
+            data['confirmation_method'] = 'none'
+            data['confirmation_required'] = True
+
+        if 'replit_connection_confirmed' not in data:
+            connection_status = bible_compliance.check_replit_connection()
+            data['replit_connection_confirmed'] = connection_status['connected']
+
+        # Check for "live" claims per AGENT_BIBLE.md
+        output_text = data.get('output', '')
+        if any(word in output_text.lower() for word in ['live', 'deployed', 'running', 'active']):
+            if not data.get('confirmed', False):
+                return jsonify({
+                    "status": "⚠️ Manual confirmation required",
+                    "message": "AGENT_BIBLE.md: Cannot claim 'live' status without confirmation",
+                    "bible_compliance": False,
+                    "entry": data,
+                    "next_steps": ["Verify via API endpoint", "Get human confirmation", "Check system health"]
+                }), 202
 
         # Handle optional fields
         if "tags" in data:
@@ -1953,8 +1992,14 @@ def get_system_health():
             "uptime_seconds": 0
         }
         
-        # AGENT_BIBLE.md compliance check
-        bible_compliance = check_agent_bible_compliance()
+        # Comprehensive bible compliance check
+        bible_compliance_status = bible_compliance.run_compliance_audit()
+        
+        # Session management status
+        session_status = {
+            "sessions_available": len(session_manager.get_session_history(100)),
+            "session_directory_exists": os.path.exists(session_manager.sessions_dir)
+        }
         
         health_data = {
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -1978,7 +2023,14 @@ def get_system_health():
                 "base_directory": BASE_DIR,
                 "config_loaded": bool(SYSTEM_CONFIG)
             },
-            "agent_bible_compliance": bible_compliance,
+            "bible_compliance": {
+                "overall_compliance": bible_compliance_status['overall_compliance'],
+                "compliance_score": bible_compliance_status['compliance_score'],
+                "violations_count": len(bible_compliance_status['violations']),
+                "warnings_count": len(bible_compliance_status['warnings']),
+                "bible_files_loaded": len([k for k, v in bible_compliance_status['bible_status'].items() if v.get('loaded')])
+            },
+            "session_management": session_status,
             "health_score": 100  # Will be calculated based on various factors
         }
         
@@ -1993,10 +2045,18 @@ def get_system_health():
         if len(last_commands) == 0:
             health_score -= 10
         
-        # AGENT_BIBLE.md compliance penalty
-        if not bible_compliance["compliant"]:
-            health_score -= 20
-            logging.warning(f"AGENT_BIBLE.md compliance issues: {bible_compliance['warnings']}")
+        # Bible compliance penalty
+        if not bible_compliance_status['overall_compliance']:
+            health_score -= 30
+            logging.warning(f"Bible compliance violations: {bible_compliance_status['violations']}")
+        
+        # Additional penalties for compliance score
+        compliance_penalty = (100 - bible_compliance_status['compliance_score']) // 5
+        health_score -= compliance_penalty
+        
+        # Session management penalty
+        if session_status["sessions_available"] == 0:
+            health_score -= 5
         
         health_data["health_score"] = max(health_score, 0)
         
@@ -2010,6 +2070,146 @@ def get_system_health():
 def home():
     return {'status': 'healthy', 'service': 'Javlin Memory API'}, 200
 
+
+@app.route('/session/save', methods=['POST'])
+@requires_confirmation('session_save')
+def save_session():
+    """Save current session context for rehydration"""
+    try:
+        data = request.get_json() or {}
+        
+        # Generate session ID if not provided
+        session_id = data.get('session_id') or session_manager.generate_session_id()
+        
+        # Extract context data
+        context_data = {
+            'agent_mode': data.get('agent_mode', 'user'),
+            'open_threads': data.get('open_threads', []),
+            'pending_actions': data.get('pending_actions', []),
+            'user_preferences': data.get('user_preferences', {}),
+            'current_focus': data.get('current_focus', ''),
+            'confirmation_status': {
+                'confirmed': data.get('confirmation_status', {}).get('confirmed', False),
+                'confirmation_method': data.get('confirmation_status', {}).get('confirmation_method', 'manual'),
+                'confirmation_required': True
+            }
+        }
+        
+        result = session_manager.save_session(session_id, context_data)
+        return jsonify(result)
+        
+    except Exception as e:
+        logging.error(f"Error saving session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/session/load/<session_id>', methods=['GET'])
+@requires_confirmation('session_load')
+def load_session(session_id):
+    """Load and restore session context"""
+    try:
+        result = session_manager.load_session(session_id)
+        
+        if result.get('status') == '✅ Session restored':
+            # Generate human-readable summary per AGENT_BIBLE.md requirements
+            restoration_summary = result.get('restoration_summary', {})
+            summary_text = session_manager.generate_session_summary(restoration_summary)
+            result['session_summary'] = summary_text
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logging.error(f"Error loading session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/session/history', methods=['GET'])
+def get_session_history():
+    """Get list of available sessions"""
+    try:
+        limit = int(request.args.get('limit', 10))
+        sessions = session_manager.get_session_history(limit)
+        
+        return jsonify({
+            "sessions": sessions,
+            "total_sessions": len(sessions),
+            "bible_compliance_note": "All session operations follow AGENT_BIBLE.md context switch requirements"
+        })
+        
+    except Exception as e:
+        logging.error(f"Error getting session history: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/session/clear/<session_id>', methods=['DELETE'])
+@requires_confirmation('session_clear')
+def clear_session(session_id):
+    """Clear/delete specific session"""
+    try:
+        result = session_manager.clear_session(session_id)
+        return jsonify(result)
+        
+    except Exception as e:
+        logging.error(f"Error clearing session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/compliance/audit', methods=['GET'])
+def run_compliance_audit():
+    """Run comprehensive bible compliance audit"""
+    try:
+        audit_result = bible_compliance.run_compliance_audit()
+        
+        # Log audit execution
+        audit_memory = {
+            "topic": "Bible Compliance Audit Executed",
+            "type": "SystemTest",
+            "input": "Comprehensive compliance audit requested via /compliance/audit endpoint",
+            "output": f"Compliance score: {audit_result['compliance_score']}/100. Overall compliance: {audit_result['overall_compliance']}. Found {len(audit_result['violations'])} violations and {len(audit_result['warnings'])} warnings.",
+            "score": 20,
+            "maxScore": 25,
+            "success": audit_result['overall_compliance'],
+            "category": "system",
+            "tags": ["compliance", "audit", "bible", "validation"],
+            "context": "Running bible compliance audit per security and behavioral requirements",
+            "related_to": [],
+            "reviewed": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "auto_generated": True,
+            "confirmed": True,
+            "confirmation_method": "api_endpoint",
+            "confirmation_required": False,
+            "replit_connection_confirmed": True
+        }
+        
+        # Save audit to memory
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+        except (FileNotFoundError, JSONDecodeError):
+            memory = []
+        
+        memory.append(audit_memory)
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+        
+        return jsonify(audit_result)
+        
+    except Exception as e:
+        logging.error(f"Error running compliance audit: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/compliance/check-connection', methods=['GET'])
+def check_replit_connection():
+    """Check real-time Replit connection status"""
+    try:
+        connection_status = bible_compliance.check_replit_connection()
+        
+        return jsonify({
+            "connection_status": connection_status,
+            "bible_compliance_note": "Connection validation per AGENT_BIBLE.md requirements",
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logging.error(f"Error checking Replit connection: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/onboarding', methods=['GET'])
 def get_onboarding():
@@ -2030,8 +2230,18 @@ def get_onboarding():
                 # Extract key principles
                 bible_summary = "✅ AGENT_BIBLE.md loaded - behavioral guidelines active"
         
+        # Get current compliance status
+        compliance_audit = bible_compliance.run_compliance_audit()
+        connection_status = bible_compliance.check_replit_connection()
+        
         onboarding_data = {
             "welcome_message": "Welcome to MemoryOS - Persistent AI Memory System",
+            "system_status": {
+                "bible_compliance_score": compliance_audit['compliance_score'],
+                "overall_compliance": compliance_audit['overall_compliance'],
+                "replit_connection": connection_status['connected'],
+                "session_management_ready": session_manager is not None
+            },
             "foundational_documentation": {
                 "agent_bible": {
                     "status": bible_summary,
@@ -2071,16 +2281,20 @@ def get_onboarding():
                 "🔧 Set API keys in Replit Secrets"
             ],
             "getting_started": {
-                "1_check_health": "GET /system-health - Verify system status",
+                "1_check_health": "GET /system-health - Verify system status and bible compliance",
                 "2_view_memories": "GET /memory - See existing memory entries",
                 "3_get_stats": "GET /stats - View memory analytics",
-                "4_add_memory": "POST /memory - Log new memories (requires API key)",
-                "5_check_digest": "GET /digest - Get weekly summary and insights"
+                "4_add_memory": "POST /memory - Log new memories (requires API key + confirmation)",
+                "5_check_digest": "GET /digest - Get weekly summary and insights",
+                "6_save_session": "POST /session/save - Save current context for rehydration",
+                "7_compliance_audit": "GET /compliance/audit - Run bible compliance check"
             },
             "api_endpoints": {
                 "memory_management": ["/memory", "/stats", "/digest", "/feedback"],
                 "system_monitoring": ["/system-health", "/last-commit", "/task-output"],
                 "agent_context": ["/context", "/build-state", "/daily-focus"],
+                "session_management": ["/session/save", "/session/load/<id>", "/session/history", "/session/clear/<id>"],
+                "compliance_enforcement": ["/compliance/audit", "/compliance/check-connection"],
                 "infrastructure": ["/audit", "/git-sync", "/insights"]
             },
             "bible_compliance_principles": [
@@ -2102,11 +2316,19 @@ def get_onboarding():
             "success_verification": {
                 "how_to_confirm_features_work": [
                     "Test API endpoints directly (e.g., curl or browser)",
-                    "Check /system-health for component status",
-                    "Verify logs appear in /memory after operations",
-                    "Use /task-output to see recent command results"
+                    "Check /system-health for component status and bible compliance",
+                    "Verify logs appear in /memory after operations with confirmation flags",
+                    "Use /task-output to see recent command results",
+                    "Run /compliance/audit to verify bible compliance",
+                    "Check /compliance/check-connection for Replit connectivity"
                 ],
                 "warning": "Per AGENT_BIBLE.md: Never trust claims of 'live' features without verification"
+            },
+            "session_context_rehydration": {
+                "save_on_exit": "POST /session/save with current context (memories, threads, agent mode)",
+                "restore_on_start": "GET /session/load/<id> to restore previous context",
+                "view_history": "GET /session/history to see available sessions",
+                "all_context_switches_logged": "Per AGENT_BIBLE.md requirements as BuildLogs"
             }
         }
         

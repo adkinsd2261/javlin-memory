@@ -41,7 +41,10 @@ Essential reading - explains capabilities, boundaries, and required manual steps
 GET /memory          # View existing memories
 GET /stats           # System analytics  
 GET /digest          # Weekly insights
-POST /memory         # Log new memory (API key required)
+POST /memory         # Log new memory (API key + confirmation required)
+GET /compliance/audit # Check bible compliance
+POST /session/save   # Save current context
+GET /session/load/<id> # Restore session context
 ```
 
 ### 4. Set Up Authentication
@@ -70,18 +73,22 @@ POST /memory         # Log new memory (API key required)
 All AI interactions governed by bible documentation:
 
 ### ✅ What Agents CAN Do
-- Log structured memories via authenticated API
+- Log structured memories via authenticated API with bible compliance validation
 - Provide context-aware insights and recommendations  
 - Generate automated summaries and analytics
-- Monitor system health and compliance status
+- Monitor system health and comprehensive bible compliance status
 - Suggest optimizations based on memory patterns
+- Save and restore session context for continuity
+- Validate Replit connection status in real-time
 
 ### ❌ What Agents CANNOT Do  
 - Execute commands without human/Replit Assistant trigger
-- Claim features are "live" without endpoint validation
+- Claim features are "live" without endpoint validation AND manual confirmation
 - Modify system configurations or security settings
 - Access user data without proper authentication
-- Bypass manual confirmation requirements
+- Bypass manual confirmation requirements per AGENT_BIBLE.md
+- Make "live" claims without Replit connection confirmation
+- Operate outside bible compliance boundaries
 
 ### 🔒 Compliance Requirements
 - **Manual confirmation required** for deployment claims
