@@ -293,7 +293,7 @@ class BibleCompliance:
                         cached_result = json.load(f)
                     
                     cache_time = datetime.datetime.fromisoformat(cached_result['timestamp'].replace('Z', '+00:00'))
-                    if (current_time - cache_time).total_seconds() < 60:  # Cache valid for 60 seconds
+                    if (current_time - cache_time).total_seconds() < 3600:  # Cache valid for 1 hour
                         cached_result['from_cache'] = True
                         return cached_result
                 except (FileNotFoundError, json.JSONDecodeError, KeyError):

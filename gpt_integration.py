@@ -1,4 +1,4 @@
-
+"""Updated validation cache duration to 1 hour for smoother GPT interactions."""
 """
 GPT Real-Time Integration for MemoryOS
 
@@ -24,8 +24,8 @@ class GPTReplitIntegration:
         self.base_dir = base_dir
         self.api_base_url = api_base_url
         self.last_validation = None
-        self.validation_cache_duration = 30  # seconds
-        
+        self.validation_cache_duration = 3600  # 1 hour for smoother interactions
+
     def validate_before_response(self, user_query: str, response_type: str = "general") -> Dict[str, Any]:
         """
         REQUIRED: GPT must call this before generating any response
@@ -37,13 +37,13 @@ class GPTReplitIntegration:
                 "response_type": response_type,
                 "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
-            
+
             response = requests.post(
                 f"{self.api_base_url}/gpt-validation",
                 json=validation_data,
                 timeout=10
             )
-            
+
             if response.status_code == 200:
                 validation_result = response.json()
                 self.last_validation = validation_result
@@ -54,7 +54,7 @@ class GPTReplitIntegration:
                     "error": f"Validation failed: {response.status_code}",
                     "fallback_message": "Manual confirmation required - validation service unavailable"
                 }
-                
+
         except Exception as e:
             return {
                 "gpt_response_authorized": False,
@@ -62,7 +62,7 @@ class GPTReplitIntegration:
                 "fallback_message": "Manual confirmation required - connection to Replit failed",
                 "requires_manual_intervention": True
             }
-    
+
     def get_live_system_health(self) -> Dict[str, Any]:
         """Get real-time system health from Replit"""
         try:
@@ -73,16 +73,16 @@ class GPTReplitIntegration:
                 return {"error": f"Health check failed: {response.status_code}"}
         except Exception as e:
             return {"error": str(e), "connection_failed": True}
-    
+
     def check_compliance_before_claim(self, intended_claim: str) -> Dict[str, Any]:
         """
         Check if GPT can make a specific claim (like 'feature is live')
         """
         action_words = ['live', 'deployed', 'running', 'active', 'implemented', 'complete', 'working']
-        
+
         if any(word in intended_claim.lower() for word in action_words):
             validation = self.validate_before_response(intended_claim, "live_claim")
-            
+
             if not validation.get('gpt_response_authorized', False):
                 return {
                     "claim_allowed": False,
@@ -90,22 +90,22 @@ class GPTReplitIntegration:
                     "required_action": "Perform fresh connection check or get human confirmation",
                     "alternative_phrasing": "Consider using: 'This should be working' or 'Please verify this is active'"
                 }
-        
+
         return {"claim_allowed": True}
-    
+
     def get_replit_context(self) -> Dict[str, Any]:
         """Get comprehensive Replit context for GPT awareness"""
         try:
             # Get system health
             health = self.get_live_system_health()
-            
+
             # Get memory context
             memory_response = requests.get(f"{self.api_base_url}/memory?limit=5")
             recent_memory = memory_response.json() if memory_response.status_code == 200 else []
-            
+
             # Get workflow status from health
             replit_state = health.get('replit_state', {})
-            
+
             return {
                 "system_healthy": health.get('overall_status') == 'healthy',
                 "flask_running": replit_state.get('flask_server_running', False),
@@ -115,21 +115,21 @@ class GPTReplitIntegration:
                 "agent_ready": health.get('agent_confirmation_ready', False),
                 "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
-            
+
         except Exception as e:
             return {
                 "error": str(e),
                 "manual_verification_required": True,
                 "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
-    
+
     def generate_compliant_response(self, user_query: str, intended_response: str) -> Dict[str, Any]:
         """
         Process intended GPT response through compliance validation
         """
         # First validate
         validation = self.validate_before_response(user_query)
-        
+
         if not validation.get('gpt_response_authorized', False):
             return {
                 "response": validation.get('fallback_message', 'Manual confirmation required'),
@@ -141,11 +141,11 @@ class GPTReplitIntegration:
                     "Get human confirmation if needed"
                 ]
             }
-        
+
         # Check for blocked phrases
         blocked_phrases = validation.get('blocked_phrases', [])
         response_blocked = any(phrase.lower() in intended_response.lower() for phrase in blocked_phrases)
-        
+
         if response_blocked:
             return {
                 "response": "⚠️ **Manual confirmation required by AGENT_BIBLE.md**\n\nAction language detected without backend validation. Please verify system state via `/system-health` endpoint or provide explicit confirmation.",
@@ -153,7 +153,7 @@ class GPTReplitIntegration:
                 "reason": "Action language without confirmation",
                 "blocked_phrases": [phrase for phrase in blocked_phrases if phrase.lower() in intended_response.lower()]
             }
-        
+
         # Response is compliant
         return {
             "response": intended_response,

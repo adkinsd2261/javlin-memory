@@ -746,8 +746,7 @@ def get_feedback_trends():
     """Analyze feedback trends from feedback.json"""
     try:
         feedback_file = os.path.join(BASE_DIR, 'feedback.json')
-        with open(feedback_file, 'r')```python
- as f:
+        with open(feedback_file, 'r') as f:
             feedback_data = json.load(f)
 
         summary = {
@@ -892,3 +891,84 @@ def founder_ui():
         return "Founder UI not found", 404
 
 logging.basicConfig(level=logging.DEBUG)
+
+# Placeholder for proactive founder agent (implementation not provided in original code)
+proactive_founder = None
+
+def get_founder_intelligence():
+    """Simulated founder intelligence (replace with actual implementation)"""
+    # This is a placeholder. Implement actual logic here to retrieve founder data.
+    return {
+        "is_active": True,
+        "decisions_made": 42,
+        "active_insights": 7,
+        "last_state_check": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "founder_context": {
+            "focus_areas": ["product_strategy", "market_analysis", "team_growth"]
+        },
+        "recent_decisions": ["Hired new marketing lead", "Approved budget increase for R&D"]
+    }
+
+def start_founder_mode():
+    """Placeholder to start founder mode"""
+    return "Founder agent activated. Proactive intelligence online. This is a simulated response."
+
+# Flask-Caching configuration
+from flask_caching import Cache
+cache = Cache(app, config={
+    "CACHE_TYPE": "SimpleCache",  # In-memory caching
+    "CACHE_DEFAULT_TIMEOUT": 300   # 5 minutes
+})
+
+# Express validation cache
+EXPRESS_VALIDATION_CACHE = {}
+EXPRESS_VALIDATION_LAST_UPDATE = None
+EXPRESS_VALIDATION_CONFIG = {
+    "validation_url": os.getenv('EXPRESS_VALIDATION_URL', 'http://localhost:5001/express/validate'),
+    "cache_duration": 3600,  # 1 hour
+    "cache_enabled": True,
+    "max_retries": 3,
+    "retry_delay": 2
+}
+
+@cache.cached(timeout=300)  # Cache for 5 minutes
+def get_cached_health():
+    """Cached system health status"""
+    return connection_validator._test_endpoint('/system-health')
+
+@app.route('/system-health')
+def system_health():
+    """Get system health status"""
+    try:
+        health_response = get_cached_health()
+        return jsonify(health_response)
+    except Exception as e:
+        logging.error(f"Error checking system health: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route('/express/status')
+def express_status():
+    """Get Express validation status"""
+    global EXPRESS_VALIDATION_CACHE, EXPRESS_VALIDATION_LAST_UPDATE
+
+    try:
+        if not EXPRESS_VALIDATION_CONFIG['cache_enabled']:
+            return jsonify({"status": "caching_disabled"})
+
+        if EXPRESS_VALIDATION_CACHE and EXPRESS_VALIDATION_LAST_UPDATE and \
+           (datetime.datetime.now() - EXPRESS_VALIDATION_LAST_UPDATE).total_seconds() < EXPRESS_VALIDATION_CONFIG['cache_duration']:
+            return jsonify({"status": "cached", "data": EXPRESS_VALIDATION_CACHE})
+
+        # Attempt fresh validation
+        validation_result = connection_validator._test_endpoint(EXPRESS_VALIDATION_CONFIG['validation_url'])
+
+        if validation_result.get('status') == 'success':
+            EXPRESS_VALIDATION_CACHE = validation_result
+            EXPRESS_VALIDATION_LAST_UPDATE = datetime.datetime.now()
+            return jsonify({"status": "fresh", "data": validation_result})
+        else:
+            return jsonify({"status": "failed_fresh_validation", "error": validation_result.get('error')}), 500
+
+    except Exception as e:
+        logging.error(f"Express validation error: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
