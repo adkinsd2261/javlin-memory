@@ -8,8 +8,33 @@
     "maxScore": 25,
     "success": true,
     "category": "system",
-    "tags": ["rebuild", "cleanup", "architecture", "minimal"],
+    "tags": [
+      "rebuild",
+      "cleanup",
+      "architecture",
+      "minimal"
+    ],
     "reviewed": false,
     "timestamp": "2025-01-20T15:30:00.000Z"
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_164151",
+    "type": "Interaction",
+    "input": "Hello, can you see my memory context?",
+    "output": "Hello! Yes, I can see the current memory context you have provided. As the MemoryOS AI Agent with full persistent awareness, I have access to the system state and memory details you have shared.\n\nThe ...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_164151",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 1,
+    "timestamp": "2025-06-20T16:41:53.944378+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
   }
 ]
