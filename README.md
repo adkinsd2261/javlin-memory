@@ -1,4 +1,3 @@
-
 # MemoryOS
 
 A Flask-based persistent AI memory system with intelligent logging, context awareness, and automated insights for development workflows.
@@ -194,5 +193,29 @@ requests.post('https://your-repl.username.repl.co/autolog',
 - **Security concerns**: Follow SECURITY_BIBLE.md reporting procedures
 
 ---
+
+## 🔒 Bible Compliance & Governance
+
+All operations are governed by comprehensive bible documentation:
+
+- **AGENT_BIBLE.md** - Agent behavior boundaries and compliance rules
+- **MEMORY_BIBLE.md** - Memory schemas and logging standards  
+- **PRODUCT_BIBLE.md** - Product vision and feature boundaries
+- **SECURITY_BIBLE.md** - Security principles and practices
+- **PRIVACY_POLICY.md** - Data rights and compliance
+- **CONTRIBUTING.md** - Development standards and bible compliance
+- **API_REFERENCE.md** - Complete API documentation
+
+### 🛡️ Output Compliance System
+
+MemoryOS includes comprehensive output post-processing that:
+
+- **Detects action language** without backend confirmation
+- **Blocks unverified claims** of completion or live status
+- **Logs GPT drift violations** as BuildLogs for audit trails
+- **Surfaces pending actions** requiring manual confirmation
+- **Enforces AGENT_BIBLE.md** principles in all agent outputs
+
+No feature, file, or status is presented as complete until verified via API endpoints or human confirmation.
 
 **MemoryOS is production-ready, audit-compliant, and designed for serious development workflows. All operations are governed by comprehensive documentation standards.**
