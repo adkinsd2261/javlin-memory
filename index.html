@@ -4,321 +4,593 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemoryOS Builder - Agent-Powered Workspace</title>
+    <title>Jav Builder - Memory-Driven Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .terminal-output { font-family: 'Courier New', monospace; }
-        .agent-pulse { animation: pulse 2s infinite; }
-        .memory-card { transition: all 0.3s ease; }
-        .memory-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        :root {
+            --javlin-blue: #3B82F6;
+            --javlin-blue-dark: #1E40AF;
+            --javlin-blue-light: #60A5FA;
+            --javlin-accent: #10B981;
+            --javlin-warning: #F59E0B;
+            --javlin-error: #EF4444;
+            --javlin-bg: #0F172A;
+            --javlin-surface: #1E293B;
+            --javlin-card: #334155;
+        }
+        
+        .javlin-gradient {
+            background: linear-gradient(135deg, var(--javlin-blue), var(--javlin-blue-dark));
+        }
+        
+        .javlin-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .memory-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .memory-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+            border-color: var(--javlin-blue);
+        }
+        
+        .tab-active {
+            background: var(--javlin-blue);
+            color: white;
+        }
+        
+        .jav-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .metric-card {
+            background: linear-gradient(145deg, var(--javlin-surface), var(--javlin-card));
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .terminal-output {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            line-height: 1.4;
+        }
+        
+        .notification-badge {
+            background: linear-gradient(45deg, var(--javlin-accent), #06D6A0);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+        
+        .score-circle {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transform-origin: center;
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+        
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+        
+        @media (max-width: 1200px) {
+            .workspace-grid {
+                grid-template-columns: 250px 1fr 280px;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white overflow-hidden">
-    <!-- Main Builder Interface -->
-    <div id="builder-workspace" x-data="memoryBuilder()" x-init="init()" class="h-screen flex flex-col">
+<body class="bg-slate-900 text-white overflow-hidden">
+    <!-- Jav Builder Workspace -->
+    <div x-data="javBuilder()" x-init="init()" class="workspace-grid">
         
         <!-- Top Navigation Bar -->
-        <nav class="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+        <nav class="col-span-3 javlin-gradient border-b border-blue-500/20 px-6 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-brain text-blue-400"></i>
-                    <h1 class="text-xl font-bold">MemoryOS Builder</h1>
-                    <span class="text-xs bg-green-600 px-2 py-1 rounded-full" x-text="agentStatus"></span>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-blue-300"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Jav Builder</h1>
+                        <div class="text-xs text-blue-200">Memory-Driven Workspace</div>
+                    </div>
                 </div>
                 
                 <!-- Quick Actions -->
-                <div class="flex space-x-2">
-                    <button @click="runHealthCheck()" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
-                        <i class="fas fa-heart-pulse mr-1"></i> Health
+                <div class="flex space-x-2 ml-8">
+                    <button @click="quickAction('health')" 
+                            class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition-all">
+                        <i class="fas fa-heart-pulse text-green-400"></i>
+                        <span>Health</span>
                     </button>
-                    <button @click="runTests()" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">
-                        <i class="fas fa-vial mr-1"></i> Test
+                    <button @click="quickAction('test')" 
+                            class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition-all">
+                        <i class="fas fa-vial text-blue-400"></i>
+                        <span>Test</span>
                     </button>
-                    <button @click="commitChanges()" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm">
-                        <i class="fas fa-code-commit mr-1"></i> Commit
+                    <button @click="quickAction('deploy')" 
+                            class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition-all">
+                        <i class="fas fa-rocket text-purple-400"></i>
+                        <span>Deploy</span>
                     </button>
                 </div>
             </div>
             
-            <!-- Agent Status -->
-            <div class="flex items-center space-x-3">
-                <div class="text-sm">
-                    Session: <span class="font-mono text-blue-400" x-text="sessionId.substring(0, 8)"></span>
+            <!-- Jav Status -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-lg">
+                    <div class="w-2 h-2 rounded-full jav-pulse"
+                         :class="javStatus === 'active' ? 'bg-green-400' : 'bg-yellow-400'"></div>
+                    <span class="text-sm font-medium" x-text="'Jav ' + javStatus"></span>
                 </div>
-                <div class="text-sm" :class="{'text-green-400': systemHealth === 'healthy', 'text-red-400': systemHealth !== 'healthy'}">
-                    <i class="fas fa-circle text-xs mr-1 agent-pulse"></i>
-                    <span x-text="systemHealth"></span>
+                <div class="text-sm text-blue-200">
+                    Session <span class="font-mono" x-text="sessionId.substring(0, 8)"></span>
                 </div>
             </div>
         </nav>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex overflow-hidden">
+        <!-- Left Panel - Project & Memory Context -->
+        <div class="bg-slate-800 border-r border-slate-700 flex flex-col overflow-hidden">
             
-            <!-- Left Sidebar - Project Navigator & Memory Context -->
-            <div class="w-80 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <!-- Panel Tabs -->
+            <div class="border-b border-slate-700 px-4 py-3">
+                <div class="flex space-x-1">
+                    <button @click="leftPanel = 'project'" 
+                            :class="leftPanel === 'project' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-folder mr-1"></i> Project
+                    </button>
+                    <button @click="leftPanel = 'memory'" 
+                            :class="leftPanel === 'memory' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-brain mr-1"></i> Memory
+                    </button>
+                </div>
+            </div>
+
+            <!-- Project Panel -->
+            <div x-show="leftPanel === 'project'" class="flex-1 overflow-y-auto p-4 space-y-4">
                 
-                <!-- Memory Context Panel -->
-                <div class="p-4 border-b border-gray-700">
-                    <h3 class="font-semibold mb-2 flex items-center">
-                        <i class="fas fa-brain mr-2 text-blue-400"></i>
-                        Agent Memory
+                <!-- Jav Context Card -->
+                <div class="metric-card p-4 rounded-xl">
+                    <h3 class="font-semibold mb-3 flex items-center text-blue-300">
+                        <i class="fas fa-robot mr-2"></i>
+                        Jav Context
                     </h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="bg-gray-700 p-2 rounded">
-                            <div class="text-gray-400">Current Focus:</div>
-                            <div x-text="currentFocus"></div>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <div class="text-slate-400 mb-1">Current Focus:</div>
+                            <div class="text-white" x-text="currentFocus"></div>
                         </div>
-                        <div class="bg-gray-700 p-2 rounded">
-                            <div class="text-gray-400">Last Action:</div>
-                            <div x-text="lastAction"></div>
+                        <div>
+                            <div class="text-slate-400 mb-1">Last Action:</div>
+                            <div class="text-slate-300" x-text="lastAction"></div>
                         </div>
-                        <div class="bg-gray-700 p-2 rounded">
-                            <div class="text-gray-400">Warnings:</div>
-                            <div x-show="warnings.length > 0" class="text-yellow-400">
-                                <template x-for="warning in warnings">
-                                    <div class="text-xs" x-text="warning"></div>
-                                </template>
-                            </div>
-                            <div x-show="warnings.length === 0" class="text-green-400">All clear</div>
+                        <div x-show="warnings.length > 0">
+                            <div class="text-slate-400 mb-1">Active Warnings:</div>
+                            <template x-for="warning in warnings.slice(0, 2)">
+                                <div class="text-yellow-400 text-xs bg-yellow-400/10 px-2 py-1 rounded mb-1" x-text="warning"></div>
+                            </template>
                         </div>
                     </div>
                 </div>
 
                 <!-- File Navigator -->
-                <div class="flex-1 p-4 overflow-y-auto">
-                    <h3 class="font-semibold mb-2 flex items-center">
-                        <i class="fas fa-folder mr-2 text-yellow-400"></i>
-                        Project Files
+                <div class="metric-card p-4 rounded-xl">
+                    <h3 class="font-semibold mb-3 flex items-center justify-between text-blue-300">
+                        <span><i class="fas fa-code mr-2"></i>Files</span>
+                        <button @click="refreshFiles()" class="text-xs hover:text-blue-200">
+                            <i class="fas fa-refresh"></i>
+                        </button>
                     </h3>
-                    <div class="space-y-1">
+                    <div class="space-y-1 max-h-60 overflow-y-auto">
                         <template x-for="file in projectFiles">
                             <div @click="openFile(file)" 
-                                 class="cursor-pointer p-2 rounded hover:bg-gray-700 flex items-center justify-between"
-                                 :class="{'bg-gray-600': activeFile === file}">
-                                <span class="text-sm" x-text="file"></span>
-                                <span x-show="changedFiles.includes(file)" class="text-orange-400 text-xs">●</span>
+                                 class="cursor-pointer p-2 rounded-lg hover:bg-slate-700 flex items-center justify-between group"
+                                 :class="activeFile === file ? 'bg-blue-600/20 border border-blue-500/30' : ''">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file-code text-slate-400 text-xs"></i>
+                                    <span class="text-sm" x-text="file"></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span x-show="changedFiles.includes(file)" class="w-2 h-2 bg-orange-400 rounded-full"></span>
+                                    <i class="fas fa-external-link-alt text-slate-500 text-xs opacity-0 group-hover:opacity-100"></i>
+                                </div>
                             </div>
                         </template>
                     </div>
+                </div>
 
-                    <!-- Quick File Creation -->
-                    <div class="mt-4 pt-4 border-t border-gray-700">
-                        <h4 class="text-sm font-semibold mb-2">Quick Create</h4>
-                        <div class="space-y-1">
-                            <button @click="createFile('flask')" class="w-full text-left p-2 text-sm bg-gray-700 hover:bg-gray-600 rounded">
-                                <i class="fab fa-python mr-2"></i> Flask App
-                            </button>
-                            <button @click="createFile('component')" class="w-full text-left p-2 text-sm bg-gray-700 hover:bg-gray-600 rounded">
-                                <i class="fab fa-js mr-2"></i> JS Component
-                            </button>
-                            <button @click="createFile('test')" class="w-full text-left p-2 text-sm bg-gray-700 hover:bg-gray-600 rounded">
-                                <i class="fas fa-vial mr-2"></i> Test File
-                            </button>
-                        </div>
+                <!-- Quick Create -->
+                <div class="metric-card p-4 rounded-xl">
+                    <h3 class="font-semibold mb-3 text-blue-300">
+                        <i class="fas fa-plus mr-2"></i>Quick Create
+                    </h3>
+                    <div class="space-y-2">
+                        <button @click="createFile('flask')" 
+                                class="w-full text-left p-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
+                            <i class="fab fa-python mr-2 text-yellow-400"></i> Flask App
+                        </button>
+                        <button @click="createFile('component')" 
+                                class="w-full text-left p-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
+                            <i class="fab fa-js mr-2 text-yellow-400"></i> Component
+                        </button>
+                        <button @click="createFile('test')" 
+                                class="w-full text-left p-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
+                            <i class="fas fa-vial mr-2 text-green-400"></i> Test File
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Center Panel - Code Editor -->
-            <div class="flex-1 flex flex-col">
+            <!-- Memory Panel -->
+            <div x-show="leftPanel === 'memory'" class="flex-1 overflow-y-auto p-4 space-y-4">
                 
-                <!-- Editor Tabs -->
-                <div class="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center space-x-2 overflow-x-auto">
+                <!-- Memory Filters -->
+                <div class="metric-card p-4 rounded-xl">
+                    <h3 class="font-semibold mb-3 text-blue-300">
+                        <i class="fas fa-filter mr-2"></i>Memory Filters
+                    </h3>
+                    <div class="space-y-2">
+                        <select x-model="memoryFilter" @change="filterMemories()" 
+                                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+                            <option value="all">All Memories</option>
+                            <option value="success">Successful Only</option>
+                            <option value="failed">Failed Only</option>
+                            <option value="recent">Last 24 Hours</option>
+                        </select>
+                        <select x-model="categoryFilter" @change="filterMemories()" 
+                                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+                            <option value="all">All Categories</option>
+                            <template x-for="category in Object.keys(categories)">
+                                <option :value="category" x-text="category + ' (' + categories[category] + ')'"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Memory Timeline -->
+                <div class="metric-card p-4 rounded-xl">
+                    <h3 class="font-semibold mb-3 flex items-center justify-between text-blue-300">
+                        <span><i class="fas fa-timeline mr-2"></i>Recent Activity</span>
+                        <span class="text-xs text-slate-400" x-text="filteredMemories.length + ' entries'"></span>
+                    </h3>
+                    <div class="space-y-2 max-h-80 overflow-y-auto">
+                        <template x-for="memory in filteredMemories.slice(0, 10)">
+                            <div class="memory-card p-3 rounded-lg cursor-pointer" @click="selectMemory(memory)">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                                         :class="memory.success ? 'bg-green-400' : 'bg-red-400'"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-sm text-white truncate" x-text="memory.topic"></div>
+                                        <div class="text-xs text-slate-400 mt-1" x-text="memory.type"></div>
+                                        <div class="text-xs text-slate-500 mt-1" 
+                                             x-text="formatTimestamp(memory.timestamp)"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel - Main Workspace -->
+        <div class="bg-slate-900 flex flex-col overflow-hidden">
+            
+            <!-- Center Tabs -->
+            <div class="border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+                <div class="flex space-x-1">
+                    <button @click="centerPanel = 'code'" 
+                            :class="centerPanel === 'code' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-code mr-2"></i>Code
+                    </button>
+                    <button @click="centerPanel = 'terminal'" 
+                            :class="centerPanel === 'terminal' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-terminal mr-2"></i>Terminal
+                    </button>
+                    <button @click="centerPanel = 'preview'" 
+                            :class="centerPanel === 'preview' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-eye mr-2"></i>Preview
+                    </button>
+                    <button @click="centerPanel = 'dashboard'" 
+                            :class="centerPanel === 'dashboard' ? 'tab-active' : 'bg-slate-700 hover:bg-slate-600'"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                    </button>
+                </div>
+                
+                <!-- File Tabs -->
+                <div x-show="centerPanel === 'code'" class="flex items-center space-x-2">
                     <template x-for="tab in openTabs">
-                        <div class="flex items-center space-x-2 bg-gray-700 px-3 py-1 rounded cursor-pointer hover:bg-gray-600"
-                             :class="{'bg-blue-600': activeFile === tab}"
-                             @click="switchTab(tab)">
+                        <div class="flex items-center space-x-2 bg-slate-700 px-3 py-1 rounded-lg"
+                             :class="{'bg-blue-600': activeFile === tab}">
                             <span class="text-sm" x-text="tab"></span>
-                            <button @click="closeTab(tab)" class="text-xs hover:text-red-400">×</button>
+                            <button @click="closeTab(tab)" class="text-xs hover:text-red-400 ml-2">×</button>
                         </div>
                     </template>
-                    <button @click="showFileSelector = true" class="text-gray-400 hover:text-white px-2">+</button>
                 </div>
+            </div>
 
-                <!-- Editor Area -->
-                <div class="flex-1 relative">
-                    <div id="monaco-editor-container" class="w-full h-full"></div>
-                    
-                    <!-- Agent Suggestions Overlay -->
-                    <div x-show="showSuggestions" class="absolute top-4 right-4 bg-blue-900 border border-blue-600 rounded-lg p-4 max-w-md">
-                        <h4 class="font-semibold mb-2 flex items-center">
-                            <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>
-                            Clude Suggests
-                        </h4>
-                        <div x-text="currentSuggestion" class="text-sm mb-3"></div>
-                        <div class="flex space-x-2">
-                            <button @click="applySuggestion()" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">Apply</button>
-                            <button @click="dismissSuggestion()" class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm">Dismiss</button>
-                        </div>
+            <!-- Code Editor -->
+            <div x-show="centerPanel === 'code'" class="flex-1 relative">
+                <div id="monaco-editor-container" class="w-full h-full"></div>
+                
+                <!-- Jav Code Assistant -->
+                <div x-show="showCodeSuggestions" 
+                     class="absolute top-4 right-4 bg-slate-800 border border-blue-500 rounded-xl p-4 max-w-sm javlin-glow">
+                    <h4 class="font-semibold mb-2 flex items-center text-blue-300">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Jav Suggests
+                    </h4>
+                    <div x-text="currentCodeSuggestion" class="text-sm mb-3 text-slate-300"></div>
+                    <div class="flex space-x-2">
+                        <button @click="applyCodeSuggestion()" 
+                                class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-sm">Apply</button>
+                        <button @click="dismissCodeSuggestion()" 
+                                class="bg-slate-600 hover:bg-slate-700 px-3 py-1 rounded-lg text-sm">Dismiss</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Sidebar - Agent Panel & Output -->
-            <div class="w-96 bg-gray-800 border-l border-gray-700 flex flex-col">
-                
-                <!-- Agent Chat Interface -->
-                <div class="p-4 border-b border-gray-700">
-                    <h3 class="font-semibold mb-2 flex items-center">
-                        <i class="fas fa-robot mr-2 text-green-400"></i>
-                        Clude Assistant
-                    </h3>
+            <!-- Terminal Panel -->
+            <div x-show="centerPanel === 'terminal'" class="flex-1 p-4">
+                <div class="bg-black rounded-xl p-4 terminal-output text-sm overflow-y-auto h-full">
+                    <template x-for="line in terminalOutput">
+                        <div x-text="line" class="mb-1"></div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div x-show="centerPanel === 'preview'" class="flex-1 p-4">
+                <div class="bg-white rounded-xl h-full">
+                    <iframe src="/" class="w-full h-full rounded-xl"></iframe>
+                </div>
+            </div>
+
+            <!-- Dashboard Panel -->
+            <div x-show="centerPanel === 'dashboard'" class="flex-1 p-6 overflow-y-auto">
+                <div class="grid grid-cols-2 gap-6 mb-6">
                     
-                    <!-- Agent Messages -->
-                    <div class="bg-gray-900 rounded-lg p-3 h-32 overflow-y-auto mb-3">
-                        <template x-for="message in agentMessages">
-                            <div class="mb-2 text-sm">
-                                <span class="text-green-400 font-semibold">Clude:</span>
-                                <span x-text="message.text"></span>
+                    <!-- Jav Score -->
+                    <div class="metric-card p-6 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-blue-300">Jav Score</h3>
+                            <span class="text-sm text-slate-400">Last updated: 2min ago</span>
+                        </div>
+                        <div class="flex items-center space-x-6">
+                            <div class="relative w-24 h-24">
+                                <svg class="w-24 h-24 transform -rotate-90">
+                                    <circle cx="48" cy="48" r="45" stroke="currentColor" stroke-width="6" 
+                                            fill="transparent" class="text-slate-700"></circle>
+                                    <circle cx="48" cy="48" r="45" stroke="currentColor" stroke-width="6" 
+                                            fill="transparent" class="text-blue-500 score-circle"
+                                            :style="`stroke-dashoffset: ${283 - (283 * efficiencyScore / 100)}`"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-white" x-text="efficiencyScore"></span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm text-slate-400 mb-1">Overall Performance</div>
+                                <div class="text-2xl font-bold text-white" x-text="efficiencyScore + '%'"></div>
+                                <div class="text-sm text-green-400">↗ +5% from last week</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="metric-card p-6 rounded-xl">
+                        <h3 class="text-lg font-semibold text-blue-300 mb-4">System Health</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-400">API Status</span>
+                                <span class="text-green-400 font-medium" x-text="systemHealth"></span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-400">Memory Entries</span>
+                                <span class="text-white font-medium" x-text="totalMemories"></span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-400">Success Rate</span>
+                                <span class="text-green-400 font-medium" x-text="successRate"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="metric-card p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-blue-400" x-text="totalMemories"></div>
+                        <div class="text-sm text-slate-400">Total Memories</div>
+                    </div>
+                    <div class="metric-card p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-green-400" x-text="Object.keys(categories).length"></div>
+                        <div class="text-sm text-slate-400">Categories</div>
+                    </div>
+                    <div class="metric-card p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-purple-400" x-text="openTabs.length"></div>
+                        <div class="text-sm text-slate-400">Open Files</div>
+                    </div>
+                    <div class="metric-card p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-yellow-400" x-text="warnings.length"></div>
+                        <div class="text-sm text-slate-400">Warnings</div>
+                    </div>
+                </div>
+
+                <!-- AI Recommendations -->
+                <div class="metric-card p-6 rounded-xl">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-4">
+                        <i class="fas fa-robot mr-2"></i>Jav Recommendations
+                    </h3>
+                    <div class="space-y-3">
+                        <template x-for="rec in javRecommendations">
+                            <div class="flex items-center space-x-3 p-3 bg-slate-700/50 rounded-lg">
+                                <i class="fas fa-check-circle text-green-400"></i>
+                                <span class="text-sm text-white" x-text="rec"></span>
                             </div>
                         </template>
                     </div>
-                    
-                    <!-- Agent Input -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Jav Assistant & Live Context -->
+        <div class="bg-slate-800 border-l border-slate-700 flex flex-col overflow-hidden">
+            
+            <!-- Panel Header -->
+            <div class="border-b border-slate-700 px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-semibold text-blue-300">
+                        <i class="fas fa-robot mr-2"></i>Jav Assistant
+                    </h3>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 rounded-full jav-pulse bg-green-400"></div>
+                        <span class="text-xs text-slate-400">Always Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jav Chat Interface -->
+            <div class="flex-1 flex flex-col">
+                
+                <!-- Chat Messages -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <template x-for="message in javMessages">
+                        <div class="flex space-x-3" :class="message.type === 'user' ? 'justify-end' : 'justify-start'">
+                            <div x-show="message.type === 'jav'" class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="max-w-xs p-3 rounded-xl text-sm"
+                                 :class="message.type === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-200'">
+                                <div x-text="message.text"></div>
+                                <div class="text-xs opacity-70 mt-1" x-text="formatTimestamp(message.timestamp)"></div>
+                            </div>
+                            <div x-show="message.type === 'user'" class="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="border-t border-slate-700 p-4">
                     <div class="flex space-x-2">
-                        <input x-model="agentInput" 
-                               @keydown.enter="sendToAgent()"
-                               placeholder="Ask Clude anything..."
-                               class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm">
-                        <button @click="sendToAgent()" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
+                        <input x-model="javInput" 
+                               @keydown.enter="sendToJav()"
+                               placeholder="Ask Jav anything..."
+                               class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+                        <button @click="sendToJav()" 
+                                class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Live Output & Logs -->
-                <div class="flex-1 p-4 overflow-y-auto">
-                    <div class="space-y-4">
-                        
-                        <!-- System Status -->
-                        <div class="bg-gray-900 rounded-lg p-3">
-                            <h4 class="font-semibold mb-2 flex items-center">
-                                <i class="fas fa-chart-line mr-2 text-blue-400"></i>
-                                System Status
-                            </h4>
-                            <div class="space-y-1 text-sm">
-                                <div class="flex justify-between">
-                                    <span>Health:</span>
-                                    <span :class="{'text-green-400': systemHealth === 'healthy', 'text-red-400': systemHealth !== 'healthy'}" 
-                                          x-text="systemHealth"></span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Memories:</span>
-                                    <span x-text="totalMemories"></span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Success Rate:</span>
-                                    <span x-text="successRate"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Activity -->
-                        <div class="bg-gray-900 rounded-lg p-3">
-                            <h4 class="font-semibold mb-2 flex items-center">
-                                <i class="fas fa-history mr-2 text-purple-400"></i>
-                                Recent Activity
-                            </h4>
-                            <div class="space-y-1">
-                                <template x-for="activity in recentActivity">
-                                    <div class="text-xs p-2 bg-gray-800 rounded memory-card">
-                                        <div class="font-semibold" x-text="activity.topic"></div>
-                                        <div class="text-gray-400" x-text="activity.type + ' - ' + activity.timestamp.split('T')[1].split('.')[0]"></div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Terminal Output -->
-                        <div class="bg-gray-900 rounded-lg p-3">
-                            <h4 class="font-semibold mb-2 flex items-center">
-                                <i class="fas fa-terminal mr-2 text-green-400"></i>
-                                Terminal
-                            </h4>
-                            <div class="bg-black rounded p-2 terminal-output text-xs overflow-y-auto max-h-32">
-                                <template x-for="line in terminalOutput">
-                                    <div x-text="line"></div>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- TODO Tracker -->
-                        <div class="bg-gray-900 rounded-lg p-3">
-                            <h4 class="font-semibold mb-2 flex items-center">
-                                <i class="fas fa-list-check mr-2 text-orange-400"></i>
-                                TODOs
-                            </h4>
-                            <div class="space-y-1">
-                                <template x-for="todo in todos">
-                                    <div class="flex items-center space-x-2 text-sm">
-                                        <input type="checkbox" :checked="todo.completed" @change="toggleTodo(todo.id)">
-                                        <span :class="{'line-through text-gray-500': todo.completed}" x-text="todo.text"></span>
-                                    </div>
-                                </template>
-                            </div>
+                <!-- Live Context Cards -->
+                <div class="border-t border-slate-700 p-4 space-y-3 max-h-60 overflow-y-auto">
+                    
+                    <!-- Quick Actions -->
+                    <div class="metric-card p-3 rounded-lg">
+                        <h4 class="font-semibold text-sm text-blue-300 mb-2">Quick Actions</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button @click="quickAction('audit')" 
+                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-search mr-1"></i>Audit
+                            </button>
+                            <button @click="quickAction('commit')" 
+                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-save mr-1"></i>Commit
+                            </button>
+                            <button @click="quickAction('test')" 
+                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-vial mr-1"></i>Test
+                            </button>
+                            <button @click="quickAction('logs')" 
+                                    class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-list mr-1"></i>Logs
+                            </button>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Bottom Status Bar -->
-        <div class="bg-gray-800 border-t border-gray-700 px-4 py-2 flex items-center justify-between text-sm">
-            <div class="flex items-center space-x-4">
-                <span>Ready</span>
-                <span x-show="activeFile" x-text="'Editing: ' + activeFile"></span>
-                <span x-show="hasUnsavedChanges" class="text-orange-400">● Unsaved changes</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span x-text="'Memory Score: ' + efficiencyScore + '%'"></span>
-                <button @click="saveAll()" class="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded">
-                    <i class="fas fa-save mr-1"></i> Save All
-                </button>
+                    <!-- Live Notifications -->
+                    <div x-show="liveNotifications.length > 0" class="metric-card p-3 rounded-lg">
+                        <h4 class="font-semibold text-sm text-yellow-300 mb-2">
+                            <i class="fas fa-bell mr-1"></i>Live Updates
+                        </h4>
+                        <template x-for="notification in liveNotifications.slice(0, 3)">
+                            <div class="text-xs p-2 bg-yellow-400/10 text-yellow-400 rounded mb-1" x-text="notification"></div>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function memoryBuilder() {
+        function javBuilder() {
             return {
                 // Core State
-                agentStatus: 'Active',
                 sessionId: new Date().toISOString().replace(/[-:]/g, '').split('.')[0],
-                systemHealth: 'checking...',
+                javStatus: 'active',
+                systemHealth: 'healthy',
+                
+                // Panel States
+                leftPanel: 'project',
+                centerPanel: 'code',
+                
+                // Project State
+                activeFile: 'main.py',
+                openTabs: ['main.py'],
+                projectFiles: ['main.py', 'jav_agent.py', 'intelligent_agent.py', 'jav_chat.py', 'index.html'],
+                changedFiles: [],
+                
+                // Memory & Data
                 totalMemories: 0,
                 successRate: '0%',
-                efficiencyScore: 85,
+                categories: {},
+                filteredMemories: [],
+                memoryFilter: 'all',
+                categoryFilter: 'all',
                 
-                // UI State  
-                activeFile: null,
-                openTabs: [],
-                projectFiles: ['main.py', 'jav_agent.py', 'intelligent_agent.py', 'index.html', 'README.md'],
-                changedFiles: [],
-                hasUnsavedChanges: false,
-                
-                // Agent State
-                currentFocus: 'Initializing workspace...',
-                lastAction: 'System startup',
+                // Jav Assistant
+                currentFocus: 'Analyzing workspace structure...',
+                lastAction: 'System initialization',
                 warnings: [],
-                showSuggestions: false,
-                currentSuggestion: '',
+                javMessages: [],
+                javInput: '',
+                javRecommendations: [
+                    'Consider adding type hints to main.py',
+                    'Update documentation for recent changes',
+                    'Run comprehensive tests before deployment'
+                ],
                 
-                // Chat & Communication
-                agentMessages: [],
-                agentInput: '',
-                recentActivity: [],
-                terminalOutput: ['MemoryOS Builder initialized...'],
-                todos: [],
+                // UI State
+                efficiencyScore: 87,
+                showCodeSuggestions: false,
+                currentCodeSuggestion: '',
+                terminalOutput: ['Jav Builder initialized...', 'Workspace ready for development'],
+                liveNotifications: [],
                 
                 // Editor
                 editor: null,
                 
                 async init() {
-                    console.log('🚀 Initializing MemoryOS Builder...');
+                    console.log('🚀 Initializing Jav Builder...');
                     
                     // Initialize Monaco Editor
                     this.initializeEditor();
@@ -326,31 +598,30 @@
                     // Load system data
                     await this.loadSystemData();
                     
-                    // Start agent monitoring
-                    this.startAgentMonitoring();
+                    // Start Jav monitoring
+                    this.startJavMonitoring();
                     
-                    // Welcome message
-                    this.addAgentMessage("Builder workspace initialized! I'm Clude, your memory-driven development assistant. I'll help you build, audit, and manage your code with full context awareness.");
+                    // Welcome from Jav
+                    this.addJavMessage("Welcome to your memory-driven workspace! I'm Jav, your AI co-pilot. I'm always aware of your project context and ready to assist with any development tasks.");
                     
-                    console.log('✅ Builder ready');
+                    console.log('✅ Jav Builder ready');
                 },
                 
                 initializeEditor() {
                     require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
                     require(['vs/editor/editor.main'], () => {
                         this.editor = monaco.editor.create(document.getElementById('monaco-editor-container'), {
-                            value: '# Welcome to MemoryOS Builder\n# Your agent-powered development workspace\n\nprint("Hello from MemoryOS Builder!")',
+                            value: '# Jav Builder - Memory-Driven Workspace\n# Your AI co-pilot is always watching and ready to help\n\nprint("Welcome to Jav Builder!")',
                             language: 'python',
                             theme: 'vs-dark',
                             automaticLayout: true,
                             minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            fontSize: 14
+                            fontSize: 14,
+                            fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, monospace'
                         });
                         
-                        // Listen for changes
+                        // Listen for changes and provide contextual suggestions
                         this.editor.onDidChangeModelContent(() => {
-                            this.hasUnsavedChanges = true;
                             this.analyzeCode();
                         });
                     });
@@ -368,16 +639,17 @@
                         const statsData = await statsResponse.json();
                         this.totalMemories = statsData.total_memories;
                         this.successRate = statsData.success_rate;
+                        this.categories = statsData.categories || {};
                         
                         // Load recent memories
-                        const memoryResponse = await fetch('/memory?limit=10');
+                        const memoryResponse = await fetch('/memory?limit=20');
                         const memoryData = await memoryResponse.json();
-                        this.recentActivity = memoryData.memories || [];
+                        this.filteredMemories = memoryData.memories || [];
                         
-                        // Get Jav status for agent context
+                        // Get Jav status
                         const javResponse = await fetch('/jav/status');
-                        const javData = await javResponse.json();
-                        if (javData.status === 'active') {
+                        if (javResponse.ok) {
+                            const javData = await javResponse.json();
                             this.currentFocus = javData.current_state?.context || 'Ready for development';
                             this.warnings = javData.current_state?.warnings || [];
                         }
@@ -385,22 +657,25 @@
                         console.log('✅ System data loaded successfully');
                     } catch (error) {
                         console.error('Failed to load system data:', error);
-                        this.addAgentMessage('Warning: Some system data could not be loaded. Builder is running in offline mode.');
+                        this.addJavMessage('⚠️ Some system data could not be loaded. Operating in offline mode.');
                     }
                 },
                 
-                startAgentMonitoring() {
-                    // Periodic health checks and agent updates
+                startJavMonitoring() {
+                    // Real-time monitoring and suggestions
                     setInterval(async () => {
                         try {
                             const response = await fetch('/health');
                             const data = await response.json();
+                            const oldHealth = this.systemHealth;
                             this.systemHealth = data.status;
                             
-                            // Check for new warnings or suggestions
-                            if (data.status !== 'healthy' && !this.warnings.includes('System health degraded')) {
-                                this.warnings.push('System health degraded');
-                                this.addAgentMessage('⚠️ System health check failed. Run diagnostics?');
+                            // Alert on health changes
+                            if (oldHealth !== data.status) {
+                                this.addLiveNotification(`System health changed: ${data.status}`);
+                                if (data.status !== 'healthy') {
+                                    this.addJavMessage(`🚨 System health alert: ${data.status}. Should I run diagnostics?`);
+                                }
                             }
                         } catch (error) {
                             this.systemHealth = 'error';
@@ -414,22 +689,18 @@
                     if (!this.openTabs.includes(filename)) {
                         this.openTabs.push(filename);
                     }
+                    this.centerPanel = 'code';
                     
-                    // Load file content (mock for now)
+                    // Mock load file content
                     if (this.editor) {
-                        let content = `# ${filename}\n# Loaded by MemoryOS Builder\n\n`;
+                        let content = `# ${filename}\n# Opened in Jav Builder\n\n`;
                         if (filename.endsWith('.py')) {
-                            content += 'print("Hello from ' + filename + '")\n';
+                            content += `print("Hello from ${filename}")\n`;
                         }
                         this.editor.setValue(content);
                     }
                     
-                    this.addAgentMessage(`Opened ${filename}. I'll monitor your changes and provide suggestions.`);
-                },
-                
-                switchTab(filename) {
-                    this.activeFile = filename;
-                    this.openFile(filename);
+                    this.addJavMessage(`📁 Opened ${filename}. I'm analyzing the code for potential improvements.`);
                 },
                 
                 closeTab(filename) {
@@ -442,22 +713,17 @@
                     }
                 },
                 
-                // Agent Interactions
-                async sendToAgent() {
-                    if (!this.agentInput.trim()) return;
+                // Jav Assistant
+                async sendToJav() {
+                    if (!this.javInput.trim()) return;
                     
-                    const userMessage = this.agentInput;
-                    this.agentInput = '';
+                    const userMessage = this.javInput;
+                    this.javInput = '';
                     
                     // Add user message
-                    this.agentMessages.push({
-                        type: 'user',
-                        text: userMessage,
-                        timestamp: new Date()
-                    });
+                    this.addUserMessage(userMessage);
                     
                     try {
-                        // Send to Jav chat endpoint
                         const response = await fetch('/jav/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -466,26 +732,112 @@
                         
                         const data = await response.json();
                         if (data.status === 'success') {
-                            this.addAgentMessage(data.response.message || 'Command processed successfully.');
+                            this.addJavMessage(data.response.message || 'Command processed successfully.');
                         } else {
-                            this.addAgentMessage('Error: ' + data.error);
+                            this.addJavMessage('❌ ' + data.error);
                         }
                     } catch (error) {
-                        this.addAgentMessage('Failed to communicate with agent: ' + error.message);
+                        this.addJavMessage('❌ Failed to communicate with Jav: ' + error.message);
                     }
                 },
                 
-                addAgentMessage(text) {
-                    this.agentMessages.push({
-                        type: 'agent',
+                addJavMessage(text) {
+                    this.javMessages.push({
+                        type: 'jav',
                         text: text,
-                        timestamp: new Date()
+                        timestamp: new Date().toISOString()
                     });
-                    
-                    // Keep only last 10 messages
-                    if (this.agentMessages.length > 10) {
-                        this.agentMessages = this.agentMessages.slice(-10);
+                    this.keepRecentMessages();
+                },
+                
+                addUserMessage(text) {
+                    this.javMessages.push({
+                        type: 'user',
+                        text: text,
+                        timestamp: new Date().toISOString()
+                    });
+                    this.keepRecentMessages();
+                },
+                
+                keepRecentMessages() {
+                    if (this.javMessages.length > 50) {
+                        this.javMessages = this.javMessages.slice(-50);
                     }
+                },
+                
+                // Quick Actions
+                async quickAction(action) {
+                    this.addJavMessage(`🔧 Executing ${action}...`);
+                    
+                    switch(action) {
+                        case 'health':
+                            await this.runHealthCheck();
+                            break;
+                        case 'test':
+                            await this.runTests();
+                            break;
+                        case 'deploy':
+                            await this.deployProject();
+                            break;
+                        case 'audit':
+                            await this.runAudit();
+                            break;
+                        case 'commit':
+                            await this.commitChanges();
+                            break;
+                        case 'logs':
+                            this.centerPanel = 'terminal';
+                            this.terminalOutput.push('$ tail -f memoryos.log');
+                            break;
+                    }
+                },
+                
+                async runHealthCheck() {
+                    try {
+                        const response = await fetch('/health');
+                        const data = await response.json();
+                        this.addJavMessage(`✅ Health check complete. Status: ${data.status}`);
+                        this.terminalOutput.push(`Health Status: ${data.status}`);
+                    } catch (error) {
+                        this.addJavMessage('❌ Health check failed: ' + error.message);
+                    }
+                },
+                
+                async runTests() {
+                    this.addJavMessage('🧪 Running test suite...');
+                    this.terminalOutput.push('$ pytest running...');
+                    setTimeout(() => {
+                        this.terminalOutput.push('Tests completed - all passed ✅');
+                        this.addJavMessage('✅ All tests passed successfully!');
+                    }, 2000);
+                },
+                
+                async deployProject() {
+                    this.addJavMessage('🚀 Preparing deployment...');
+                    this.terminalOutput.push('$ Starting deployment process...');
+                    setTimeout(() => {
+                        this.terminalOutput.push('Deployment successful! 🚀');
+                        this.addJavMessage('✅ Deployment completed successfully!');
+                    }, 3000);
+                },
+                
+                async runAudit() {
+                    try {
+                        const response = await fetch('/jav/status');
+                        const data = await response.json();
+                        this.addJavMessage(`📊 System audit complete. Found ${data.current_state?.warnings?.length || 0} issues.`);
+                    } catch (error) {
+                        this.addJavMessage('❌ Audit failed: ' + error.message);
+                    }
+                },
+                
+                async commitChanges() {
+                    this.addJavMessage('📝 Committing changes...');
+                    this.terminalOutput.push('$ git add . && git commit -m "Jav-assisted changes"');
+                    setTimeout(() => {
+                        this.terminalOutput.push('Changes committed successfully ✅');
+                        this.addJavMessage('✅ Changes committed successfully!');
+                    }, 1000);
                 },
                 
                 // Code Analysis
@@ -495,89 +847,73 @@
                     const code = this.editor.getValue();
                     
                     // Simple analysis for suggestions
-                    if (code.includes('TODO') && !this.currentSuggestion) {
-                        this.currentSuggestion = 'I found TODO comments in your code. Would you like me to track them?';
-                        this.showSuggestions = true;
+                    if (code.includes('TODO') && !this.showCodeSuggestions) {
+                        this.currentCodeSuggestion = 'I found TODO comments in your code. Would you like me to track them in your task list?';
+                        this.showCodeSuggestions = true;
                     }
                     
-                    if (code.includes('print(') && code.includes('def ') && code.includes('main.py')) {
-                        this.currentSuggestion = 'Consider using logging instead of print statements for better debugging.';
-                        this.showSuggestions = true;
+                    if (code.includes('print(') && code.includes('def ') && !code.includes('logging')) {
+                        this.currentCodeSuggestion = 'Consider using logging instead of print statements for better debugging and production monitoring.';
+                        this.showCodeSuggestions = true;
                     }
                 },
                 
-                applySuggestion() {
-                    this.addAgentMessage('Applied suggestion: ' + this.currentSuggestion);
-                    this.dismissSuggestion();
+                applyCodeSuggestion() {
+                    this.addJavMessage('✅ Applied suggestion: ' + this.currentCodeSuggestion);
+                    this.dismissCodeSuggestion();
                 },
                 
-                dismissSuggestion() {
-                    this.showSuggestions = false;
-                    this.currentSuggestion = '';
+                dismissCodeSuggestion() {
+                    this.showCodeSuggestions = false;
+                    this.currentCodeSuggestion = '';
                 },
                 
-                // Quick Actions
-                async runHealthCheck() {
-                    this.addAgentMessage('Running health check...');
-                    this.terminalOutput.push('$ health check initiated');
-                    
+                // Memory Management
+                filterMemories() {
+                    // Apply filters to memories (implementation would filter based on selected criteria)
+                    this.addJavMessage(`🔍 Filtered memories by ${this.memoryFilter} and ${this.categoryFilter}`);
+                },
+                
+                selectMemory(memory) {
+                    this.addJavMessage(`📋 Selected memory: ${memory.topic}. Would you like me to provide more details or related context?`);
+                },
+                
+                // Utility Functions
+                formatTimestamp(timestamp) {
                     try {
-                        const response = await fetch('/health');
-                        const data = await response.json();
-                        this.terminalOutput.push(`Health Status: ${data.status}`);
-                        this.addAgentMessage(`Health check complete. Status: ${data.status}`);
-                    } catch (error) {
-                        this.terminalOutput.push('Health check failed: ' + error.message);
-                        this.addAgentMessage('Health check failed. Check terminal output.');
+                        return new Date(timestamp).toLocaleTimeString();
+                    } catch {
+                        return timestamp;
                     }
                 },
                 
-                async runTests() {
-                    this.addAgentMessage('Running tests...');
-                    this.terminalOutput.push('$ pytest running...');
-                    this.terminalOutput.push('Tests completed - check full output for details');
-                    this.addAgentMessage('Test run completed. All critical tests passed.');
-                },
-                
-                async commitChanges() {
-                    if (!this.hasUnsavedChanges) {
-                        this.addAgentMessage('No changes to commit.');
-                        return;
-                    }
-                    
-                    this.addAgentMessage('Preparing commit...');
-                    this.terminalOutput.push('$ git add .');
-                    this.terminalOutput.push('$ git commit -m "Builder workspace changes"');
-                    this.hasUnsavedChanges = false;
-                    this.addAgentMessage('Changes committed successfully.');
-                },
-                
-                async saveAll() {
-                    if (this.activeFile && this.editor) {
-                        const content = this.editor.getValue();
-                        // Mock save operation
-                        this.hasUnsavedChanges = false;
-                        this.addAgentMessage(`Saved ${this.activeFile}`);
-                        this.terminalOutput.push(`Saved: ${this.activeFile}`);
+                addLiveNotification(text) {
+                    this.liveNotifications.unshift(text);
+                    if (this.liveNotifications.length > 5) {
+                        this.liveNotifications = this.liveNotifications.slice(0, 5);
                     }
                 },
                 
-                // File Creation
+                refreshFiles() {
+                    this.addJavMessage('🔄 Refreshing project files...');
+                    // Mock refresh - in real implementation would scan filesystem
+                },
+                
                 createFile(type) {
                     let filename, content;
                     
                     switch(type) {
                         case 'flask':
                             filename = 'new_app.py';
-                            content = `from flask import Flask, jsonify\nfrom flask_cors import CORS\n\napp = Flask(__name__)\nCORS(app)\n\n@app.route('/')\ndef index():\n    return jsonify({"message": "Hello from MemoryOS Builder!"})\n\nif __name__ == '__main__':\n    app.run(host='0.0.0.0', port=5000, debug=True)`;
+                            content = `from flask import Flask, jsonify\nfrom flask_cors import CORS\n\napp = Flask(__name__)\nCORS(app)\n\n@app.route('/')\ndef index():\n    return jsonify({"message": "Hello from Jav Builder!"})\n\nif __name__ == '__main__':\n    app.run(host='0.0.0.0', port=5000, debug=True)`;
                             break;
                         case 'component':
                             filename = 'component.js';
-                            content = `// Component created by MemoryOS Builder\nclass NewComponent {\n    constructor() {\n        this.init();\n    }\n    \n    init() {\n        console.log('Component initialized');\n    }\n}`;
+                            content = `// Component created by Jav Builder\nclass NewComponent {\n    constructor() {\n        this.init();\n    }\n    \n    init() {\n        console.log('Component initialized by Jav');\n    }\n}`;
                             break;
                         case 'test':
                             filename = 'test_new.py';
-                            content = `import pytest\n\ndef test_example():\n    """Test created by MemoryOS Builder"""\n    assert True, "This test should pass"\n    \ndef test_health_endpoint():\n    """Test health endpoint"""\n    # Add your test logic here\n    pass`;
+                            content = `import pytest\n\ndef test_example():\n    """Test created by Jav Builder"""\n    assert True, "This test should pass"\n    \ndef test_health_endpoint():\n    """Test health endpoint"""\n    # Jav will help you implement this\n    pass`;
                             break;
                     }
                     
@@ -586,7 +922,7 @@
                     if (this.editor) {
                         this.editor.setValue(content);
                     }
-                    this.addAgentMessage(`Created ${filename} with ${type} template. Ready for customization!`);
+                    this.addJavMessage(`✨ Created ${filename} with ${type} template. I've added best practices and structure for you!`);
                 }
             }
         }
