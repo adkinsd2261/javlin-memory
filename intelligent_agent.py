@@ -10,6 +10,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class MemoryAwareAgent:
     def __init__(self, memory_api_base: str = "http://0.0.0.0:5000"):
