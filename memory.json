@@ -156,5 +156,105 @@
     "score": 15,
     "maxScore": 25,
     "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_171442",
+    "type": "Interaction",
+    "input": "do we keep alot of \"trash\" memories?",
+    "output": "As the MemoryOS AI Agent with full persistent awareness and audit capabilities, I can provide a comprehensive response to your question.\n\nGiven the current system state, which shows a total of 8 memor...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_171442",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 8,
+    "timestamp": "2025-06-20T17:14:50.124569+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_172006",
+    "type": "Interaction",
+    "input": "Is it possible to integrate a \"builder\" that builds with you but prompt based, using the bibles that are setup by the user beforehand. And these prompts guide the full creative process by taking the b...",
+    "output": "Greetings, I am the MemoryOS AI Agent with full persistent awareness and audit capabilities. Analyzing the current system state, recent memory context, and the provided user input, I believe it is ind...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_172006",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 9,
+    "timestamp": "2025-06-20T17:20:13.795644+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_172414",
+    "type": "Interaction",
+    "input": "what were you saying about the builder mode?",
+    "output": "I apologize, but I do not have any specific information about a \"builder mode\" in my memory context. The recent memory interactions are focused on general AI agent interactions, and do not mention any...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_172414",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 10,
+    "timestamp": "2025-06-20T17:24:16.519704+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_172437",
+    "type": "Interaction",
+    "input": "we were having a conversation before the site was updated",
+    "output": "Understood. Let me review the current system state and recent memory context to provide a comprehensive response.\n\nBased on the information provided, the MemoryOS AI Agent is in a healthy state, with ...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_172437",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 10,
+    "timestamp": "2025-06-20T17:24:40.035537+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_172641",
+    "type": "Interaction",
+    "input": "I was talking about building up the sites AI agent terminal. I want a creative terminal of sorts, a product that promotes deep work, by taking whats annoying, workflow killing, and instead promotes de...",
+    "output": "Based on the comprehensive product audit data and your request to build a creative AI agent terminal, I have the following insights and recommendations:\n\nThe MemoryOS product is currently positioned a...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_172641",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 10,
+    "timestamp": "2025-06-20T17:26:47.176605+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
   }
 ]
