@@ -1031,29 +1031,16 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Clean git sync"""
+    """Ultra-simple git sync"""
     try:
         from git_manager import git_manager
         
-        message = request.args.get('message', '🔧 Manual sync via API endpoint')
+        message = request.args.get('message', '🔧 Manual sync via API')
         result = git_manager.commit_and_push(message)
-        
-        # Log to memory if successful
-        if result.get('status') == 'success':
-            log_to_memory(
-                topic="Manual GitHub Sync", 
-                type_="SystemUpdate",
-                input_=f"Manual sync via /git-sync",
-                output=f"✅ {result.get('message', 'Sync completed')}",
-                success=True,
-                category="development",
-                tags=["git", "sync", "manual", "api"]
-            )
         
         return jsonify(result)
         
     except Exception as e:
-        logging.error(f"Git sync error: {e}")
         return jsonify({
             'status': 'error',
             'message': str(e)
