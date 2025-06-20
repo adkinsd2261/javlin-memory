@@ -1619,7 +1619,7 @@ def system_health():
     """Comprehensive system health check with compliance validation"""
     try:
         # Connection validation
-        connection_status = connection_validator.validate_connection()
+        connection_status = connection_validator.validate_fresh_connection('system_health')
         
         # Compliance health
         compliance_stats = compliance_middleware.get_compliance_stats()
@@ -1639,12 +1639,18 @@ def system_health():
         except Exception:
             memory_health = {"error": "Cannot access memory system"}
         
+        # Get current Replit workflow state
+        replit_state = get_replit_state()
+        
         health_status = {
-            "overall_status": "healthy" if connection_status['overall_status'] == 'healthy' and bible_compliance_status['compliant'] else "degraded",
+            "overall_status": "healthy" if connection_status['validation_passed'] and bible_compliance_status['compliant'] else "degraded",
             "connection": connection_status,
             "compliance": compliance_stats,
             "bible_compliance": bible_compliance_status,
             "memory_system": memory_health,
+            "replit_state": replit_state,
+            "agent_confirmation_ready": connection_status['validation_passed'] and bible_compliance_status['compliant'],
+            "connection_health_score": connection_status.get('overall_health_score', 0),
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }
         
@@ -1665,6 +1671,155 @@ def system_health():
         
     except Exception as e:
         return jsonify({"error": str(e), "status": "error"}), 500
+
+@app.route('/gpt-validation', methods=['POST'])
+def gpt_pre_response_validation():
+    """
+    GPT must call this BEFORE generating any response
+    Provides real-time Replit state and compliance requirements
+    """
+    try:
+        data = request.get_json() or {}
+        user_query = data.get('query', '')
+        intended_response_type = data.get('response_type', 'general')
+        
+        # Force fresh connection check
+        connection_status = connection_validator.validate_fresh_connection('gpt_validation')
+        
+        # Get live Replit state
+        replit_state = get_replit_state()
+        
+        # Check if query requires live claims
+        requires_live_confirmation = any(word in user_query.lower() for word in [
+            'live', 'running', 'deployed', 'active', 'working', 'implemented', 'complete'
+        ])
+        
+        # Bible compliance validation
+        bible_status = check_agent_bible_compliance()
+        
+        # Session context
+        session_context = session_manager.get_current_session_context()
+        
+        validation_result = {
+            "validation_timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "gpt_response_authorized": connection_status['validation_passed'] and bible_status['compliant'],
+            "replit_state": replit_state,
+            "connection_status": connection_status,
+            "requires_confirmation": requires_live_confirmation,
+            "compliance_requirements": {
+                "must_use_send_user_output": True,
+                "cannot_claim_live_without_validation": True,
+                "must_reference_agent_bible": intended_response_type in ['feature', 'deployment', 'system_change'],
+                "requires_fresh_backend_check": requires_live_confirmation
+            },
+            "session_context": session_context,
+            "bible_compliance": bible_status,
+            "allowed_actions": get_allowed_gpt_actions(connection_status, bible_status),
+            "blocked_phrases": [
+                "I've implemented", "It's now working", "The feature is live",
+                "I've deployed", "Successfully activated", "Now running"
+            ] if requires_live_confirmation and not connection_status['validation_passed'] else [],
+            "required_confirmation_method": "backend_validation" if requires_live_confirmation else "none"
+        }
+        
+        # Log this validation attempt
+        log_gpt_validation_attempt(user_query, validation_result)
+        
+        return jsonify(validation_result)
+        
+    except Exception as e:
+        return jsonify({
+            "validation_timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "gpt_response_authorized": False,
+            "error": str(e),
+            "fallback_message": "Manual confirmation required - system validation failed"
+        }), 500
+
+def get_replit_state():
+    """Get current Replit workflow and system state"""
+    try:
+        # Check if main.py is running (Flask server)
+        import psutil
+        flask_running = False
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if 'python' in proc.info['name'] and 'main.py' in ' '.join(proc.info['cmdline']):
+                    flask_running = True
+                    break
+            except:
+                continue
+        
+        # Check memory system accessibility
+        memory_accessible = os.path.exists(MEMORY_FILE)
+        
+        # Check last activity
+        last_memory_update = None
+        if memory_accessible:
+            try:
+                stat = os.stat(MEMORY_FILE)
+                last_memory_update = datetime.datetime.fromtimestamp(stat.st_mtime).isoformat()
+            except:
+                pass
+        
+        return {
+            "flask_server_running": flask_running,
+            "memory_system_accessible": memory_accessible,
+            "last_memory_update": last_memory_update,
+            "replit_environment_active": True,  # Always true in Replit
+            "api_endpoints_responding": flask_running,
+            "current_time": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "error": str(e),
+            "replit_environment_active": True,
+            "validation_required": True
+        }
+
+def get_allowed_gpt_actions(connection_status, bible_status):
+    """Determine what actions GPT is allowed to take"""
+    base_actions = ["provide_information", "suggest_improvements", "analyze_data"]
+    
+    if connection_status['validation_passed'] and bible_status['compliant']:
+        return base_actions + [
+            "log_to_memory", "provide_system_status", "suggest_next_steps",
+            "analyze_trends", "provide_insights"
+        ]
+    else:
+        return base_actions + ["request_manual_confirmation"]
+
+def log_gpt_validation_attempt(query, validation_result):
+    """Log GPT validation attempts for audit"""
+    try:
+        validation_memory = {
+            "topic": f"GPT Pre-Response Validation",
+            "type": "SystemTest",
+            "input": f"GPT validation check for query: {query[:100]}...",
+            "output": f"Validation {'passed' if validation_result['gpt_response_authorized'] else 'failed'} - Connection: {validation_result['connection_status']['validation_passed']}, Bible: {validation_result['bible_compliance']['compliant']}",
+            "score": 25 if validation_result['gpt_response_authorized'] else 10,
+            "maxScore": 25,
+            "success": validation_result['gpt_response_authorized'],
+            "category": "compliance",
+            "tags": ["gpt_validation", "compliance", "real_time_check"],
+            "context": "GPT pre-response validation per AGENT_BIBLE.md connection-first requirements",
+            "related_to": [],
+            "reviewed": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "auto_generated": True,
+            "confirmed": True,
+            "confirmation_method": "system_validation",
+            "validation_details": validation_result
+        }
+        
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+        memory.append(validation_memory)
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+            
+    except Exception as e:
+        logging.error(f"Error logging GPT validation: {e}")
 
 if __name__ == '__main__':
     # Import output compliance
