@@ -37,6 +37,72 @@ function memoryOS() {
 
                         // Load GPT status
                         const gptResponse = await fetch('/gpt-status');
+                        const gptData = await gptResponse.json();
+                        
+                        this.systemStatus = gptData.system_status || 'online';
+                        this.sessionId = Date.now().toString();
+                        this.currentFocus = gptData.message || 'Ready';
+                        this.nextSteps = 'System operational';
+
+                    } catch (error) {
+                        console.error('Failed to load system data:', error);
+                        this.systemStatus = 'error';
+                        this.currentFocus = 'System error';
+                        this.nextSteps = 'Check system health';
+                    }
+                },
+
+                setupPeriodicUpdates() {
+                    // Update system data every 30 seconds
+                    setInterval(() => {
+                        this.loadSystemData();
+                    }, 30000);
+                },
+
+                async sendMessage() {
+                    if (!this.currentMessage.trim() || this.isTyping) return;
+
+                    const userMessage = this.currentMessage.trim();
+                    this.chatHistory.push({
+                        id: Date.now(),
+                        type: 'user',
+                        content: userMessage,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+
+                    this.currentMessage = '';
+                    this.isTyping = true;
+
+                    try {
+                        // Mock AI response for now
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        this.chatHistory.push({
+                            id: Date.now() + 1,
+                            type: 'assistant',
+                            content: `I received: "${userMessage}". This is a demo response.`,
+                            timestamp: new Date().toLocaleTimeString()
+                        });
+
+                    } catch (error) {
+                        this.chatHistory.push({
+                            id: Date.now() + 2,
+                            type: 'error',
+                            content: 'Failed to get response',
+                            timestamp: new Date().toLocaleTimeString()
+                        });
+                    } finally {
+                        this.isTyping = false;
+                        this.$nextTick(() => {
+                            const container = this.$refs.chatContainer;
+                            if (container) {
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        });
+                    }
+                }
+            };
+        }ch('/gpt-status');
                         const gptStatus = await gptResponse.json();
 
                         this.systemStatus = gptStatus.system_status === 'online' ? 'operational' : 'degraded';
