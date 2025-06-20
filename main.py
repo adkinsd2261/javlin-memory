@@ -997,32 +997,43 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Manual GitHub sync endpoint"""
+    """Manual GitHub sync endpoint with improved lock handling"""
     try:
         force = request.args.get('force', 'false').lower() == 'true'
         
-        # Clear any existing lock files first
-        import subprocess
-        try:
-            subprocess.run(['find', '.git', '-name', '*.lock', '-delete'], 
-                         capture_output=True, cwd=BASE_DIR, timeout=10)
-        except:
-            pass
-            
         syncer = GitHubSyncer(BASE_DIR)
         result = syncer.run_auto_sync(force=force)
 
-        # Log the sync attempt to memory
-        log_to_memory(
-            topic="GitHub Sync Executed",
-            type_="SystemUpdate",
-            input_=f"Manual GitHub sync triggered via /git-sync endpoint (force={force})",
-            output=f"Sync result: {result.get('status')}. {result.get('message', '')}",
-            success=result.get('status') == 'success',
-            category='development',
-            tags=['git', 'sync', 'automation', 'github'],
-            context="Manual code synchronization with GitHub repository"
-        )
+        # Don't log to memory if this was called from memory logging (prevent recursion)
+        caller_frame = inspect.currentframe().f_back
+        if caller_frame and 'log_to_memory' not in str(caller_frame.f_code.co_filename):
+            # Log the sync attempt to memory (only if not called from memory system)
+            try:
+                with open(MEMORY_FILE, 'r') as f:
+                    memory = json.load(f)
+            except (FileNotFoundError, JSONDecodeError):
+                memory = []
+
+            sync_entry = {
+                "topic": "Manual GitHub Sync",
+                "type": "SystemUpdate",
+                "input": f"Manual GitHub sync via /git-sync endpoint (force={force})",
+                "output": f"Sync result: {result.get('status')}. {result.get('message', '')}",
+                "score": 15,
+                "maxScore": 25,
+                "success": result.get('status') == 'success',
+                "category": "development",
+                "tags": ["git", "sync", "manual", "endpoint"],
+                "context": "Manual GitHub synchronization via API endpoint",
+                "related_to": [],
+                "reviewed": False,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "auto_generated": True
+            }
+
+            memory.append(sync_entry)
+            with open(MEMORY_FILE, 'w') as f:
+                json.dump(memory, f, indent=2)
 
         return jsonify(result)
     except Exception as e:
@@ -1068,26 +1079,24 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
     except Exception as e:
         print(f"Failed to save memory: {e}")
 
-    # Trigger auto-sync if significant changes accumulated
+    # Schedule auto-sync check (don't run immediately to prevent recursion)
     try:
         syncer = GitHubSyncer(BASE_DIR)
         recent_logs = memory[-10:]  # Check last 10 entries
+        
+        # Only check if sync is needed, don't actually sync to prevent recursion
         if syncer.should_auto_sync(recent_logs):
-            # Log sync intent but don't run in background to prevent conflicts
-            print(f"Auto-sync triggered: {len(recent_logs)} recent changes")
-            # Instead of background sync, just log that sync is needed
-            log_to_memory(
-                topic="Auto-sync Triggered",
-                type_="SystemUpdate",
-                input_=f"Auto-sync threshold met with {len(recent_logs)} recent changes",
-                output="Sync scheduled for next manual trigger to prevent lock conflicts",
-                success=True,
-                category='development',
-                tags=['git', 'sync', 'auto'],
-                context="Auto-sync detection and scheduling"
-            )
+            print(f"Auto-sync scheduled: {len(recent_logs)} recent changes detected")
+            # Create a flag file for external sync triggering
+            sync_flag_file = os.path.join(BASE_DIR, '.sync_needed')
+            with open(sync_flag_file, 'w') as f:
+                json.dump({
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'changes_count': len(recent_logs),
+                    'reason': 'auto_sync_threshold_met'
+                }, f)
     except Exception as e:
-        print(f"Auto-sync check failed: {e}")
+        print(f"Auto-sync scheduling failed: {e}")
 
     return entry
 
