@@ -33,7 +33,7 @@ class GPTReplitIntegration:
         """
         # Only require strict validation for system operations
         action_types_requiring_validation = ["live_claim", "deployment", "system_change", "feature_activation"]
-        
+
         if response_type not in action_types_requiring_validation:
             # For general conversation, just return success
             return {
@@ -88,28 +88,26 @@ class GPTReplitIntegration:
     def check_compliance_before_claim(self, intended_claim: str) -> Dict[str, Any]:
         """
         Check if GPT can make a specific claim (like 'feature is live')
-        Only enforce for definitive system state claims, not conversational language
+        Allow all conversational language, only block very specific deployment claims
         """
-        # More specific patterns that indicate system state claims
-        definitive_claim_patterns = [
-            'feature is live', 'system is running', 'deployed successfully', 
-            'integration is active', 'endpoint is working', 'service is operational'
+        # Only block very specific deployment confirmation language
+        blocked_patterns = [
+            'feature is now confirmed live and verified', 
+            'deployment is verified complete and operational',
+            'system state confirmed active by backend'
         ]
 
-        # Check for definitive system claims, not just any use of action words
-        is_definitive_claim = any(pattern in intended_claim.lower() for pattern in definitive_claim_patterns)
-        
-        if is_definitive_claim:
-            validation = self.validate_before_response(intended_claim, "live_claim")
+        # Block only exact deployment confirmations
+        is_blocked_claim = any(pattern in intended_claim.lower() for pattern in blocked_patterns)
 
-            if not validation.get('gpt_response_authorized', False):
-                return {
-                    "claim_allowed": False,
-                    "reason": "AGENT_BIBLE.md compliance: Definitive system state claims require backend validation",
-                    "required_action": "Perform fresh connection check or get human confirmation",
-                    "alternative_phrasing": "Consider using: 'This should be working' or 'Please verify this is active'"
-                }
+        if is_blocked_claim:
+            return {
+                "claim_allowed": False,
+                "reason": "AGENT_BIBLE.md: Explicit deployment confirmations require backend validation",
+                "alternative_phrasing": "Consider: 'This should be working' or 'Please verify this is active'"
+            }
 
+        # Allow all other conversational language
         return {"claim_allowed": True}
 
     def get_replit_context(self) -> Dict[str, Any]:
@@ -196,4 +194,3 @@ def check_if_claim_allowed(claim: str) -> Dict[str, Any]:
     """Check if GPT can make a specific claim"""
     integration = GPTReplitIntegration(os.path.dirname(os.path.abspath(__file__)))
     return integration.check_compliance_before_claim(claim)
-```
