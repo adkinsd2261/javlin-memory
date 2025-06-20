@@ -542,21 +542,122 @@ def jav_status():
 
 @app.route('/jav/suggestions')
 def jav_suggestions():
-    """Get proactive suggestions from persistent memory"""
+    """Get memory-driven suggestions with user context"""
     try:
         from jav_agent import jav
         
         current_task = request.args.get('task', 'General development')
-        suggestions = jav.get_proactive_suggestions(current_task)
+        context = request.get_json() if request.is_json else None
+        
+        suggestions = jav.get_memory_driven_suggestions(current_task, context)
         
         return jsonify({
             "suggestions": suggestions,
             "task": current_task,
+            "user_preferences": {
+                "automation_level": jav.user_preferences.get("automation_level", "suggest_only"),
+                "show_reasoning": jav.user_preferences.get("suggestion_preferences", {}).get("show_reasoning", True)
+            },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
     except Exception as e:
         logger.error(f"Suggestions error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/suggestion-response', methods=['POST'])
+def handle_suggestion_response():
+    """Handle user response to suggestions with learning"""
+    try:
+        from jav_agent import jav
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Request data required"}), 400
+        
+        suggestion_id = data.get('suggestion_id')
+        response = data.get('response')  # apply, ignore, never_again, etc.
+        outcome = data.get('outcome')    # success, failure, partial (optional)
+        
+        if not suggestion_id or not response:
+            return jsonify({"error": "suggestion_id and response required"}), 400
+        
+        result = jav.process_user_response(suggestion_id, response, outcome)
+        
+        return jsonify({
+            "status": "success",
+            "result": result,
+            "message": f"Response '{response}' processed and learning updated",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Suggestion response error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/suggestion-reasoning/<suggestion_id>')
+def get_suggestion_reasoning(suggestion_id: str):
+    """Get full transparency info for a suggestion"""
+    try:
+        from jav_chat import JavChat
+        from jav_agent import jav
+        
+        chat = JavChat(jav)
+        reasoning = chat.get_suggestion_reasoning(suggestion_id)
+        
+        return jsonify({
+            "reasoning": reasoning,
+            "editable": True,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Suggestion reasoning error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/preferences', methods=['GET', 'POST'])
+def jav_preferences():
+    """Get or update user preferences"""
+    try:
+        from jav_agent import jav
+        
+        if request.method == 'GET':
+            return jsonify({
+                "preferences": jav.user_preferences,
+                "learned_patterns_count": len(jav.learned_patterns.get("successful_automations", {})),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+        
+        elif request.method == 'POST':
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "Preferences data required"}), 400
+            
+            # Update preferences
+            jav.user_preferences.update(data)
+            jav.save_user_preferences(jav.user_preferences)
+            
+            return jsonify({
+                "status": "success",
+                "message": "Preferences updated",
+                "preferences": jav.user_preferences,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+    except Exception as e:
+        logger.error(f"Preferences error: {e}")
         return jsonify({
             "status": "error",
             "error": str(e),

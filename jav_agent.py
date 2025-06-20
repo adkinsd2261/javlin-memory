@@ -31,7 +31,7 @@ class JavState:
 class JavAgent:
     """
     Jav - Your personal dev assistant
-    Audits, prevents errors, and keeps you in flow
+    Memory-driven, adaptive, respectful learning AI
     """
     
     def __init__(self, memory_api_base: str = "http://0.0.0.0:5000"):
@@ -42,6 +42,8 @@ class JavAgent:
         # Load personality and rules
         self.me_config = self.load_me_config()
         self.workflows = self.load_workflows()
+        self.user_preferences = self.load_user_preferences()
+        self.learned_patterns = self.load_learned_patterns()
         
         # Current state
         self.state = JavState(
@@ -195,6 +197,55 @@ class JavAgent:
                 antipatterns.append(line.strip('- '))
         
         return antipatterns
+    
+    def load_user_preferences(self) -> Dict[str, Any]:
+        """Load user preferences and automation settings"""
+        prefs_file = self.config_dir / "user_preferences.json"
+        try:
+            with open(prefs_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            default_prefs = {
+                "automation_level": "suggest_only",  # suggest_only, auto_apply_safe, full_auto
+                "never_automate": [],  # List of patterns user never wants automated
+                "always_ask": [],      # List of patterns that always need confirmation
+                "global_automations": [],  # List of automations to apply across all projects
+                "feedback_history": {},    # Track user responses to suggestions
+                "suggestion_preferences": {
+                    "show_reasoning": True,
+                    "show_memory_source": True,
+                    "allow_interruptions": False
+                }
+            }
+            self.save_user_preferences(default_prefs)
+            return default_prefs
+    
+    def load_learned_patterns(self) -> Dict[str, Any]:
+        """Load patterns learned from user interactions"""
+        patterns_file = self.config_dir / "learned_patterns.json"
+        try:
+            with open(patterns_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {
+                "successful_automations": {},
+                "rejected_suggestions": {},
+                "user_corrections": {},
+                "context_adaptations": {},
+                "outcome_tracking": {}
+            }
+    
+    def save_user_preferences(self, preferences: Dict[str, Any]):
+        """Save user preferences to disk"""
+        prefs_file = self.config_dir / "user_preferences.json"
+        with open(prefs_file, 'w') as f:
+            json.dump(preferences, f, indent=2)
+    
+    def save_learned_patterns(self, patterns: Dict[str, Any]):
+        """Save learned patterns to disk"""
+        patterns_file = self.config_dir / "learned_patterns.json"
+        with open(patterns_file, 'w') as f:
+            json.dump(patterns, f, indent=2)
     
     def get_default_config(self) -> Dict[str, Any]:
         """Default config if Me.md fails to load"""
@@ -453,40 +504,207 @@ class JavAgent:
         
         return analysis
     
-    def get_proactive_suggestions(self, current_task: str) -> List[Dict[str, Any]]:
-        """Get proactive suggestions based on persistent memory"""
-        context = {
-            "title": current_task,
-            "description": f"Working on: {current_task}",
-            "file_types": self.get_current_file_types(),
-            "project_type": self.detect_project_type(),
-            "environment": self.get_environment_info()
-        }
+    def get_memory_driven_suggestions(self, current_task: str, context: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Get adaptive suggestions based on memory and user preferences"""
+        if context is None:
+            context = {
+                "title": current_task,
+                "description": f"Working on: {current_task}",
+                "file_types": self.get_current_file_types(),
+                "project_type": self.detect_project_type(),
+                "environment": self.get_environment_info()
+            }
         
+        # Get base analysis from persistent memory
         analysis = persistent_memory.analyze_situation(context)
         suggestions = []
         
-        # Convert analysis to actionable suggestions
+        # Filter suggestions based on user preferences and learning
         for match in analysis["matching_playbooks"]:
             playbook = match["playbook"]
-            suggestions.append({
+            
+            # Check if user has rejected this type of suggestion before
+            if self._should_skip_suggestion(playbook, context):
+                continue
+                
+            suggestion = {
+                "id": f"auto_{playbook.id}_{datetime.now().timestamp()}",
                 "type": "automation",
                 "title": f"Auto-fix available: {playbook.name}",
                 "description": playbook.description,
                 "confidence": match["confidence"],
-                "auto_apply": playbook.auto_apply,
-                "playbook_id": playbook.id
-            })
+                "playbook_id": playbook.id,
+                "memory_source": self._get_memory_source(playbook),
+                "reasoning": self._explain_suggestion(playbook, match),
+                "controls": {
+                    "apply": True,
+                    "ignore": True,
+                    "never_again": True,
+                    "edit_automation": True
+                },
+                "auto_apply": self._should_auto_apply(playbook, match)
+            }
+            suggestions.append(suggestion)
         
+        # Add context-aware warnings with learned adaptations
         for warning in analysis["preventive_warnings"]:
-            suggestions.append({
-                "type": "warning",
-                "title": "Preventive Warning",
-                "description": warning,
-                "confidence": 0.9
-            })
+            if not self._is_warning_suppressed(warning, context):
+                suggestions.append({
+                    "id": f"warn_{hash(warning)}_{datetime.now().timestamp()}",
+                    "type": "warning",
+                    "title": "Preventive Warning",
+                    "description": warning,
+                    "confidence": 0.9,
+                    "memory_source": "Past failure patterns",
+                    "reasoning": "Similar situation caused issues in previous projects",
+                    "controls": {
+                        "acknowledge": True,
+                        "ignore": True,
+                        "never_show_again": True
+                    }
+                })
+        
+        # Add learning-based suggestions
+        learning_suggestions = self._get_learning_suggestions(context)
+        suggestions.extend(learning_suggestions)
         
         return suggestions
+    
+    def process_user_response(self, suggestion_id: str, response: str, outcome: str = None) -> Dict[str, Any]:
+        """Process user response to suggestions and update learning"""
+        response_data = {
+            "suggestion_id": suggestion_id,
+            "response": response,  # "apply", "ignore", "never_again", etc.
+            "outcome": outcome,   # "success", "failure", "partial", etc.
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "context": self.get_current_context()
+        }
+        
+        # Update user preferences based on response
+        if response == "never_again":
+            pattern_signature = self._extract_pattern_signature(suggestion_id)
+            self.user_preferences["never_automate"].append(pattern_signature)
+            
+        elif response == "always_ask":
+            pattern_signature = self._extract_pattern_signature(suggestion_id)
+            self.user_preferences["always_ask"].append(pattern_signature)
+            
+        elif response == "apply" and outcome:
+            # Learn from successful applications
+            self.learned_patterns["successful_automations"][suggestion_id] = response_data
+            
+        elif response == "ignore":
+            # Track ignored suggestions to improve future relevance
+            self.learned_patterns["rejected_suggestions"][suggestion_id] = response_data
+        
+        # Save updated preferences and patterns
+        self.save_user_preferences(self.user_preferences)
+        self.save_learned_patterns(self.learned_patterns)
+        
+        # Log the interaction to memory
+        self.log_to_memory(
+            topic=f"User Response to Suggestion: {response}",
+            type_="UserFeedback",
+            input_=f"Suggestion: {suggestion_id}, Response: {response}",
+            output=f"Outcome: {outcome}, Learning updated",
+            success=True,
+            category="learning"
+        )
+        
+        return {
+            "status": "processed",
+            "message": f"Response '{response}' recorded and learning updated",
+            "updated_preferences": bool(response in ["never_again", "always_ask"]),
+            "pattern_learned": bool(outcome and response == "apply")
+        }
+    
+    def _should_skip_suggestion(self, playbook, context: Dict[str, Any]) -> bool:
+        """Check if suggestion should be skipped based on user preferences"""
+        pattern_sig = f"{playbook.id}:{context.get('project_type', 'unknown')}"
+        
+        # Check never_automate list
+        for never_pattern in self.user_preferences["never_automate"]:
+            if never_pattern in pattern_sig or pattern_sig in never_pattern:
+                return True
+                
+        # Check if similar suggestions were repeatedly rejected
+        rejection_count = sum(1 for suggestion_id, data in 
+                            self.learned_patterns["rejected_suggestions"].items()
+                            if playbook.name in suggestion_id)
+        
+        return rejection_count >= 3  # Skip after 3 rejections
+    
+    def _should_auto_apply(self, playbook, match: Dict[str, Any]) -> bool:
+        """Determine if suggestion should auto-apply based on learning"""
+        # Never auto-apply if user prefers suggestions only
+        if self.user_preferences["automation_level"] == "suggest_only":
+            return False
+            
+        # Check if this type has high success rate
+        success_count = sum(1 for data in self.learned_patterns["successful_automations"].values()
+                          if playbook.name in data.get("suggestion_id", ""))
+        
+        total_count = success_count + sum(1 for data in self.learned_patterns["rejected_suggestions"].values()
+                                        if playbook.name in data.get("suggestion_id", ""))
+        
+        if total_count >= 3:  # Enough data to make decision
+            success_rate = success_count / total_count
+            return success_rate >= 0.8 and match["confidence"] >= 0.9
+            
+        return False
+    
+    def _get_memory_source(self, playbook) -> str:
+        """Get human-readable memory source for transparency"""
+        return f"Learned from project: {playbook.project_origin} on {playbook.created_at[:10]}"
+    
+    def _explain_suggestion(self, playbook, match: Dict[str, Any]) -> str:
+        """Explain why this suggestion is being made"""
+        confidence_desc = "high" if match["confidence"] >= 0.8 else "medium" if match["confidence"] >= 0.6 else "low"
+        return f"Based on {confidence_desc} confidence match ({match['confidence']:.1%}) with successful solution from {playbook.project_origin}"
+    
+    def _is_warning_suppressed(self, warning: str, context: Dict[str, Any]) -> bool:
+        """Check if warning should be suppressed based on user feedback"""
+        warning_hash = str(hash(warning))
+        return warning_hash in self.user_preferences.get("suppressed_warnings", [])
+    
+    def _get_learning_suggestions(self, context: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate suggestions based on learned patterns"""
+        suggestions = []
+        
+        # Suggest new automations based on repetitive patterns
+        for pattern, occurrences in self.learned_patterns.get("context_adaptations", {}).items():
+            if len(occurrences) >= 3:  # Pattern seen 3+ times
+                suggestions.append({
+                    "id": f"learn_{hash(pattern)}_{datetime.now().timestamp()}",
+                    "type": "learning",
+                    "title": f"Create automation for: {pattern}",
+                    "description": f"You've done this {len(occurrences)} times. Want to automate it?",
+                    "confidence": 0.8,
+                    "memory_source": "Pattern detection from your actions",
+                    "reasoning": f"Detected repetitive pattern in your workflow",
+                    "controls": {
+                        "create_automation": True,
+                        "ignore": True,
+                        "remind_later": True
+                    }
+                })
+        
+        return suggestions
+    
+    def _extract_pattern_signature(self, suggestion_id: str) -> str:
+        """Extract pattern signature for preference matching"""
+        # Simple pattern extraction - can be enhanced
+        return suggestion_id.split("_")[1] if "_" in suggestion_id else suggestion_id
+    
+    def get_current_context(self) -> Dict[str, Any]:
+        """Get current development context"""
+        return {
+            "flow_state": self.state.flow_state,
+            "current_files": self.state.current_files,
+            "project_type": self.detect_project_type(),
+            "file_types": self.get_current_file_types(),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
     
     def apply_automation(self, playbook_id: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Apply an automation playbook"""

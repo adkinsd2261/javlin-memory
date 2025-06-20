@@ -147,6 +147,56 @@ class JavChat:
             return {
                 "type": "error",
                 "success": False,
+
+    def handle_suggestion_response(self, suggestion_id: str, response: str, outcome: str = None) -> Dict[str, Any]:
+        """Handle user response to suggestions with full transparency"""
+        
+        result = self.jav_agent.process_user_response(suggestion_id, response, outcome)
+        
+        # Create response with full transparency
+        response_data = {
+            "type": "suggestion_response",
+            "message": f"✅ **Response Recorded: {response.title()}**",
+            "details": {
+                "suggestion_id": suggestion_id,
+                "your_response": response,
+                "outcome": outcome,
+                "learning_updated": result.get("pattern_learned", False),
+                "preferences_updated": result.get("updated_preferences", False)
+            }
+        }
+        
+        # Add explanation of what was learned
+        if result.get("pattern_learned"):
+            response_data["message"] += f"\n\n🧠 **Learning Update**: This automation pattern has been marked as successful and may be auto-suggested in similar contexts."
+            
+        if result.get("updated_preferences"):
+            response_data["message"] += f"\n\n⚙️ **Preference Update**: Your automation preferences have been updated based on this response."
+        
+        # Show transparency link
+        response_data["transparency"] = {
+            "why_link": f"/jav/suggestion-reasoning/{suggestion_id}",
+            "memory_source": "User response processed and learning patterns updated",
+            "editable": True
+        }
+        
+        return response_data
+    
+    def get_suggestion_reasoning(self, suggestion_id: str) -> Dict[str, Any]:
+        """Get full reasoning and memory source for transparency"""
+        
+        # This would query the memory system for the full context
+        reasoning = {
+            "suggestion_id": suggestion_id,
+            "memory_trace": [],  # List of memories that led to this suggestion
+            "pattern_analysis": {},  # How patterns were matched
+            "user_history": {},  # Past responses to similar suggestions
+            "confidence_factors": {},  # What contributed to confidence score
+            "editable_rules": []  # Rules user can modify
+        }
+        
+        return reasoning
+
                 "message": f"Error saving {filename}: {str(e)}"
             }
     
