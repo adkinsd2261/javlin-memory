@@ -257,8 +257,14 @@ def add_memory():
         return jsonify({"status": "❌ Failed", "error": str(e)}), 500
 
 @app.route('/memory', methods=['GET'])
+@cache.cached(timeout=30, query_string=True)  # Cache for 30 seconds
 def get_memories():
     try:
+        # Add pagination for better performance
+        page = int(request.args.get('page', 1))
+        limit = min(int(request.args.get('limit', 50)), 200)  # Max 200 items
+        offset = (page - 1) * limit
+        
         with open(MEMORY_FILE, 'r') as f:
             memory = json.load(f)
 
@@ -281,7 +287,19 @@ def get_memories():
         if related_to:
             memory = [m for m in memory if related_to in m.get('related_to', [])]
 
-        return jsonify(memory)
+        # Apply pagination
+        total_count = len(memory)
+        paginated_memory = memory[offset:offset + limit]
+        
+        return jsonify({
+            "memories": paginated_memory,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_count,
+                "pages": (total_count + limit - 1) // limit
+            }
+        })
     except Exception as e:
         logging.error(f"Error loading memories: {e}")
         return jsonify({"error": str(e)}), 500
@@ -936,7 +954,8 @@ def start_founder_mode():
 from flask_caching import Cache
 cache = Cache(app, config={
     "CACHE_TYPE": "SimpleCache",  # In-memory caching
-    "CACHE_DEFAULT_TIMEOUT": 300   # 5 minutes
+    "CACHE_DEFAULT_TIMEOUT": 60,   # 1 minute for faster responses
+    "CACHE_THRESHOLD": 500         # Max 500 cached items
 })
 
 # Express validation cache
@@ -964,6 +983,15 @@ def system_health():
     except Exception as e:
         logging.error(f"Error checking system health: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route('/health', methods=['GET'])
+def quick_health():
+    """Fast health check without caching overhead"""
+    return jsonify({
+        "status": "healthy",
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "uptime": "running"
+    })
 
 @app.route('/express/status', endpoint='express_status_endpoint')
 def express_status():
@@ -1183,7 +1211,18 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
 if __name__ == '__main__':
     try:
         logging.info("Starting MemoryOS Flask API...")
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        
+        # Optimize memory file on startup
+        try:
+            from performance_config import optimize_memory_file
+            archived_count = optimize_memory_file(MEMORY_FILE)
+            if archived_count > 0:
+                logging.info(f"Archived {archived_count} old memory entries for better performance")
+        except ImportError:
+            pass
+        
+        # Use threaded mode for better concurrent performance
+        app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
     except Exception as e:
         logging.error(f"Failed to start Flask app: {e}")
         print(f"Error starting app: {e}")
