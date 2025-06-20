@@ -1,0 +1,68 @@
+Prompt: Implement Immersive Javlin Onboarding with Full-Canvas Avatar
+
+1. Trigger Onboarding Seamlessly
+When user clicks “Start Creating”, transition the entire workspace to onboarding mode—fade out background, bring the Javlin avatar to center stage.
+
+Smooth, modern transitions (fade/slide/scale, not jump cuts).
+
+2. Animated Avatar Introduction
+Javlin avatar appears front and center, glowing and animated.
+
+Avatar “breathes”, pulses, or animates in sync with the onboarding steps.
+
+Consider “voice” (TTS) or typewriter text effect for added presence.
+
+3. Guided Interactive Tour
+Javlin introduces itself (“Hey, I’m Jav, your creative AI partner!”).
+
+Walks the user through core concepts:
+
+How to interact (“Try saying hello!”)
+
+Modes: Creative & Dev, and how to switch
+
+Memory system: “Everything you build here becomes part of your creative journey.”
+
+Where to find features (e.g., quick actions, floating orb, switching modes)
+
+Shows live demo/animation for each feature (e.g., avatar pulses when “listening”).
+
+4. Mini-Quests or Challenges (Optional, but powerful)
+Encourage user to “try” actions:
+
+“Send a message to Jav!”
+
+“Switch to Dev mode.”
+
+“Recall your last memory.”
+
+Give real feedback for each step (avatar glows, congratulates, animates).
+
+5. Personalized Wrap-Up
+End with a warm, animated welcome and “Let’s get started!” button.
+
+Fade workspace back in with Jav avatar in its usual place.
+
+6. Polish & Details
+Everything should feel premium:
+
+Responsive, beautiful, and a bit magical.
+
+No cramped UI—full-screen focus, but never overwhelming.
+
+Allow users to replay onboarding or skip at any time.
+
+Goal:
+
+“Wow” first impression: users feel like they’re meeting Jav, not just using another tool.
+
+Clear, confident understanding of how to get the most out of the platform.
+
+Makes memory, creativity, and Jav’s presence core to the journey—not just features.
+
+Need sample animation specs, script, or onboarding flow? Ask!
+
+Why this matters:
+“You never get a second chance to make a first impression.”
+
+This will be the “Siri moment” for Jav—where the tool becomes a living creative companion.
