@@ -972,3 +972,6 @@ def express_status():
     except Exception as e:
         logging.error(f"Express validation error: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80)
