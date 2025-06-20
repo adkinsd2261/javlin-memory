@@ -1,15 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jav Studio - Memory-Driven Creative Workspace</title>
+    <title>Jav Studio - Your Creative AI Partner</title>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -20,323 +21,596 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .memory-glow {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        .magic-gradient {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradient-dance 8s ease infinite;
         }
 
-        .creative-flow {
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
-            background-size: 300% 300%;
-            animation: gradient-flow 4s ease infinite;
+        @keyframes gradient-dance {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
         }
 
-        @keyframes gradient-flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .jav-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            animation: pulse-glow 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .jav-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
+                transform: scale(1.05);
+            }
+        }
+
+        .creative-timeline {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 3px solid #667eea;
         }
 
         .memory-card {
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            transform-origin: center;
         }
 
         .memory-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .floating-action {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 50;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .inspiration-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        .inspiration-card:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .coach-mark {
+            animation: bounce-gentle 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .welcome-animation {
+            animation: slide-in-up 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slide-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0px) scale(1);
+            }
         }
 
         .chat-bubble {
             max-width: 80%;
             word-wrap: break-word;
+            animation: pop-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        .typing-indicator {
-            display: inline-block;
-            animation: pulse 1.5s ease-in-out infinite;
+        @keyframes pop-in {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .hero-section {
+            background: radial-gradient(circle at center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            min-height: 400px;
+        }
+
+        .onboarding-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .step-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .contextual-hint {
+            position: absolute;
+            z-index: 40;
+            animation: fade-in-bounce 0.6s ease-out;
+        }
+
+        @keyframes fade-in-bounce {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.9);
+            }
+            60% {
+                transform: translateY(5px) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .suggestion-pill {
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .suggestion-pill:hover {
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4));
+            transform: translateY(-1px);
         }
     </style>
 </head>
-<body>
-    <div x-data="javStudio()" x-init="init()" class="min-h-screen text-white">
-        <!-- Header: Living Memory Status -->
-        <header class="glass-panel border-b border-white/20 p-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="w-8 h-8 rounded-full creative-flow flex items-center justify-center text-white font-bold">
-                        J
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold">Jav Studio</h1>
-                        <p class="text-sm text-gray-300">Memory-Driven Creative Workspace</p>
-                    </div>
+<body x-data="javStudio()" x-init="init()" class="min-h-screen text-white">
+    
+    <!-- Onboarding Overlay -->
+    <div x-show="showOnboarding" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 onboarding-overlay z-50 flex items-center justify-center">
+        
+        <div class="glass-panel rounded-2xl p-8 max-w-lg mx-4 welcome-animation">
+            <div class="text-center">
+                <div class="jav-avatar mx-auto mb-6" @click="javSpeaks()">
+                    J
+                </div>
+                
+                <div x-show="onboardingStep === 1">
+                    <h2 class="text-2xl font-bold mb-4">Hey there! 👋 I'm Jav!</h2>
+                    <p class="text-gray-300 mb-6">I'm your creative AI partner. Together, we'll turn ideas into reality through memory-driven collaboration!</p>
+                    <button @click="nextOnboardingStep()" 
+                            class="magic-gradient px-6 py-3 rounded-lg text-white font-medium">
+                        Ready to build together! ✨
+                    </button>
                 </div>
 
-                <div class="flex items-center space-x-4">
-                    <!-- Memory Status -->
-                    <div class="flex items-center space-x-2 text-sm">
-                        <div class="w-2 h-2 rounded-full" 
-                             :class="{ 'bg-red-500': hasErrors, 'bg-yellow-500': hasWarnings, 'bg-green-500': !hasErrors && !hasWarnings }">
+                <div x-show="onboardingStep === 2">
+                    <h3 class="text-xl font-bold mb-4">Our Creative Loop 🔄</h3>
+                    <div class="space-y-3 text-left mb-6">
+                        <div class="flex items-center">
+                            <div class="step-indicator">1</div>
+                            <span>💭 Share ideas & brainstorm together</span>
                         </div>
-                        <span x-text="systemHealth"></span>
+                        <div class="flex items-center">
+                            <div class="step-indicator">2</div>
+                            <span>🧠 I remember everything we create</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="step-indicator">3</div>
+                            <span>⚡ Turn conversations into code</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="step-indicator">4</div>
+                            <span>🚀 Build & iterate seamlessly</span>
+                        </div>
                     </div>
-
-                    <!-- Memory Count -->
-                    <div class="glass-panel px-3 py-1 rounded-full text-sm">
-                        <span x-text="'🧠 ' + totalMemories + ' memories'"></span>
-                    </div>
+                    <button @click="nextOnboardingStep()" 
+                            class="magic-gradient px-6 py-3 rounded-lg text-white font-medium">
+                        Show me how! 🎯
+                    </button>
                 </div>
-            </div>
 
-            <!-- Creative Insight Bar -->
-            <div x-show="codeInsight" 
-                 x-transition:enter="transition ease-out duration-150"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 class="mt-3 glass-panel rounded-lg p-3 memory-glow">
-                <div class="flex items-center space-x-3">
-                    <div class="text-blue-400">💡</div>
-                    <div>
-                        <div class="font-medium" x-text="codeInsight?.title"></div>
-                        <div class="text-sm text-gray-300" x-text="codeInsight?.message"></div>
+                <div x-show="onboardingStep === 3">
+                    <h3 class="text-xl font-bold mb-4">Let's Create Your First Memory! 🌟</h3>
+                    <p class="text-gray-300 mb-6">Try typing an idea in the chat below. I'll help you brainstorm and turn it into something amazing!</p>
+                    <div class="space-y-3">
+                        <button @click="startFirstMission('web app')" 
+                                class="w-full suggestion-pill px-4 py-2 rounded-lg text-left">
+                            💡 "Help me build a web app"
+                        </button>
+                        <button @click="startFirstMission('analyze code')" 
+                                class="w-full suggestion-pill px-4 py-2 rounded-lg text-left">
+                            🔍 "Review my code and suggest improvements"
+                        </button>
+                        <button @click="startFirstMission('creative project')" 
+                                class="w-full suggestion-pill px-4 py-2 rounded-lg text-left">
+                            🎨 "I have a creative project idea"
+                        </button>
                     </div>
-                    <button @click="codeInsight = null" class="text-gray-400 hover:text-white">
-                        ✕
+                    <button @click="completeOnboarding()" 
+                            class="mt-4 text-gray-400 hover:text-white text-sm">
+                        Skip for now →
                     </button>
                 </div>
             </div>
-        </header>
+        </div>
+    </div>
 
-        <div class="flex h-screen">
-            <!-- Sidebar: Memory Brain -->
-            <aside class="w-80 glass-panel border-r border-white/20 flex flex-col">
-                <div class="p-4 border-b border-white/20">
-                    <h2 class="font-bold text-lg mb-2">🧠 Living Project Brain</h2>
-                    <div class="text-sm text-gray-300" x-text="studioStatus"></div>
+    <!-- Header with Jav Avatar -->
+    <header class="glass-panel border-b border-white/20 p-4 relative">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="jav-avatar" 
+                     @click="javSpeaks()" 
+                     :class="{ 'animate-bounce': javIsThinking }">
+                    J
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">Jav Studio</h1>
+                    <p class="text-sm text-gray-300" x-text="javMood"></p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <!-- System Status -->
+                <div class="flex items-center space-x-2 text-sm">
+                    <div class="w-2 h-2 rounded-full" 
+                         :class="{ 'bg-red-500': hasErrors, 'bg-yellow-500': hasWarnings, 'bg-green-500': !hasErrors && !hasWarnings }">
+                    </div>
+                    <span x-text="systemHealth"></span>
                 </div>
 
-                <!-- Memory Timeline -->
-                <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                    <template x-for="item in studioItems" :key="item.id">
-                        <div class="memory-card glass-panel rounded-lg p-3"
-                             @click="focusMemory(item)">
-                            <div class="flex items-start space-x-3">
-                                <div class="text-xl" x-text="item.icon"></div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-medium text-sm" x-text="item.title"></div>
-                                    <div class="text-xs text-gray-400 truncate" x-text="item.preview"></div>
-                                    <div class="text-xs text-blue-400 mt-1" x-text="item.timeAgo"></div>
-                                </div>
+                <!-- Memory Count -->
+                <div class="glass-panel px-3 py-1 rounded-full text-sm">
+                    <span x-text="'🧠 ' + totalMemories + ' memories'"></span>
+                </div>
+
+                <!-- Inspiration Button -->
+                <button @click="showInspiration = !showInspiration" 
+                        class="glass-panel px-3 py-1 rounded-full text-sm hover:bg-white/10 transition-all">
+                    ✨ Inspire Me
+                </button>
+            </div>
+        </div>
+
+        <!-- Contextual Jav Speech Bubble -->
+        <div x-show="javSpeechBubble" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="absolute top-full left-20 mt-2 contextual-hint">
+            <div class="glass-panel rounded-lg p-3 max-w-xs chat-bubble">
+                <p x-text="javCurrentMessage" class="text-sm"></p>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex h-screen">
+        <!-- Enhanced Sidebar with Creative Timeline -->
+        <aside class="w-80 glass-panel border-r border-white/20 flex flex-col">
+            <div class="p-4 border-b border-white/20">
+                <h2 class="font-bold text-lg mb-2">🧠 Creative Timeline</h2>
+                <p class="text-sm text-gray-300" x-text="studioStatus"></p>
+            </div>
+
+            <!-- Memory Timeline -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 creative-timeline">
+                <template x-for="item in studioItems" :key="item.id">
+                    <div class="memory-card glass-panel rounded-lg p-3"
+                         @click="focusMemory(item)">
+                        <div class="flex items-start space-x-3">
+                            <div class="text-xl" x-text="item.icon"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-sm" x-text="item.title"></div>
+                                <div class="text-xs text-gray-400 truncate" x-text="item.preview"></div>
+                                <div class="text-xs text-blue-400 mt-1" x-text="item.timeAgo"></div>
                             </div>
                         </div>
-                    </template>
-                </div>
-            </aside>
+                    </div>
+                </template>
 
-            <!-- Main Workspace -->
-            <main class="flex-1 flex flex-col">
-                <!-- Conversation Canvas -->
-                <div class="flex-1 p-6 overflow-y-auto" x-ref="conversationContainer">
+                <!-- Empty State with Inspiration -->
+                <div x-show="studioItems.length === 0" class="text-center py-8">
+                    <div class="text-4xl mb-4">🌱</div>
+                    <p class="text-gray-400 text-sm mb-4">Your creative journey starts here!</p>
+                    <button @click="startCreativeSession()" 
+                            class="suggestion-pill px-4 py-2 rounded-lg text-sm">
+                        Plant your first idea 💡
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Creative Workspace -->
+        <main class="flex-1 flex flex-col">
+            <!-- Hero Section / Conversation Canvas -->
+            <div class="flex-1 hero-section relative overflow-hidden">
+                <!-- Inspiration Panel -->
+                <div x-show="showInspiration" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-x-full"
+                     x-transition:enter-end="opacity-100 translate-x-0"
+                     class="absolute top-0 right-0 w-80 h-full glass-panel border-l border-white/20 p-6 z-30">
                     
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-lg">✨ Creative Inspiration</h3>
+                        <button @click="showInspiration = false" class="text-gray-400 hover:text-white">✕</button>
+                    </div>
 
                     <div class="space-y-4">
-                            <template x-for="message in conversationHistory" :key="message.id">
-                                <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <span class="text-sm font-medium text-gray-600">
-                                            <span x-text="message.role === 'user' ? '👤 You' : '🤖 Jav'"></span>
-                                        </span>
-                                        <span class="text-xs text-gray-500" x-text="message.timestamp"></span>
-                                    </div>
-                                    <div class="text-gray-800" x-html="message.content"></div>
-
-                                    <!-- Intervention Cards -->
-                                    <template x-for="intervention in message.interventions" :key="intervention.pattern_summary">
-                                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                            <div class="flex items-start justify-between mb-2">
-                                                <h4 class="text-sm font-medium text-yellow-800" x-text="intervention.title"></h4>
-                                                <button @click="dismissIntervention(intervention.suggested_actions[0]?.action_id)" 
-                                                        class="text-yellow-600 hover:text-yellow-800 text-xs">
-                                                    ✕
-                                                </button>
-                                            </div>
-
-                                            <p x-show="intervention.encouragement" 
-                                               class="text-sm text-yellow-700 mb-2" 
-                                               x-text="intervention.encouragement"></p>
-
-                                            <p class="text-sm text-yellow-700 mb-3" x-text="intervention.pattern_summary"></p>
-
-                                            <!-- Evidence (optional, collapsible) -->
-                                            <details x-show="intervention.evidence && intervention.evidence.length" class="mb-3">
-                                                <summary class="text-xs text-yellow-600 cursor-pointer">What I noticed</summary>
-                                                <ul class="mt-1 text-xs text-yellow-600 ml-4">
-                                                    <template x-for="evidence in intervention.evidence">
-                                                        <li x-text="evidence"></li>
-                                                    </template>
-                                                </ul>
-                                            </details>
-
-                                            <!-- Action Buttons -->
-                                            <div class="flex flex-wrap gap-2">
-                                                <template x-for="action in intervention.suggested_actions.slice(0, 2)">
-                                                    <button @click="acceptIntervention(action.action_id)"
-                                                            class="px-3 py-1 text-xs bg-yellow-200 text-yellow-800 rounded hover:bg-yellow-300">
-                                                        <span x-text="action.title"></span>
-                                                    </button>
-                                                </template>
-
-                                                <!-- Escalation Options -->
-                                                <template x-for="escalation in intervention.escalation_options">
-                                                    <button @click="escalateIntervention(intervention.suggested_actions[0]?.action_id, escalation.level)"
-                                                            class="px-3 py-1 text-xs bg-blue-200 text-blue-800 rounded hover:bg-blue-300">
-                                                        <span x-text="escalation.title"></span>
-                                                    </button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <div x-show="message.type" class="mt-2">
-                                        <span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded" x-text="message.type"></span>
-                                    </div>
-                                </div>
-                            </template>
+                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
+                             @click="tryExample('build-flask-app')">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <span class="text-2xl">🌐</span>
+                                <span class="font-medium">Build a Flask App</span>
+                            </div>
+                            <p class="text-xs text-gray-400">Create a web application with database integration</p>
                         </div>
 
-                    <!-- Typing Indicator -->
+                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
+                             @click="tryExample('ai-code-review')">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <span class="text-2xl">🔍</span>
+                                <span class="font-medium">AI Code Review</span>
+                            </div>
+                            <p class="text-xs text-gray-400">Get intelligent feedback on your code quality</p>
+                        </div>
+
+                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
+                             @click="tryExample('data-analysis')">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <span class="text-2xl">📊</span>
+                                <span class="font-medium">Data Analysis</span>
+                            </div>
+                            <p class="text-xs text-gray-400">Analyze datasets and create visualizations</p>
+                        </div>
+
+                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
+                             @click="tryExample('api-design')">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <span class="text-2xl">⚡</span>
+                                <span class="font-medium">API Design</span>
+                            </div>
+                            <p class="text-xs text-gray-400">Design and implement RESTful APIs</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-4 glass-panel rounded-lg">
+                        <h4 class="font-medium mb-2">💡 Pro Tip</h4>
+                        <p class="text-xs text-gray-400">The more you interact with me, the better I understand your style and preferences!</p>
+                    </div>
+                </div>
+
+                <!-- Main Conversation Area -->
+                <div class="p-6 overflow-y-auto flex-1" x-ref="conversationContainer" 
+                     :class="{ 'mr-80': showInspiration }">
+                    
+                    <!-- Welcome State -->
+                    <div x-show="conversationHistory.length === 0" class="text-center py-20">
+                        <div class="welcome-animation">
+                            <div class="jav-avatar mx-auto mb-8" style="width: 120px; height: 120px; font-size: 48px;">
+                                J
+                            </div>
+                            <h2 class="text-4xl font-bold mb-4">Ready to Create Together?</h2>
+                            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                                I'm your memory-driven AI partner. Every conversation becomes part of our shared creative journey.
+                            </p>
+                            <div class="flex justify-center space-x-4 mb-8">
+                                <button @click="startCreativeSession()" 
+                                        class="magic-gradient px-8 py-4 rounded-xl text-white font-bold text-lg shadow-2xl transform hover:scale-105 transition-all">
+                                    🚀 Begin Building
+                                </button>
+                                <button @click="showInspiration = true" 
+                                        class="glass-panel px-6 py-4 rounded-xl hover:bg-white/10 transition-all">
+                                    ✨ Get Inspired
+                                </button>
+                            </div>
+                            
+                            <!-- Contextual Suggestions -->
+                            <div class="flex justify-center space-x-3 flex-wrap max-w-4xl mx-auto">
+                                <button @click="quickStart('project idea')" 
+                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
+                                    💡 I have a project idea
+                                </button>
+                                <button @click="quickStart('review code')" 
+                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
+                                    🔍 Review my code
+                                </button>
+                                <button @click="quickStart('learn something')" 
+                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
+                                    📚 I want to learn something
+                                </button>
+                                <button @click="quickStart('debug issue')" 
+                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
+                                    🐛 Help debug an issue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversation History -->
+                    <div x-show="conversationHistory.length > 0" class="space-y-4">
+                        <template x-for="message in conversationHistory" :key="message.id">
+                            <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400 chat-bubble">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-sm font-medium text-gray-600">
+                                        <span x-text="message.role === 'user' ? '👤 You' : '🤖 Jav'"></span>
+                                    </span>
+                                    <span class="text-xs text-gray-500" x-text="message.timestamp"></span>
+                                </div>
+                                <div class="text-gray-800" x-html="message.content"></div>
+
+                                <!-- Implementation Cards -->
+                                <template x-for="impl in message.implementations" :key="impl.id">
+                                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <h4 class="font-medium text-blue-800 mb-2" x-text="impl.title"></h4>
+                                        <p class="text-sm text-blue-700 mb-3" x-text="impl.description"></p>
+                                        <div class="flex space-x-2">
+                                            <button @click="implementCode(impl)" 
+                                                    class="px-3 py-1 bg-blue-200 text-blue-800 rounded text-sm hover:bg-blue-300">
+                                                Implement Now
+                                            </button>
+                                            <button @click="previewCode(impl)" 
+                                                    class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                                                Preview
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Jav Thinking Indicator -->
                     <div x-show="javTyping" class="flex justify-start mb-6">
                         <div class="glass-panel rounded-2xl p-4 chat-bubble">
                             <div class="flex items-center space-x-3">
-                                <div class="text-lg">🤖</div>
-                                <div class="typing-indicator">Jav is thinking...</div>
+                                <div class="jav-avatar" style="width: 30px; height: 30px; font-size: 14px;">J</div>
+                                <div class="flex space-x-1">
+                                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                                </div>
+                                <span class="text-gray-300 text-sm">Jav is thinking...</span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Creative Input Zone -->
-                <div class="border-t border-white/20 p-6">
-                    <!-- Drop Zone for Ideas -->
-                    <div class="mb-4 border-2 border-dashed border-white/30 rounded-lg p-6 text-center transition-all"
-                         :class="{ 'active': dragActive }"
-                         @dragover.prevent="dragActive = true"
-                         @dragleave="dragActive = false"
-                         @drop.prevent="handleDrop($event)">
-
-                        <div x-show="!dragActive" class="text-gray-400">
-                            <div class="text-2xl mb-2">💭</div>
-                            <div>Drop ideas, code snippets, or files to discuss with Jav</div>
-                        </div>
-
-                        <div x-show="dragActive" class="text-blue-400">
-                            <div class="text-2xl mb-2">✨</div>
-                            <div>Ready to capture your creative spark!</div>
-                        </div>
+            <!-- Enhanced Input Zone -->
+            <div class="border-t border-white/20 p-6 glass-panel">
+                <!-- Active Implementation Panel -->
+                <div x-show="activeImplementation" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="mb-4 glass-panel rounded-lg p-4 border border-blue-400">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-medium">🚀 Ready to Implement</h3>
+                        <button @click="activeImplementation = null" class="text-gray-400 hover:text-white">✕</button>
                     </div>
-
-                    <!-- Empty State -->
-                    <div x-show="studioItems.length === 0 && conversationHistory.length === 0" 
-                         class="text-center py-12 text-gray-400">
-                        <div class="text-4xl mb-4">🌟</div>
-                        <h3 class="text-xl font-medium mb-2">Your Creative Journey Starts Here</h3>
-                        <p class="mb-6">Every conversation becomes memory. Every memory fuels creativity.</p>
-                        <button @click="startCreativeSession()" 
-                                class="px-6 py-3 creative-flow rounded-lg text-white font-medium">
-                            Begin Building
+                    <div class="text-sm text-gray-300 mb-3" x-text="activeImplementation?.description"></div>
+                    <div class="flex space-x-2">
+                        <button @click="applyImplementation()" 
+                                class="px-4 py-2 magic-gradient rounded text-sm font-medium">
+                            Apply Changes ✨
+                        </button>
+                        <button @click="previewImplementation()" 
+                                class="px-4 py-2 glass-panel hover:bg-white/10 rounded text-sm">
+                            Preview Diff
+                        </button>
+                        <button @click="editImplementation()" 
+                                class="px-4 py-2 glass-panel hover:bg-white/10 rounded text-sm">
+                            Edit First
                         </button>
                     </div>
+                </div>
 
-                    <!-- Implementation Panel -->
-                    <div x-show="activeImplementation" 
-                         class="mb-4 glass-panel rounded-lg p-4 memory-glow">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-medium">Ready to Implement</h3>
-                            <button @click="activeImplementation = null" class="text-gray-400 hover:text-white">
-                                ✕
+                <!-- Contextual Suggestions Row -->
+                <div x-show="contextualSuggestions.length > 0" class="mb-4">
+                    <div class="flex space-x-2 overflow-x-auto pb-2">
+                        <template x-for="suggestion in contextualSuggestions" :key="suggestion.id">
+                            <button @click="applySuggestion(suggestion)" 
+                                    class="suggestion-pill px-3 py-1 rounded-full text-xs whitespace-nowrap">
+                                <span x-text="suggestion.icon"></span>
+                                <span x-text="suggestion.text"></span>
                             </button>
-                        </div>
-
-                        <div class="text-sm text-gray-300 mb-3" x-text="activeImplementation?.description"></div>
-
-                        <div x-show="activeImplementation?.code" class="bg-black/30 rounded p-3 mb-3">
-                            <pre class="text-xs text-green-400" x-text="activeImplementation?.code"></pre>
-                        </div>
-
-                        <div class="flex space-x-2">
-                            <button @click="applyImplementation()" 
-                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm">
-                                Apply Changes
-                            </button>
-                            <button @click="previewImplementation()" 
-                                    class="px-4 py-2 glass-panel hover:bg-white/10 rounded text-sm">
-                                Preview Diff
-                            </button>
-                            <button @click="editImplementation()" 
-                                    class="px-4 py-2 glass-panel hover:bg-white/10 rounded text-sm">
-                                Edit First
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Implementation History -->
-                    <div x-show="implementationHistory.length > 0" class="mb-4">
-                        <div class="text-sm text-gray-400 mb-2">Recent Implementations</div>
-                        <div class="flex space-x-2 overflow-x-auto">
-                            <template x-for="impl in implementationHistory.slice(0, 3)" :key="impl.id">
-                                <div class="glass-panel rounded p-2 text-xs whitespace-nowrap cursor-pointer"
-                                     @click="reviewImplementation(impl)">
-                                    <span x-text="impl.title"></span>
-                                    <span class="text-green-400 ml-2">✓</span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Chat Input -->
-                    <div class="flex space-x-3">
-                        <div class="flex-1">
-                            <textarea x-model="chatMessage" 
-                                      :disabled="javTyping"
-                                      @keydown.enter.prevent="handleEnter($event)"
-                                      @input="handleInput()"
-                                      placeholder="Share your ideas, ask questions, or describe what you want to build..."
-                                      class="w-full p-4 glass-panel rounded-lg resize-none text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      rows="3"></textarea>
-                        </div>
-
-                        <div class="flex flex-col space-y-2">
-                            <button @click="sendMessage()" 
-                                    :disabled="!chatMessage.trim() || javTyping"
-                                    class="px-6 py-4 creative-flow rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span x-show="!javTyping">Send</span>
-                                <span x-show="javTyping" class="typing-indicator">...</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                        <div>Press Ctrl+Enter to send • Drop files to analyze</div>
-                        <div x-text="chatMessage.length + '/500'"></div>
+                        </template>
                     </div>
                 </div>
-            </main>
-        </div>
 
-        <!-- Floating Memory Helper -->
-        <div x-show="dragging" 
-             :style="`left: ${dragX}px; top: ${dragY}px;`"
-             class="fixed pointer-events-none z-50 glass-panel rounded-lg p-3 memory-glow">
-            <div class="flex items-center space-x-2">
-                <div class="text-lg" :class="draggedItem?.type" x-text="draggedItem?.type"></div>
-                <div class="text-sm" x-text="draggedItem?.content?.substring(0, 50) + '...'"></div>
+                <!-- Main Chat Input -->
+                <div class="flex space-x-3 items-end">
+                    <div class="flex-1">
+                        <textarea x-model="chatMessage" 
+                                  :disabled="javTyping"
+                                  @keydown.enter.prevent="handleEnter($event)"
+                                  @input="handleInput()"
+                                  @focus="onInputFocus()"
+                                  placeholder="Share your ideas, ask questions, or describe what you want to build..."
+                                  class="w-full p-4 glass-panel rounded-lg resize-none text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                  rows="3"></textarea>
+                    </div>
+
+                    <div class="flex flex-col space-y-2">
+                        <button @click="sendMessage()" 
+                                :disabled="!chatMessage.trim() || javTyping"
+                                class="px-6 py-4 magic-gradient rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105">
+                            <span x-show="!javTyping">Send ✨</span>
+                            <span x-show="javTyping">...</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                    <div>Press Ctrl+Enter to send • Drag & drop files to analyze</div>
+                    <div x-text="chatMessage.length + '/500'"></div>
+                </div>
             </div>
+        </main>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="floating-action" x-show="conversationHistory.length > 0">
+        <button @click="scrollToBottom()" 
+                class="jav-avatar shadow-2xl">
+            ↓
+        </button>
+    </div>
+
+    <!-- Coach Mark for First-Time Users -->
+    <div x-show="showCoachMark" 
+         class="fixed bottom-32 right-32 coach-mark glass-panel rounded-lg p-3 z-40">
+        <div class="text-sm">
+            💡 Try typing your first idea here!
         </div>
+        <button @click="showCoachMark = false" class="text-xs text-gray-400 mt-1">Got it</button>
     </div>
 
     <script>
@@ -344,16 +618,34 @@
             return {
                 // Core State
                 totalMemories: 0,
-                systemHealth: 'unknown',
+                systemHealth: 'Checking...',
                 hasErrors: false,
                 hasWarnings: false,
-                codeInsight: null,
-                studioStatus: "Initializing...",
+                studioStatus: "Initializing creative workspace...",
                 studioItems: [],
-                smartSuggestions: [],
 
-                // Memory & Context
+                // Jav Personality
+                javMood: "Ready to create something amazing together! ✨",
+                javIsThinking: false,
+                javSpeechBubble: false,
+                javCurrentMessage: "",
+                javMessages: [
+                    "What shall we build today? 🚀",
+                    "I'm learning your style with every interaction! 🧠",
+                    "Ready for another creative breakthrough? ✨",
+                    "Your ideas + my memory = pure magic! 💫",
+                    "Let's turn that spark into something real! 🔥"
+                ],
 
+                // Onboarding
+                showOnboarding: false,
+                onboardingStep: 1,
+                isFirstVisit: true,
+
+                // UI State
+                showInspiration: false,
+                showCoachMark: false,
+                contextualSuggestions: [],
 
                 // Conversation
                 conversationHistory: [],
@@ -364,226 +656,180 @@
                 activeImplementation: null,
                 implementationHistory: [],
 
-                // Drag & Drop
-                dragActive: false,
-                dragging: false,
-                dragX: 0,
-                dragY: 0,
-                draggedItem: null,
-
-                // Initialize the studio
                 async init() {
                     console.log('🚀 Initializing Jav Studio...');
+
+                    // Check if user is new
+                    this.isFirstVisit = !localStorage.getItem('jav-studio-visited');
+                    
+                    if (this.isFirstVisit) {
+                        setTimeout(() => {
+                            this.showOnboarding = true;
+                        }, 1000);
+                    }
 
                     // Load initial data
                     await this.loadMemoryBrain();
                     await this.checkSystemHealth();
-                    await this.loadSmartSuggestions();
+                    await this.setupContextualSuggestions();
 
                     // Set up periodic updates
                     this.setupPeriodicUpdates();
 
-                    // Register current project
-                    this.registerProject();
-
-                    this.studioStatus = "Ready for creative collaboration";
-                },
-
-                // Load smart suggestions from persistent memory
-                async loadSmartSuggestions() {
+                    // Register project
                     try {
-                        const response = await fetch('/jav/suggestions?task=general_development');
-                        const data = await response.json();
-
-                        this.smartSuggestions = data.suggestions.map(suggestion => ({
-                            id: Math.random().toString(36).substr(2, 9),
-                            ...suggestion
-                        }));
+                        await this.registerProject();
                     } catch (error) {
-                        console.error('Failed to load smart suggestions:', error);
-                        this.smartSuggestions = [];
+                        console.error('Failed to register project:', error);
+                    }
+
+                    this.studioStatus = "Creative workspace ready! ✨";
+                    
+                    // Show welcome message for returning users
+                    if (!this.isFirstVisit && this.conversationHistory.length === 0) {
+                        setTimeout(() => {
+                            this.javSpeaks();
+                        }, 2000);
                     }
                 },
 
-                // Apply a smart suggestion (automation)
-                async applySuggestion(suggestion) {
-                    if (suggestion.type !== 'automation') return;
-
-                    try {
-                        const response = await fetch('/jav/apply-automation', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                playbook_id: suggestion.playbook_id,
-                                context: {
-                                    current_task: 'user_requested_automation'
-                                }
-                            })
-                        });
-
-                        const result = await response.json();
-
-                        if (result.status === 'success') {
-                            this.addConversationMessage({
-                                type: 'automation_applied',
-                                content: `✅ **Automation Applied**: ${suggestion.title}\n\n${result.result.message}`,
-                                timestamp: new Date().toISOString(),
-                                metadata: { playbook_id: suggestion.playbook_id }
-                            });
-
-                            // Remove applied suggestion
-                            this.smartSuggestions = this.smartSuggestions.filter(s => s.id !== suggestion.id);
-
-                            // Refresh suggestions
-                            await this.loadSmartSuggestions();
-                        } else {
-                            this.addConversationMessage({
-                                type: 'error',
-                                content: `❌ **Automation Failed**: ${result.error}`,
-                                timestamp: new Date().toISOString()
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Failed to apply suggestion:', error);
-                        this.addConversationMessage({
-                            type: 'error',
-                            content: `❌ **Error applying automation**: ${error.message}`,
-                            timestamp: new Date().toISOString()
-                        });
-                    }
+                // Onboarding Flow
+                nextOnboardingStep() {
+                    this.onboardingStep++;
                 },
 
-                // Dismiss a suggestion
-                dismissSuggestion(suggestionId) {
-                    this.smartSuggestions = this.smartSuggestions.filter(s => s.id !== suggestionId);
-                },
-
-                // Create automation from successful solution
-                async createAutomationFromSolution(problemDescription, solutionSteps) {
-                    try {
-                        const response = await fetch('/jav/create-playbook', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                problem_description: problemDescription,
-                                solution_steps: solutionSteps,
-                                success: true
-                            })
-                        });
-
-                        const result = await response.json();
-
-                        if (result.status === 'success') {
-                            this.addConversationMessage({
-                                type: 'playbook_created',
-                                content: `🤖 **New Automation Created**: ${result.playbook.name}\n\nThis solution will be available for similar problems in the future.`,
-                                timestamp: new Date().toISOString(),
-                                metadata: { playbook_id: result.playbook.id }
-                            });
-
-                            // Refresh suggestions to include new automations
-                            await this.loadSmartSuggestions();
-                        }
-
-                        return result;
-                    } catch (error) {
-                        console.error('Failed to create automation:', error);
-                        return { status: 'error', error: error.message };
-                    }
-                },
-
-                // Load system health and memory status
-                async loadSystemHealth() {
-                    try {
-                        const response = await fetch('/health');
-                        const health = await response.json();
-
-                        this.systemHealth = health.status || 'unknown';
-                        this.hasErrors = health.status === 'unhealthy' || health.status === 'error';
-                        this.hasWarnings = health.status === 'degraded';
-                    } catch (error) {
-                        console.error('Health check failed:', error);
-                        this.systemHealth = 'offline';
-                        this.hasErrors = true;
-                    }
-                },
-
-                // Load memory brain data
-                async loadMemoryBrain() {
-                    try {
-                        const response = await fetch('/memory?limit=20');
-                        const data = await response.json();
-
-                        this.totalMemories = data.memories?.length || 0;
-
-                        // Transform memories into studio items
-                        this.studioItems = (data.memories || []).map(memory => ({
-                            id: memory.timestamp || Date.now(),
-                            title: memory.topic || 'Untitled Memory',
-                            preview: memory.input?.substring(0, 80) + '...' || 'No preview',
-                            icon: this.getMemoryIcon(memory.type),
-                            timeAgo: this.getTimeAgo(memory.timestamp),
-                            type: memory.type,
-                            memory: memory
-                        }));
-
-                        this.studioStatus = `Living brain with ${this.totalMemories} memories active`;
-                    } catch (error) {
-                        console.error('Failed to load memory brain:', error);
-                        this.studioStatus = 'Memory brain offline - working in isolation mode';
-                    }
-                },
-
-                // Load conversation history from memories
-                async loadConversationHistory() {
-                    try {
-                        const response = await fetch('/memory?category=conversation&limit=10');
-                        const data = await response.json();
-
-                        this.conversationHistory = (data.memories || [])
-                            .filter(m => m.category === 'conversation')
-                            .map(memory => ({
-                                id: memory.timestamp,
-                                role: memory.type === 'user_input' ? 'user' : 'assistant',
-                                content: memory.output || memory.input,
-                                timestamp: this.formatTimestamp(memory.timestamp),
-                                implementations: memory.implementations || [],
-                                interventions: memory.interventions || []
-                            }));
-                    } catch (error) {
-                        console.error('Failed to load conversation history:', error);
-                    }
-                },
-
-                // Start creative session
-                startCreativeSession() {
-                    this.codeInsight = {
-                        title: 'Welcome to Jav Studio',
-                        message: 'Your memory-driven creative workspace is ready. Every conversation, idea, and implementation will be remembered and connected.'
+                startFirstMission(type) {
+                    const missions = {
+                        'web app': "I want to build a web application. Can you help me brainstorm the features and get started?",
+                        'analyze code': "Can you review my code and suggest improvements? I'd love to learn best practices.",
+                        'creative project': "I have a creative project in mind. Let's brainstorm and turn it into reality!"
                     };
+                    
+                    this.chatMessage = missions[type];
+                    this.completeOnboarding();
+                    setTimeout(() => {
+                        this.sendMessage();
+                    }, 500);
+                },
 
+                completeOnboarding() {
+                    this.showOnboarding = false;
+                    localStorage.setItem('jav-studio-visited', 'true');
+                    this.isFirstVisit = false;
+                    
+                    // Show coach mark for input
+                    setTimeout(() => {
+                        this.showCoachMark = true;
+                        setTimeout(() => {
+                            this.showCoachMark = false;
+                        }, 5000);
+                    }, 1000);
+                },
+
+                // Jav Personality Methods
+                javSpeaks() {
+                    const randomMessage = this.javMessages[Math.floor(Math.random() * this.javMessages.length)];
+                    this.javCurrentMessage = randomMessage;
+                    this.javSpeechBubble = true;
+                    
+                    setTimeout(() => {
+                        this.javSpeechBubble = false;
+                    }, 3000);
+                },
+
+                // Quick Start Methods
+                quickStart(intent) {
+                    const quickStartMessages = {
+                        'project idea': "I have a project idea I'd like to explore. Can you help me brainstorm and plan it out?",
+                        'review code': "Can you review my current code and suggest improvements or optimizations?",
+                        'learn something': "I want to learn something new in programming. What would you recommend?",
+                        'debug issue': "I'm running into an issue with my code. Can you help me debug it?"
+                    };
+                    
+                    this.chatMessage = quickStartMessages[intent];
+                    setTimeout(() => {
+                        this.sendMessage();
+                    }, 100);
+                },
+
+                startCreativeSession() {
                     this.conversationHistory.push({
                         id: Date.now(),
                         role: 'assistant',
-                        content: '🌟 Welcome to your creative workspace! I\'m Jav, your memory-driven AI partner. I remember everything we build together, so we can compound our creativity session after session.\n\nWhat would you like to create today?',
+                        content: '🌟 **Welcome to your creative workspace!** I\'m Jav, your memory-driven AI partner.\n\nI remember everything we build together, so we can compound our creativity session after session. Every conversation becomes part of our shared journey!\n\n✨ **What would you like to create today?**',
                         timestamp: this.formatTimestamp(new Date().toISOString())
                     });
 
                     this.scrollToBottom();
+                    this.setupContextualSuggestions();
                 },
 
-                // Send message to Jav
+                // Inspiration Examples
+                tryExample(type) {
+                    const examples = {
+                        'build-flask-app': "Help me build a Flask web application with user authentication and a dashboard.",
+                        'ai-code-review': "Can you review my Python code and suggest improvements for performance and readability?",
+                        'data-analysis': "I have a dataset I'd like to analyze. Can you help me create visualizations and insights?",
+                        'api-design': "Help me design a RESTful API for a task management application."
+                    };
+                    
+                    this.chatMessage = examples[type];
+                    this.showInspiration = false;
+                    setTimeout(() => {
+                        this.sendMessage();
+                    }, 300);
+                },
+
+                // Enhanced Input Handling
+                onInputFocus() {
+                    this.setupContextualSuggestions();
+                },
+
+                setupContextualSuggestions() {
+                    // Dynamic suggestions based on context
+                    if (this.conversationHistory.length === 0) {
+                        this.contextualSuggestions = [
+                            { id: 1, icon: "💡", text: "Brainstorm ideas" },
+                            { id: 2, icon: "🔍", text: "Review code" },
+                            { id: 3, icon: "🚀", text: "Build something" },
+                            { id: 4, icon: "📚", text: "Learn together" }
+                        ];
+                    } else {
+                        this.contextualSuggestions = [
+                            { id: 5, icon: "✨", text: "Improve this" },
+                            { id: 6, icon: "🔄", text: "Try alternative" },
+                            { id: 7, icon: "🎯", text: "Add feature" },
+                            { id: 8, icon: "🔧", text: "Debug issue" }
+                        ];
+                    }
+                },
+
+                applySuggestion(suggestion) {
+                    const suggestionTexts = {
+                        1: "I'd like to brainstorm some project ideas. What's possible?",
+                        2: "Can you review my code and suggest improvements?",
+                        3: "Help me build something cool! I'm open to ideas.",
+                        4: "I want to learn something new. What do you recommend?",
+                        5: "How can we improve what we just built?",
+                        6: "Is there a different approach we could try?",
+                        7: "What new features could we add to this?",
+                        8: "I'm running into an issue. Can you help debug it?"
+                    };
+                    
+                    this.chatMessage = suggestionTexts[suggestion.id];
+                    setTimeout(() => {
+                        this.sendMessage();
+                    }, 100);
+                },
+
+                // Enhanced Message Sending
                 async sendMessage() {
                     if (!this.chatMessage.trim() || this.javTyping) return;
 
                     const userMessage = this.chatMessage.trim();
                     this.chatMessage = '';
 
-                    // Add user message to history
+                    // Add user message
                     this.conversationHistory.push({
                         id: Date.now(),
                         role: 'user',
@@ -593,9 +839,12 @@
 
                     this.scrollToBottom();
                     this.javTyping = true;
+                    this.javIsThinking = true;
+
+                    // Update Jav's mood
+                    this.javMood = "Processing your brilliant idea... 🤔";
 
                     try {
-                        // Send to Jav AI endpoint
                         const response = await fetch('/jav/chat', {
                             method: 'POST',
                             headers: {
@@ -610,20 +859,21 @@
                         const result = await response.json();
 
                         if (result.status === 'success') {
-                            // Add Jav's response
                             this.conversationHistory.push({
                                 id: Date.now() + 1,
                                 role: 'assistant',
-                                content: result.response.message || result.response,
+                                content: result.response?.message || result.message,
                                 timestamp: this.formatTimestamp(new Date().toISOString()),
-                                implementations: result.response.implementations || [],
-                                interventions: result.response.interventions || []
+                                implementations: result.response?.implementations || []
                             });
 
                             // Check for implementations
-                            if (result.response.implementations && result.response.implementations.length > 0) {
+                            if (result.response?.implementations?.length > 0) {
                                 this.activeImplementation = result.response.implementations[0];
                             }
+
+                            // Update Jav's mood
+                            this.javMood = "That was fun! What's next? ✨";
                         } else {
                             throw new Error(result.error || 'Unknown error');
                         }
@@ -632,84 +882,34 @@
                         this.conversationHistory.push({
                             id: Date.now() + 1,
                             role: 'assistant',
-                            content: `I encountered an error: ${error.message}. But don't worry - I'm still here and our conversation is being saved to memory for next time!`,
+                            content: `I encountered an issue: ${error.message}. But don't worry - our conversation is being saved to memory for next time! 💾`,
                             timestamp: this.formatTimestamp(new Date().toISOString())
                         });
+                        this.javMood = "Oops! But I'm still here for you! 💪";
                     } finally {
                         this.javTyping = false;
+                        this.javIsThinking = false;
                         this.scrollToBottom();
-                        await this.loadMemoryBrain(); // Refresh memory brain
+                        await this.loadMemoryBrain();
+                        this.setupContextualSuggestions();
                     }
                 },
 
-                // Handle Enter key
-                handleEnter(event) {
-                    if (event.ctrlKey || event.metaKey) {
-                        this.sendMessage();
-                    }
+                // Implementation Methods
+                implementCode(impl) {
+                    this.activeImplementation = impl;
                 },
 
-                // Handle input changes
-                handleInput() {
-                    // Limit message length
-                    if (this.chatMessage.length > 500) {
-                        this.chatMessage = this.chatMessage.substring(0, 500);
-                    }
+                previewCode(impl) {
+                    console.log('Previewing implementation:', impl);
+                    // Show code preview modal
                 },
 
-                // Handle drag and drop
-                handleDrop(event) {
-                    this.dragActive = false;
-                    const files = Array.from(event.dataTransfer.files);
-                    const text = event.dataTransfer.getData('text');
-
-                    if (files.length > 0) {
-                        this.handleFilesDrop(files);
-                    } else if (text) {
-                        this.handleTextDrop(text);
-                    }
-                },
-
-                // Handle dropped files
-                async handleFilesDrop(files) {
-                    for (const file of files) {
-                        const text = await file.text();
-                        this.chatMessage = `Analyze this ${file.name} file:\n\`\`\`\n${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}\n\`\`\``;
-                        break; // Handle first file only for now
-                    }
-                },
-
-                // Handle dropped text
-                handleTextDrop(text) {
-                    this.chatMessage = `Help me with this: ${text}`;
-                },
-
-                // Focus on a memory
-                focusMemory(item) {
-                    this.codeInsight = {
-                        title: `Memory: ${item.title}`,
-                        message: `Reviewing memory from ${item.timeAgo}. This will inform our current conversation.`
-                    };
-
-                    // Add memory context to conversation
-                    this.conversationHistory.push({
-                        id: Date.now(),
-                        role: 'assistant',
-                        content: `📚 I'm reviewing this memory: "${item.title}"\n\nOriginal context: ${item.memory.input}\n\nHow does this relate to what we're working on now?`,
-                        timestamp: this.formatTimestamp(new Date().toISOString())
-                    });
-
-                    this.scrollToBottom();
-                },
-
-                // Implementation functions
                 async applyImplementation() {
                     if (!this.activeImplementation) return;
 
-                    // Here you would integrate with Replit's file system
                     console.log('Applying implementation:', this.activeImplementation);
 
-                    // Add to history
                     this.implementationHistory.unshift({
                         ...this.activeImplementation,
                         appliedAt: new Date().toISOString()
@@ -717,36 +917,107 @@
 
                     this.activeImplementation = null;
 
-                    // Show success message
                     this.conversationHistory.push({
                         id: Date.now(),
                         role: 'assistant',
-                        content: '✅ Implementation applied! The changes have been integrated into your project and saved to memory.',
+                        content: '✅ **Implementation applied!** The changes have been integrated and saved to memory. Ready for the next iteration! 🚀',
                         timestamp: this.formatTimestamp(new Date().toISOString())
                     });
 
                     this.scrollToBottom();
                 },
 
-                previewImplementation() {
-                    // Show diff preview
-                    console.log('Previewing implementation:', this.activeImplementation);
+                // System Methods
+                async loadMemoryBrain() {
+                    try {
+                        const response = await fetch('/memory?limit=20');
+                        const data = await response.json();
+
+                        this.totalMemories = data.memories?.length || 0;
+
+                        this.studioItems = (data.memories || []).map(memory => ({
+                            id: memory.timestamp || Date.now(),
+                            title: memory.topic || 'Untitled Memory',
+                            preview: memory.input?.substring(0, 80) + '...' || 'No preview',
+                            icon: this.getMemoryIcon(memory.type),
+                            timeAgo: this.getTimeAgo(memory.timestamp),
+                            type: memory.type,
+                            memory: memory
+                        }));
+
+                        this.studioStatus = `Living brain with ${this.totalMemories} memories active ✨`;
+                    } catch (error) {
+                        console.error('Failed to load memory brain:', error);
+                        this.studioStatus = 'Memory brain offline - working in isolation mode';
+                    }
                 },
 
-                editImplementation() {
-                    // Open implementation for editing
-                    console.log('Editing implementation:', this.activeImplementation);
+                async checkSystemHealth() {
+                    try {
+                        const response = await fetch('/health');
+                        const health = await response.json();
+
+                        this.systemHealth = health.status || 'unknown';
+                        this.hasErrors = health.status === 'unhealthy' || health.status === 'error';
+                        this.hasWarnings = health.status === 'degraded';
+                    } catch (error) {
+                        console.error('Health check failed:', error);
+                        this.systemHealth = 'offline';
+                        this.hasErrors = true;
+                    }
                 },
 
-                implementCode(impl) {
-                    this.activeImplementation = impl;
+                async registerProject() {
+                    try {
+                        const response = await fetch('/jav/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                project_name: 'creative-studio-project',
+                                project_type: 'interactive_workspace'
+                            })
+                        });
+
+                        const result = await response.json();
+                        console.log('Project registered:', result);
+                    } catch (error) {
+                        console.error('Failed to register project:', error);
+                    }
                 },
 
-                reviewImplementation(impl) {
-                    this.activeImplementation = impl;
+                setupPeriodicUpdates() {
+                    setInterval(() => {
+                        this.checkSystemHealth();
+                        this.loadMemoryBrain();
+                    }, 30000);
                 },
 
-                // Utility functions
+                // Utility Methods
+                handleEnter(event) {
+                    if (event.ctrlKey || event.metaKey) {
+                        this.sendMessage();
+                    }
+                },
+
+                handleInput() {
+                    if (this.chatMessage.length > 500) {
+                        this.chatMessage = this.chatMessage.substring(0, 500);
+                    }
+                },
+
+                focusMemory(item) {
+                    this.conversationHistory.push({
+                        id: Date.now(),
+                        role: 'assistant',
+                        content: `📚 **Reviewing memory: "${item.title}"**\n\nOriginal context: ${item.memory.input}\n\nThis memory from ${item.timeAgo} might inform our current work. How does this relate to what we're building now?`,
+                        timestamp: this.formatTimestamp(new Date().toISOString())
+                    });
+
+                    this.scrollToBottom();
+                },
+
                 getMemoryIcon(type) {
                     const icons = {
                         'SystemUpdate': '⚙️',
@@ -767,7 +1038,8 @@
                     const time = new Date(timestamp);
                     const diff = now - time;
                     const minutes = Math.floor(diff / 60000);
-                    const hours = Math.floor(diff / 24);
+                    const hours = Math.floor(diff / 3600000);
+                    const days = Math.floor(diff / 86400000);
 
                     if (days > 0) return `${days}d ago`;
                     if (hours > 0) return `${hours}h ago`;
@@ -786,223 +1058,9 @@
                             container.scrollTop = container.scrollHeight;
                         }
                     });
-                },
-
-                showWelcomeInsight() {
-                    setTimeout(() => {
-                        if (this.conversationHistory.length === 0) {
-                            this.codeInsight = {
-                                title: 'Your Living Project Brain is Active',
-                                message: 'Every conversation, decision, and creative breakthrough will be captured and connected. Start building!'
-                            };
-                        }
-                    }, 2000);
-                },
-
-                // Periodic updates
-                startPeriodicUpdates() {
-                    setInterval(() => {
-                        this.loadSystemHealth();
-                        this.loadMemoryBrain();
-                    }, 30000); // Every 30 seconds
-                },
-
-                async registerProject() {
-                    try {
-                        const response = await fetch('/jav/register', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                project_name: 'current-replit-project',
-                                project_type: 'web_development'
-                            })
-                        });
-
-                        const result = await response.json();
-                        console.log('Project registered:', result);
-                    } catch (error) {
-                        console.error('Failed to register project:', error);
-                    }
-                },
-
-                async checkSystemHealth() {
-                    try {
-                        const response = await fetch('/health');
-                        const health = await response.json();
-
-                        this.systemHealth = health.status || 'unknown';
-                        this.hasErrors = health.status === 'unhealthy' || health.status === 'error';
-                        this.hasWarnings = health.status === 'degraded';
-                    } catch (error) {
-                        console.error('Health check failed:', error);
-                        this.systemHealth = 'offline';
-                        this.hasErrors = true;
-                    }
-                },
-
-                setupPeriodicUpdates() {
-                    setInterval(() => {
-                        this.checkSystemHealth();
-                        this.loadMemoryBrain();
-                        this.loadSmartSuggestions();
-                    }, 30000); // Every 30 seconds
-                },
-
-                addConversationMessage(message) {
-                    this.conversationHistory.push({
-                        id: Date.now(),
-                        role: 'assistant',
-                        content: message.content,
-                        timestamp: this.formatTimestamp(message.timestamp),
-                        type: message.type,
-                        metadata: message.metadata
-                    });
-
-                    this.scrollToBottom();
-                },
-
-                dismissIntervention(actionId) {
-                    console.log('Dismissing intervention:', actionId);
-                },
-
-                acceptIntervention(actionId) {
-                    console.log('Accepting intervention:', actionId);
-                },
-
-                escalateIntervention(actionId, level) {
-                    console.log('Escalating intervention:', actionId, 'to level:', level);
                 }
             };
         }
-
-        function respondToSuggestion(suggestionId, response) {
-            console.log('Responding to suggestion:', suggestionId, 'with:', response);
-
-            // Send response to backend
-            fetch('/jav/suggestion-response', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    suggestion_id: suggestionId,
-                    response: response
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Remove the suggestion from UI
-                    const suggestionElement = document.getElementById(`suggestion-item-${suggestionId}`);
-                    if (suggestionElement) {
-                        suggestionElement.style.opacity = '0.5';
-                        suggestionElement.innerHTML = `
-                            <div class="text-center text-green-400">
-                                ✓ Response "${response}" recorded and learning updated
-                            </div>
-                        `;
-                        setTimeout(() => suggestionElement.remove(), 2000);
-                    }
-
-                    // Show any learning updates
-                    if (data.result.pattern_learned) {
-                        showTemporaryMessage('🧠 Pattern learned! Future suggestions will be improved.', 'success');
-                    }
-                    if (data.result.updated_preferences) {
-                        showTemporaryMessage('⚙️ Preferences updated based on your response.', 'info');
-                    }
-                } else {
-                    showTemporaryMessage('Error processing response: ' + data.error, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showTemporaryMessage('Failed to process response', 'error');
-            });
-        }
-
-        function showSuggestionReasoning(suggestionId) {
-            fetch(`/jav/suggestion-reasoning/${suggestionId}`)
-            .then(response => response.json())
-            .then(data => {
-                // Show reasoning in a modal or detailed view
-                const modal = document.createElement('div');
-                modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50';
-                modal.innerHTML = `
-                    <div class="bg-white/20 backdrop-blur-lg rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto border border-white/30">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold text-white">💡 Why This Suggestion?</h3>
-                            <button onclick="this.closest('.fixed').remove()" 
-                                    class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                        </div>
-
-                        <div class="space-y-4 text-sm">
-                            <div>
-                                <h4 class="font-semibold text-white mb-2">Memory Source:</h4>
-                                <p class="text-gray-300">${data.reasoning?.memory_source || 'Based on learned patterns'}</p>
-                            </div>
-
-                            <div>
-                                <h4 class="font-semibold text-white mb-2">Pattern Analysis:</h4>
-                                <p class="text-gray-300">${JSON.stringify(data.reasoning?.pattern_analysis || {}, null, 2)}</p>
-                            </div>
-
-                            <div>
-                                <h4 class="font-semibold text-white mb-2">Your History:</h4>
-                                <p class="text-gray-300">${JSON.stringify(data.reasoning?.user_history || {}, null, 2)}</p>
-                            </div>
-
-                            <div class="pt-4 border-t border-white/20">
-                                <p class="text-xs text-gray-400">
-                                    This suggestion can be edited or disabled in your preferences.
-                                    All learning is based on your past responses and outcomes.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            })
-            .catch(error => {
-                console.error('Error fetching reasoning:', error);
-                showTemporaryMessage('Failed to load reasoning', 'error');
-            });
-        }
-
-        function editAutomation(playbookId) {
-            console.log('Editing automation:', playbookId);
-            // Implementation for editing automation
-            showTemporaryMessage('Automation editing feature coming soon!', 'info');
-        }
-
-        function createAutomation(suggestionId) {
-            console.log('Creating automation from suggestion:', suggestionId);
-            // Implementation for creating automation
-            showTemporaryMessage('Automation creation feature coming soon!', 'info');
-        }
-
-        function showTemporaryMessage(message, type = 'info') {
-            const messageEl = document.createElement('div');
-            messageEl.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
-                type === 'success' ? 'bg-green-600' : 
-                type === 'error' ? 'bg-red-600' : 
-                'bg-blue-600'
-            }`;
-            messageEl.textContent = message;
-            document.body.appendChild(messageEl);
-
-            setTimeout(() => messageEl.remove(), 5000);
-        }
     </script>
-
-        <aside class="w-96 flex-none bg-slate-900 border-l border-slate-700">
-
-
-
-
-
-        </aside>
 </body>
 </html>
