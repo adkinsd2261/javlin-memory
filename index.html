@@ -1,123 +1,72 @@
 function memoryOS() {
             return {
                 // Core state
-                isLoading: true,
                 totalMemories: 0,
-                efficiencyScore: 85,
-                currentFocus: 'Loading system state...',
-                systemStatus: 'Initializing',
-                sessionId: this.generateSessionId(),
+                efficiencyScore: 0,
+                systemStatus: 'initializing',
+                sessionId: '',
+                currentFocus: 'System starting...',
+                successRate: '0%',
+                categories: {},
+                nextSteps: 'Loading system data...',
 
-                // Chat system
+                // Chat functionality
                 chatHistory: [],
                 currentMessage: '',
                 isTyping: false,
 
-                // Stats
-                successRate: '0%',
-                categories: {},
-                nextSteps: 'Analyzing workflow patterns...',
-
-                // Initialize the system
                 async init() {
                     console.log('🧠 MemoryOS initializing...');
                     await this.loadSystemData();
-                    await this.loadStats();
-                    this.startStatusUpdates();
-                    this.addWelcomeMessage();
+                    this.setupPeriodicUpdates();
                 },
 
-                // Load system data
                 async loadSystemData() {
                     try {
-                        const [healthResponse, statsResponse] = await Promise.all([
-                            fetch('/health'),
-                            fetch('/stats')
-                        ]);
+                        // Load stats
+                        const statsResponse = await fetch('/stats');
+                        const stats = await statsResponse.json();
 
-                        if (healthResponse.ok) {
-                            const health = await healthResponse.json();
-                            this.systemStatus = health.status;
-                            this.totalMemories = health.metrics?.memory_entries || 0;
+                        this.totalMemories = stats.total_memories || 0;
+                        this.successRate = stats.success_rate || '0%';
+                        this.categories = stats.categories || {};
+
+                        // Calculate efficiency score
+                        const successPercent = parseFloat(this.successRate.replace('%', ''));
+                        this.efficiencyScore = Math.min(Math.max(successPercent, 0), 100);
+
+                        // Load GPT status
+                        const gptResponse = await fetch('/gpt-status');
+                        const gptStatus = await gptResponse.json();
+
+                        this.systemStatus = gptStatus.system_status === 'online' ? 'operational' : 'degraded';
+                        this.sessionId = `SYS-${Date.now().toString().slice(-8)}`;
+
+                        // Set current focus
+                        if (this.totalMemories === 0) {
+                            this.currentFocus = 'Ready for first memory';
+                            this.nextSteps = 'System ready to receive data';
+                        } else {
+                            this.currentFocus = `Managing ${this.totalMemories} memories`;
+                            this.nextSteps = `${this.successRate} success rate`;
                         }
 
-                        if (statsResponse.ok) {
-                            const stats = await statsResponse.json();
-                            this.totalMemories = stats.total_memories;
-                            this.successRate = stats.success_rate;
-                            this.categories = stats.categories || {};
-                        }
-
-                        this.isLoading = false;
+                        console.log('✅ MemoryOS data loaded successfully');
                     } catch (error) {
-                        console.error('Error loading system data:', error);
-                        this.systemStatus = 'Error';
-                        this.isLoading = false;
+                        console.error('❌ Failed to load system data:', error);
+                        this.systemStatus = 'error';
+                        this.currentFocus = 'System offline';
+                        this.nextSteps = 'Check system health';
                     }
                 },
 
-                // Load stats and update UI
-                async loadStats() {
-                    this.updateFocus();
-                    this.updateNextSteps();
-                },
-
-                // Generate session ID
-                generateSessionId() {
-                    return Math.random().toString(36).substring(2, 15);
-                },
-
-                // Update current focus
-                updateFocus() {
-                    const focuses = [
-                        'Optimizing memory consolidation patterns',
-                        'Analyzing workflow efficiency metrics',
-                        'Processing background context updates',
-                        'Monitoring system health indicators',
-                        'Developing advanced AI co-founder capabilities',
-                        'Implementing sophisticated workflow automation'
-                    ];
-
-                    if (Math.random() > 0.8) {
-                        this.currentFocus = focuses[Math.floor(Math.random() * focuses.length)];
-                    }
-                },
-
-                // Update next steps
-                updateNextSteps() {
-                    const steps = [
-                        'Review recent memory patterns for optimization opportunities',
-                        'Implement advanced context-aware logging mechanisms',
-                        'Enhance AI-driven workflow recommendations',
-                        'Optimize memory categorization algorithms',
-                        'Develop predictive efficiency scoring models'
-                    ];
-
-                    this.nextSteps = steps[Math.floor(Math.random() * steps.length)];
-                },
-
-                // Start periodic updates
-                startStatusUpdates() {
+                setupPeriodicUpdates() {
+                    // Refresh data every 30 seconds
                     setInterval(() => {
-                        this.updateFocus();
-                        this.efficiencyScore = Math.min(100, this.efficiencyScore + Math.floor(Math.random() * 3 - 1));
-                        if (Math.random() > 0.7) {
-                            this.updateNextSteps();
-                        }
-                    }, 5000);
+                        this.loadSystemData();
+                    }, 30000);
                 },
 
-                // Add welcome message
-                addWelcomeMessage() {
-                    this.chatHistory.push({
-                        id: Date.now(),
-                        type: 'ai',
-                        content: '🧠 MemoryOS initialized successfully. I\'m your AI co-founder, ready to analyze patterns, suggest optimizations, and help you build more efficiently. What would you like to explore?',
-                        timestamp: new Date().toLocaleTimeString()
-                    });
-                },
-
-                // Send message
                 async sendMessage() {
                     if (!this.currentMessage.trim() || this.isTyping) return;
 
@@ -132,46 +81,37 @@ function memoryOS() {
                     this.currentMessage = '';
                     this.isTyping = true;
 
-                    // Simulate AI response
-                    setTimeout(() => {
-                        const responses = [
-                            `Based on your memory patterns, I notice you're working on ${this.getMostActiveCategory()}. Would you like me to analyze efficiency opportunities?`,
-                            `Your current workflow shows ${this.successRate} success rate. I can suggest optimizations to improve this.`,
-                            `I've been monitoring your development patterns. Let me share some insights about your recent progress.`,
-                            `Analyzing your question in context of ${this.totalMemories} memories. Here's what I found...`
-                        ];
+                    try {
+                        const response = await fetch('/ai/query', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ input: userMessage })
+                        });
+
+                        const result = await response.json();
 
                         this.chatHistory.push({
-                            id: Date.now(),
-                            type: 'ai',
-                            content: responses[Math.floor(Math.random() * responses.length)],
+                            id: Date.now() + 1,
+                            type: 'assistant',
+                            content: result.ai_response?.response || result.error || 'No response received',
                             timestamp: new Date().toLocaleTimeString()
                         });
 
-                        this.isTyping = false;
+                        // Scroll to bottom
                         this.$nextTick(() => {
                             this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
                         });
-                    }, 2000);
 
-                    this.$nextTick(() => {
-                        this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
-                    });
-                },
-
-                // Get most active category
-                getMostActiveCategory() {
-                    let maxCount = 0;
-                    let maxCategory = 'system';
-
-                    Object.entries(this.categories).forEach(([cat, count]) => {
-                        if (count > maxCount) {
-                            maxCount = count;
-                            maxCategory = cat;
-                        }
-                    });
-
-                    return maxCategory;
+                    } catch (error) {
+                        this.chatHistory.push({
+                            id: Date.now() + 1,
+                            type: 'system',
+                            content: `Error: ${error.message}`,
+                            timestamp: new Date().toLocaleTimeString()
+                        });
+                    } finally {
+                        this.isTyping = false;
+                    }
                 }
             };
         }
