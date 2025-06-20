@@ -39,7 +39,7 @@ function memoryOS() {
                         const gptResponse = await fetch('/gpt-status');
                         const gptData = await gptResponse.json();
                         
-                        this.systemStatus = gptData.system_status || 'online';
+                        this.systemStatus = gptData.system_status === 'online' ? 'operational' : 'degraded';
                         this.sessionId = Date.now().toString();
                         this.currentFocus = gptData.message || 'Ready';
                         this.nextSteps = 'System operational';
@@ -74,13 +74,19 @@ function memoryOS() {
                     this.isTyping = true;
 
                     try {
-                        // Mock AI response for now
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        // Send to AI endpoint
+                        const response = await fetch('/ai/query', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({input: userMessage})
+                        });
+                        
+                        const result = await response.json();
                         
                         this.chatHistory.push({
                             id: Date.now() + 1,
                             type: 'assistant',
-                            content: `I received: "${userMessage}". This is a demo response.`,
+                            content: result.ai_response?.response || result.error || 'No response',
                             timestamp: new Date().toLocaleTimeString()
                         });
 
@@ -88,7 +94,7 @@ function memoryOS() {
                         this.chatHistory.push({
                             id: Date.now() + 2,
                             type: 'error',
-                            content: 'Failed to get response',
+                            content: 'Failed to get AI response',
                             timestamp: new Date().toLocaleTimeString()
                         });
                     } finally {
@@ -102,10 +108,7 @@ function memoryOS() {
                     }
                 }
             };
-        }ch('/gpt-status');
-                        const gptStatus = await gptResponse.json();
-
-                        this.systemStatus = gptStatus.system_status === 'online' ? 'operational' : 'degraded';
+        }
                         this.sessionId = `SYS-${Date.now().toString().slice(-8)}`;
 
                         // Set current focus
