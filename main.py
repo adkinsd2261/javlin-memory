@@ -817,6 +817,316 @@ def cross_project_insights():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
+@app.route('/bible/deviations')
+def get_bible_deviations():
+    """Get tracked bible deviations"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        bible_file = request.args.get('bible_file')
+        section = request.args.get('section')
+        
+        deviations = bible_evolution.deviations
+        
+        # Filter if requested
+        if bible_file:
+            deviations = [d for d in deviations if d.bible_file == bible_file]
+        if section:
+            deviations = [d for d in deviations if d.section == section]
+        
+        # Convert to dict for JSON serialization
+        deviations_data = [
+            {
+                "id": d.id,
+                "bible_file": d.bible_file,
+                "section": d.section,
+                "documented_process": d.documented_process,
+                "actual_process": d.actual_process,
+                "frequency": d.frequency,
+                "first_seen": d.first_seen,
+                "last_seen": d.last_seen,
+                "success_rate": d.success_rate,
+                "user_approved": d.user_approved,
+                "override_reason": d.override_reason
+            }
+            for d in deviations
+        ]
+        
+        return jsonify({
+            "deviations": deviations_data,
+            "total": len(deviations_data),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Bible deviations error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/track-deviation', methods=['POST'])
+def track_bible_deviation():
+    """Track a new bible deviation"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Request data required"}), 400
+        
+        required_fields = ["bible_file", "section", "documented_process", "actual_process", "context"]
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        deviation_id = bible_evolution.track_deviation(
+            bible_file=data["bible_file"],
+            section=data["section"],
+            documented_process=data["documented_process"],
+            actual_process=data["actual_process"],
+            context=data["context"],
+            override_reason=data.get("override_reason")
+        )
+        
+        return jsonify({
+            "status": "success",
+            "deviation_id": deviation_id,
+            "message": "Deviation tracked successfully",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Track deviation error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/analyze-patterns')
+def analyze_bible_patterns():
+    """Analyze deviation patterns for amendment suggestions"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        analysis = bible_evolution.analyze_deviation_patterns()
+        
+        return jsonify({
+            "analysis": analysis,
+            "summary": {
+                "high_frequency_count": len(analysis["high_frequency_deviations"]),
+                "successful_overrides_count": len(analysis["successful_overrides"]),
+                "systematic_drift_count": len(analysis["systematic_drift"])
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Analyze patterns error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/propose-amendment', methods=['POST'])
+def propose_bible_amendment():
+    """Propose an amendment to bible documentation"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Request data required"}), 400
+        
+        required_fields = ["bible_file", "section", "current_text", "proposed_text", "reasoning"]
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        amendment_id = bible_evolution.propose_amendment(
+            bible_file=data["bible_file"],
+            section=data["section"],
+            current_text=data["current_text"],
+            proposed_text=data["proposed_text"],
+            reasoning=data["reasoning"],
+            supporting_deviations=data.get("supporting_deviations", [])
+        )
+        
+        return jsonify({
+            "status": "success",
+            "amendment_id": amendment_id,
+            "message": "Amendment proposed successfully",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Propose amendment error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/review-session')
+def generate_bible_review_session():
+    """Generate comprehensive bible review session"""
+    try:
+        from bible_integration import bible_integration
+        
+        review_session = bible_integration.generate_team_review_session()
+        
+        return jsonify({
+            "review_session": review_session,
+            "status": "generated",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Review session error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/amendments')
+def get_bible_amendments():
+    """Get proposed bible amendments"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        status_filter = request.args.get('status')  # draft, reviewed, approved, etc.
+        
+        amendments = bible_evolution.amendments
+        
+        if status_filter:
+            amendments = [a for a in amendments if a.status == status_filter]
+        
+        amendments_data = [
+            {
+                "id": a.id,
+                "bible_file": a.bible_file,
+                "section": a.section,
+                "current_text": a.current_text[:200] + "..." if len(a.current_text) > 200 else a.current_text,
+                "proposed_text": a.proposed_text[:200] + "..." if len(a.proposed_text) > 200 else a.proposed_text,
+                "reasoning": a.reasoning,
+                "confidence": a.confidence,
+                "status": a.status,
+                "created_at": a.created_at,
+                "supporting_deviations_count": len(a.supporting_deviations)
+            }
+            for a in amendments
+        ]
+        
+        return jsonify({
+            "amendments": amendments_data,
+            "total": len(amendments_data),
+            "by_status": {
+                "draft": len([a for a in amendments if a.status == "draft"]),
+                "reviewed": len([a for a in amendments if a.status == "reviewed"]),
+                "approved": len([a for a in amendments if a.status == "approved"]),
+                "implemented": len([a for a in amendments if a.status == "implemented"])
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Get amendments error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/onboarding-brief')
+def get_onboarding_brief():
+    """Get onboarding brief for new users"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        user_type = request.args.get('user_type', 'new_user')
+        
+        brief = bible_evolution.generate_onboarding_brief(user_type)
+        
+        return jsonify({
+            "onboarding_brief": brief,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Onboarding brief error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/compliance-report')
+def get_compliance_report():
+    """Get bible compliance report"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        bible_file = request.args.get('bible_file', 'AGENT_BIBLE.md')
+        
+        compliance_report = bible_evolution.monitor_compliance(bible_file)
+        
+        return jsonify({
+            "compliance_report": compliance_report,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Compliance report error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/bible/versions')
+def get_bible_versions():
+    """Get bible version history"""
+    try:
+        from bible_evolution_engine import bible_evolution
+        
+        bible_file = request.args.get('bible_file')
+        
+        versions = bible_evolution.versions
+        
+        if bible_file:
+            versions = [v for v in versions if v.bible_file == bible_file]
+        
+        versions_data = [
+            {
+                "version": v.version,
+                "bible_file": v.bible_file,
+                "changes": v.changes,
+                "changelog": v.changelog,
+                "created_at": v.created_at,
+                "prompted_by": v.prompted_by,
+                "context_sessions": v.context_sessions
+            }
+            for v in versions
+        ]
+        
+        return jsonify({
+            "versions": versions_data,
+            "total": len(versions_data),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Get versions error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
 @app.route('/product/audit')
 def product_audit():
     """Comprehensive product audit for strategic analysis"""

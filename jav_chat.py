@@ -1,4 +1,3 @@
-
 """
 Jav Chat Interface - Workspace Command Processor
 Handles workspace-specific commands and integrates with the builder UI
@@ -19,7 +18,7 @@ class JavChat:
     Chat interface for Jav workspace commands
     Processes builder-specific commands and maintains workspace state
     """
-    
+
     def __init__(self, jav_agent):
         self.jav = jav_agent
         self.logger = logging.getLogger('JavChat')
@@ -30,13 +29,13 @@ class JavChat:
             "last_build": None,
             "last_deploy": None
         }
-        
+
     def process_command(self, command: str) -> Dict[str, Any]:
         """
         Process workspace commands and return structured responses
         """
         command = command.strip().lower()
-        
+
         # File operations
         if command.startswith('open '):
             return self.handle_file_open(command[5:])
@@ -46,7 +45,7 @@ class JavChat:
             return self.handle_file_create(command[7:])
         elif command.startswith('delete '):
             return self.handle_file_delete(command[7:])
-            
+
         # Project operations
         elif command == 'run' or command.startswith('run '):
             return self.handle_run_project(command)
@@ -56,7 +55,7 @@ class JavChat:
             return self.handle_deploy_project()
         elif command == 'test':
             return self.handle_run_tests()
-            
+
         # System operations
         elif command == 'health' or command == 'status':
             return self.handle_health_check()
@@ -66,46 +65,46 @@ class JavChat:
             return self.handle_memory_summary()
         elif command == 'audit':
             return self.handle_workspace_audit()
-            
+
         # File system operations
         elif command == 'ls' or command == 'files':
             return self.handle_list_files()
         elif command == 'pwd':
             return self.handle_current_directory()
-            
+
         # Git operations
         elif command.startswith('git '):
             return self.handle_git_command(command[4:])
-            
+
         # Jav-specific commands
         elif command == 'workflows':
             return self.handle_list_workflows()
         elif command.startswith('workflow '):
             return self.handle_run_workflow(command[9:])
-            
+
         # AI integration
         elif command.startswith('ai '):
             return self.handle_ai_query(command[3:])
-            
+
         # Help and information
         elif command == 'help':
             return self.handle_help()
         elif command == 'commands':
             return self.handle_list_commands()
-            
+
         # Process as general command
         else:
             return self.handle_general_command(command)
-    
+
     def handle_file_open(self, filename: str) -> Dict[str, Any]:
         """Handle file open commands"""
         try:
             if os.path.exists(filename):
                 with open(filename, 'r') as f:
                     content = f.read()
-                
+
                 self.workspace_state["open_files"].append(filename)
-                
+
                 return {
                     "type": "file_open",
                     "success": True,
@@ -126,17 +125,17 @@ class JavChat:
                 "success": False,
                 "message": f"Error opening {filename}: {str(e)}"
             }
-    
+
     def handle_file_save(self, args: str) -> Dict[str, Any]:
         """Handle file save commands"""
         parts = args.split(' ', 1)
         filename = parts[0]
         content = parts[1] if len(parts) > 1 else ""
-        
+
         try:
             with open(filename, 'w') as f:
                 f.write(content)
-            
+
             return {
                 "type": "file_save",
                 "success": True,
@@ -150,9 +149,9 @@ class JavChat:
 
     def handle_suggestion_response(self, suggestion_id: str, response: str, outcome: str = None) -> Dict[str, Any]:
         """Handle user response to suggestions with full transparency"""
-        
+
         result = self.jav_agent.process_user_response(suggestion_id, response, outcome)
-        
+
         # Create response with full transparency
         response_data = {
             "type": "suggestion_response",
@@ -165,26 +164,26 @@ class JavChat:
                 "preferences_updated": result.get("updated_preferences", False)
             }
         }
-        
+
         # Add explanation of what was learned
         if result.get("pattern_learned"):
             response_data["message"] += f"\n\n🧠 **Learning Update**: This automation pattern has been marked as successful and may be auto-suggested in similar contexts."
-            
+
         if result.get("updated_preferences"):
             response_data["message"] += f"\n\n⚙️ **Preference Update**: Your automation preferences have been updated based on this response."
-        
+
         # Show transparency link
         response_data["transparency"] = {
             "why_link": f"/jav/suggestion-reasoning/{suggestion_id}",
             "memory_source": "User response processed and learning patterns updated",
             "editable": True
         }
-        
+
         return response_data
-    
+
     def get_suggestion_reasoning(self, suggestion_id: str) -> Dict[str, Any]:
         """Get full reasoning and memory source for transparency"""
-        
+
         # This would query the memory system for the full context
         reasoning = {
             "suggestion_id": suggestion_id,
@@ -194,12 +193,12 @@ class JavChat:
             "confidence_factors": {},  # What contributed to confidence score
             "editable_rules": []  # Rules user can modify
         }
-        
+
         return reasoning
 
                 "message": f"Error saving {filename}: {str(e)}"
             }
-    
+
     def handle_file_create(self, filename: str) -> Dict[str, Any]:
         """Handle file creation commands"""
         try:
@@ -209,11 +208,11 @@ class JavChat:
                     "success": False,
                     "message": f"File already exists: {filename}"
                 }
-            
+
             # Create empty file
             with open(filename, 'w') as f:
                 f.write("")
-            
+
             return {
                 "type": "file_create",
                 "success": True,
@@ -226,7 +225,7 @@ class JavChat:
                 "success": False,
                 "message": f"Error creating {filename}: {str(e)}"
             }
-    
+
     def handle_run_project(self, command: str) -> Dict[str, Any]:
         """Handle run project commands"""
         try:
@@ -234,18 +233,18 @@ class JavChat:
                 # Kill existing processes
                 subprocess.run(['pkill', '-f', 'python.*main.py'], 
                              stderr=subprocess.DEVNULL)
-                
+
                 # Start new process
                 process = subprocess.Popen(['python', 'main.py'], 
                                          stdout=subprocess.PIPE, 
                                          stderr=subprocess.PIPE)
-                
+
                 self.workspace_state["running_processes"].append({
                     "pid": process.pid,
                     "command": "python main.py",
                     "started": datetime.now().isoformat()
                 })
-                
+
                 return {
                     "type": "run_project",
                     "success": True,
@@ -257,7 +256,7 @@ class JavChat:
                 # Handle other run commands
                 cmd_parts = command.split()[1:]  # Remove 'run'
                 result = subprocess.run(cmd_parts, capture_output=True, text=True)
-                
+
                 return {
                     "type": "command_result",
                     "success": result.returncode == 0,
@@ -271,16 +270,16 @@ class JavChat:
                 "success": False,
                 "message": f"Error running project: {str(e)}"
             }
-    
+
     def handle_health_check(self) -> Dict[str, Any]:
         """Handle health check commands"""
         try:
             # Run Jav health checks
             health_result = self.jav.run_health_checks()
-            
+
             # Get system status
             audit_result = asyncio.run(self.jav.audit_current_state())
-            
+
             return {
                 "type": "health_check",
                 "success": True,
@@ -295,7 +294,7 @@ class JavChat:
                 "success": False,
                 "message": f"Health check failed: {str(e)}"
             }
-    
+
     def handle_memory_summary(self) -> Dict[str, Any]:
         """Handle memory summary commands"""
         try:
@@ -320,7 +319,7 @@ class JavChat:
                 "success": False,
                 "message": f"Memory summary failed: {str(e)}"
             }
-    
+
     def handle_list_files(self) -> Dict[str, Any]:
         """Handle file listing commands"""
         try:
@@ -339,7 +338,7 @@ class JavChat:
                         "name": item,
                         "type": "directory"
                     })
-            
+
             return {
                 "type": "file_list",
                 "success": True,
@@ -353,12 +352,12 @@ class JavChat:
                 "success": False,
                 "message": f"Error listing files: {str(e)}"
             }
-    
+
     def handle_workspace_audit(self) -> Dict[str, Any]:
         """Handle workspace audit commands"""
         try:
             audit = asyncio.run(self.jav.audit_current_state())
-            
+
             # Add workspace-specific audit info
             workspace_audit = {
                 "jav_audit": audit,
@@ -369,7 +368,7 @@ class JavChat:
                 "documentation": [f for f in os.listdir('.') if f.endswith('.md')],
                 "timestamp": datetime.now().isoformat()
             }
-            
+
             return {
                 "type": "workspace_audit",
                 "success": True,
@@ -382,7 +381,7 @@ class JavChat:
                 "success": False,
                 "message": f"Workspace audit failed: {str(e)}"
             }
-    
+
     def handle_ai_query(self, query: str) -> Dict[str, Any]:
         """Handle AI integration queries"""
         try:
@@ -409,7 +408,7 @@ class JavChat:
                 "success": False,
                 "message": f"AI query error: {str(e)}"
             }
-    
+
     def handle_help(self) -> Dict[str, Any]:
         """Handle help commands"""
         help_text = """
@@ -445,19 +444,19 @@ Help:
 - help            - Show this help
 - commands        - List all commands
         """
-        
+
         return {
             "type": "help",
             "success": True,
             "help_text": help_text,
             "message": "Available commands listed"
         }
-    
+
     def handle_general_command(self, command: str) -> Dict[str, Any]:
         """Handle general shell commands"""
         try:
             result = subprocess.run(command.split(), capture_output=True, text=True, timeout=30)
-            
+
             return {
                 "type": "shell_command",
                 "success": result.returncode == 0,
@@ -542,7 +541,7 @@ Help:
                 with open('memoryos.log', 'r') as f:
                     lines = f.readlines()
                     logs = lines[-50:]  # Last 50 lines
-            
+
             return {
                 "type": "system_logs",
                 "success": True,
@@ -645,7 +644,7 @@ Help:
             "health", "status", "logs", "memory", "audit",
             "git", "workflows", "ai", "help", "commands"
         ]
-        
+
         return {
             "type": "command_list",
             "success": True,
@@ -668,12 +667,12 @@ class JavChat:
     Natural language interface for Jav agent
     Processes commands and provides contextual responses
     """
-    
+
     def __init__(self, jav_agent):
         self.jav = jav_agent
         self.logger = logging.getLogger('JavChat')
         self.conversation_history = []
-        
+
         # Command patterns
         self.command_patterns = {
             'health': [r'health', r'status', r'how.*doing', r'system.*ok'],
@@ -687,21 +686,21 @@ class JavChat:
             'todo': [r'todo', r'task', r'remind', r'track'],
             'rollback': [r'rollback', r'undo', r'revert', r'go.*back']
         }
-        
+
     def process_command(self, message: str) -> Dict[str, Any]:
         """Process natural language command and return structured response"""
         message_lower = message.lower().strip()
-        
+
         # Add to conversation history
         self.conversation_history.append({
             'input': message,
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'type': 'user_input'
         })
-        
+
         # Analyze command intent
         intent = self.analyze_intent(message_lower)
-        
+
         # Process based on intent
         if intent == 'health':
             return self.handle_health_command()
@@ -725,7 +724,7 @@ class JavChat:
             return self.handle_rollback_command()
         else:
             return self.handle_general_query(message)
-    
+
     def analyze_intent(self, message: str) -> str:
         """Analyze message intent using pattern matching"""
         for intent, patterns in self.command_patterns.items():
@@ -733,12 +732,12 @@ class JavChat:
                 if re.search(pattern, message):
                     return intent
         return 'general'
-    
+
     def handle_health_command(self) -> Dict[str, Any]:
         """Handle health check requests"""
         try:
             health_result = self.jav.run_health_checks()
-            
+
             if health_result['summary'] == 'PASSED':
                 message = f"✅ System is healthy! All {len(health_result['passed'])} checks passed."
                 if health_result['warnings']:
@@ -747,21 +746,21 @@ class JavChat:
                 message = f"⚠️ System has warnings. {len(health_result['passed'])} checks passed, {len(health_result['warnings'])} warnings."
             else:
                 message = f"❌ System has issues. {len(health_result['failed'])} checks failed."
-            
+
             return {
                 'type': 'health_status',
                 'message': message,
                 'details': health_result,
                 'action_needed': health_result['summary'] != 'PASSED'
             }
-            
+
         except Exception as e:
             return {
                 'type': 'error',
                 'message': f"Health check failed: {str(e)}",
                 'error': str(e)
             }
-    
+
     def handle_audit_command(self) -> Dict[str, Any]:
         """Handle system audit requests"""
         try:
@@ -769,43 +768,43 @@ class JavChat:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             audit_result = loop.run_until_complete(self.jav.audit_current_state())
-            
+
             message = f"📊 System Audit Complete\n"
             message += f"Flow State: {audit_result['flow_state']}\n"
             message += f"Health: {audit_result['health_status']}\n"
-            
+
             if audit_result['warnings']:
                 message += f"Warnings: {len(audit_result['warnings'])}\n"
                 for warning in audit_result['warnings'][:3]:  # Top 3
                     message += f"• {warning}\n"
-            
+
             if audit_result['next_steps']:
                 message += f"Next Steps: {', '.join(audit_result['next_steps'][:2])}"
-            
+
             return {
                 'type': 'audit_result',
                 'message': message,
                 'details': audit_result,
                 'action_needed': len(audit_result['warnings']) > 0
             }
-            
+
         except Exception as e:
             return {
                 'type': 'error',
                 'message': f"Audit failed: {str(e)}",
                 'error': str(e)
             }
-    
+
     def handle_files_command(self) -> Dict[str, Any]:
         """Handle file status requests"""
         try:
             import subprocess
             result = subprocess.run(['git', 'status', '--porcelain'], 
                                   capture_output=True, text=True)
-            
+
             if result.returncode == 0:
                 changed_files = [line.strip() for line in result.stdout.split('\n') if line.strip()]
-                
+
                 if changed_files:
                     message = f"📁 {len(changed_files)} file(s) have changes:\n"
                     for file_line in changed_files[:5]:  # Show first 5
@@ -814,7 +813,7 @@ class JavChat:
                         message += f"... and {len(changed_files) - 5} more"
                 else:
                     message = "✅ No uncommitted changes detected."
-                
+
                 return {
                     'type': 'file_status',
                     'message': message,
@@ -827,14 +826,14 @@ class JavChat:
                     'message': "Could not check file status (not a git repository?)",
                     'error': result.stderr
                 }
-                
+
         except Exception as e:
             return {
                 'type': 'error',
                 'message': f"File check failed: {str(e)}",
                 'error': str(e)
             }
-    
+
     def handle_run_command(self, message: str) -> Dict[str, Any]:
         """Handle run/start requests"""
         if 'health' in message:
@@ -843,34 +842,34 @@ class JavChat:
             return self.handle_test_command()
         else:
             recovery_options = self.jav.get_recovery_options()
-            
+
             message_text = "🚀 Available run commands:\n"
             message_text += "• Health Check: I can run system diagnostics\n"
             message_text += "• Tests: I can execute test suites\n"
             message_text += "• Service Restart: I can restart the main service\n"
             message_text += "What would you like me to run?"
-            
+
             return {
                 'type': 'run_options',
                 'message': message_text,
                 'options': recovery_options,
                 'action_needed': True
             }
-    
+
     def handle_test_command(self) -> Dict[str, Any]:
         """Handle test execution requests"""
         try:
             import subprocess
             result = subprocess.run(['python', '-m', 'pytest', '--tb=short'], 
                                   capture_output=True, text=True, timeout=30)
-            
+
             if result.returncode == 0:
                 message = "✅ Tests passed successfully!"
             else:
                 message = f"❌ Tests failed. Exit code: {result.returncode}"
                 if result.stdout:
                     message += f"\nOutput: {result.stdout[-200:]}"  # Last 200 chars
-            
+
             return {
                 'type': 'test_result',
                 'message': message,
@@ -879,7 +878,7 @@ class JavChat:
                 'error': result.stderr,
                 'action_needed': result.returncode != 0
             }
-            
+
         except subprocess.TimeoutExpired:
             return {
                 'type': 'error',
@@ -892,59 +891,59 @@ class JavChat:
                 'message': f"Test execution failed: {str(e)}",
                 'error': str(e)
             }
-    
+
     def handle_commit_command(self) -> Dict[str, Any]:
         """Handle git commit requests"""
         try:
             import subprocess
-            
+
             # Check for changes first
             status_result = subprocess.run(['git', 'status', '--porcelain'], 
                                          capture_output=True, text=True)
-            
+
             if not status_result.stdout.strip():
                 return {
                     'type': 'info',
                     'message': "No changes to commit. Working directory is clean.",
                     'action_needed': False
                 }
-            
+
             # Add files
             add_result = subprocess.run(['git', 'add', '.'], 
                                       capture_output=True, text=True)
-            
+
             if add_result.returncode != 0:
                 return {
                     'type': 'error',
                     'message': f"Failed to add files: {add_result.stderr}",
                     'action_needed': True
                 }
-            
+
             # Generate commit message based on changes
             commit_msg = f"Agent-assisted changes - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-            
+
             commit_result = subprocess.run(['git', 'commit', '-m', commit_msg], 
                                          capture_output=True, text=True)
-            
+
             if commit_result.returncode == 0:
                 message = f"✅ Changes committed successfully!\nMessage: {commit_msg}"
             else:
                 message = f"❌ Commit failed: {commit_result.stderr}"
-            
+
             return {
                 'type': 'commit_result',
                 'message': message,
                 'success': commit_result.returncode == 0,
                 'commit_message': commit_msg
             }
-            
+
         except Exception as e:
             return {
                 'type': 'error',
                 'message': f"Commit operation failed: {str(e)}",
                 'error': str(e)
             }
-    
+
     def handle_help_command(self) -> Dict[str, Any]:
         """Handle help requests"""
         help_text = """🤖 Clude Agent - Available Commands:
@@ -975,24 +974,24 @@ I maintain full context of your work and can proactively warn about issues."""
             'message': help_text,
             'action_needed': False
         }
-    
+
     def handle_memory_command(self, message: str) -> Dict[str, Any]:
         """Handle memory/recall requests"""
         try:
             # Get recent memories from the API
             import requests
             response = requests.get(f"{self.jav.memory_api}/memory?limit=5")
-            
+
             if response.status_code == 200:
                 data = response.json()
                 memories = data.get('memories', [])
-                
+
                 message_text = f"🧠 Recent Memory Context ({len(memories)} entries):\n"
                 for memory in memories:
                     topic = memory.get('topic', 'Unknown')
                     success = '✅' if memory.get('success', False) else '❌'
                     message_text += f"{success} {topic}\n"
-                
+
                 return {
                     'type': 'memory_recall',
                     'message': message_text,
@@ -1005,54 +1004,54 @@ I maintain full context of your work and can proactively warn about issues."""
                     'message': "Could not access memory system",
                     'action_needed': True
                 }
-                
+
         except Exception as e:
             return {
                 'type': 'error',
                 'message': f"Memory recall failed: {str(e)}",
                 'error': str(e)
             }
-    
+
     def handle_todo_command(self, message: str) -> Dict[str, Any]:
         """Handle TODO tracking requests"""
         # Scan for TODOs in codebase
         todo_files = self.jav.scan_for_todos()
-        
+
         if todo_files:
             message_text = f"📋 Found TODOs in {len(todo_files)} files:\n"
             for file in todo_files[:3]:  # Show first 3
                 message_text += f"• {file}\n"
             if len(todo_files) > 3:
                 message_text += f"... and {len(todo_files) - 3} more files"
-                
+
             message_text += "\nWould you like me to extract and track these?"
         else:
             message_text = "✅ No TODO comments found in your codebase."
-        
+
         return {
             'type': 'todo_status',
             'message': message_text,
             'todo_files': todo_files,
             'action_needed': len(todo_files) > 0
         }
-    
+
     def handle_rollback_command(self) -> Dict[str, Any]:
         """Handle rollback/undo requests"""
         recovery_options = self.jav.get_recovery_options()
-        
+
         message_text = "🔄 Available rollback options:\n"
         message_text += "• Git rollback: " + recovery_options.get('rollback_commit', 'Not available') + "\n"
         message_text += "• Service restart: " + recovery_options.get('restart_service', 'Available') + "\n"
         message_text += "• Check git status first: " + recovery_options.get('git_status', 'Available') + "\n"
         message_text += "\nWhich rollback action would you like me to perform?"
-        
+
         return {
             'type': 'rollback_options',
             'message': message_text,
             'options': recovery_options,
             'action_needed': True
         }
-    
+
     def handle_general_query(self, message: str) -> Dict[str, Any]:
         """Handle general questions and queries"""
         # Try to provide contextual help based on keywords
@@ -1091,12 +1090,12 @@ class JavChat:
     Jav Chat Interface - Creative AI Partner
     Transforms conversations into actionable memories and implementations
     """
-    
+
     def __init__(self, jav_agent):
         self.jav = jav_agent
         self.logger = logging.getLogger('JavChat')
         self.conversation_memory = []
-        
+
     def process_command(self, message: str, context: str = "creative_studio") -> Dict[str, Any]:
         """
         Process user message with full memory awareness and creative context
@@ -1104,16 +1103,16 @@ class JavChat:
         try:
             # Analyze message intent and creative context
             intent = self.analyze_creative_intent(message)
-            
+
             # Load relevant memories for context
             contextual_memories = self.load_contextual_memories(message, intent)
-            
+
             # Generate creative response with implementation suggestions
             response = self.generate_creative_response(message, intent, contextual_memories, context)
-            
+
             # Store conversation as memory
             self.store_conversation_memory(message, response, intent, context)
-            
+
             return {
                 'type': 'success',
                 'message': response['content'],
@@ -1122,7 +1121,7 @@ class JavChat:
                 'creative_insights': response.get('insights', []),
                 'next_suggestions': response.get('suggestions', [])
             }
-            
+
         except Exception as e:
             self.logger.error(f"Chat processing error: {e}")
             return {
@@ -1130,13 +1129,13 @@ class JavChat:
                 'message': f"I encountered an issue: {str(e)}. But our conversation is still being saved to memory!",
                 'error': str(e)
             }
-    
+
     def analyze_creative_intent(self, message: str) -> Dict[str, Any]:
         """
         Analyze the creative intent behind the user's message
         """
         message_lower = message.lower()
-        
+
         # Creative intent patterns
         intents = {
             'build': ['build', 'create', 'make', 'develop', 'implement', 'code'],
@@ -1147,15 +1146,15 @@ class JavChat:
             'learn': ['how', 'what', 'why', 'learn', 'teach', 'explain'],
             'memory': ['remember', 'memory', 'recall', 'history', 'before']
         }
-        
+
         detected_intents = []
         for intent_type, keywords in intents.items():
             if any(keyword in message_lower for keyword in keywords):
                 detected_intents.append(intent_type)
-        
+
         # Determine primary intent
         primary_intent = detected_intents[0] if detected_intents else 'conversation'
-        
+
         # Detect technical context
         tech_patterns = {
             'frontend': ['html', 'css', 'javascript', 'react', 'ui', 'interface'],
@@ -1163,12 +1162,12 @@ class JavChat:
             'memory': ['memory', 'memoryos', 'brain', 'remember', 'context'],
             'creative': ['creative', 'studio', 'design', 'artistic', 'innovative']
         }
-        
+
         tech_context = []
         for tech_type, keywords in tech_patterns.items():
             if any(keyword in message_lower for keyword in keywords):
                 tech_context.append(tech_type)
-        
+
         return {
             'primary': primary_intent,
             'all_intents': detected_intents,
@@ -1176,30 +1175,30 @@ class JavChat:
             'complexity': self.estimate_complexity(message),
             'creativity_level': self.estimate_creativity(message)
         }
-    
+
     def load_contextual_memories(self, message: str, intent: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Load relevant memories based on message content and intent
         """
         try:
             import requests
-            
+
             # Build search terms from message and intent
             search_terms = []
-            
+
             # Extract key terms from message
             words = re.findall(r'\b\w+\b', message.lower())
             important_words = [w for w in words if len(w) > 3 and w not in ['with', 'that', 'this', 'want', 'need']]
             search_terms.extend(important_words[:5])  # Top 5 important words
-            
+
             # Add intent-based terms
             search_terms.extend(intent['tech_context'])
             search_terms.append(intent['primary'])
-            
+
             # Search memories
             memories_response = requests.get(f"{self.jav.memory_api}/memory?limit=10")
             all_memories = memories_response.json().get('memories', [])
-            
+
             # Score memories by relevance
             relevant_memories = []
             for memory in all_memories:
@@ -1207,37 +1206,37 @@ class JavChat:
                 if score > 0.3:  # Relevance threshold
                     memory['relevance_score'] = score
                     relevant_memories.append(memory)
-            
+
             # Sort by relevance and return top matches
             relevant_memories.sort(key=lambda x: x['relevance_score'], reverse=True)
             return relevant_memories[:5]
-            
+
         except Exception as e:
             self.logger.error(f"Failed to load contextual memories: {e}")
             return []
-    
+
     def calculate_memory_relevance(self, memory: Dict[str, Any], search_terms: List[str], intent: Dict[str, Any]) -> float:
         """
         Calculate how relevant a memory is to the current context
         """
         score = 0.0
-        
+
         # Check content relevance
         memory_text = f"{memory.get('topic', '')} {memory.get('input', '')} {memory.get('output', '')}".lower()
-        
+
         for term in search_terms:
             if term in memory_text:
                 score += 0.2
-        
+
         # Boost score for matching intent
         if intent['primary'] in memory_text:
             score += 0.3
-        
+
         # Boost score for matching tech context
         for tech in intent['tech_context']:
             if tech in memory_text:
                 score += 0.2
-        
+
         # Boost recent memories slightly
         try:
             memory_time = datetime.fromisoformat(memory.get('timestamp', '').replace('Z', '+00:00'))
@@ -1246,22 +1245,22 @@ class JavChat:
                 score += 0.1
         except:
             pass
-        
+
         return min(score, 1.0)  # Cap at 1.0
-    
+
     def generate_creative_response(self, message: str, intent: Dict[str, Any], 
                                   memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
         """
         Generate creative, contextual response with implementation suggestions
         """
-        
+
         # Build memory context
         memory_context = ""
         if memories:
             memory_context = "Relevant memories:\n"
             for i, memory in enumerate(memories[:3], 1):
                 memory_context += f"{i}. {memory.get('topic', 'Untitled')}: {memory.get('output', 'No details')[:100]}...\n"
-        
+
         # Generate response based on intent
         if intent['primary'] == 'build':
             return self.generate_build_response(message, memories, context)
@@ -1273,13 +1272,13 @@ class JavChat:
             return self.generate_memory_response(message, memories, context)
         else:
             return self.generate_conversational_response(message, memories, context, intent)
-    
+
     def generate_build_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
         """Generate response for build/create requests"""
-        
+
         # Analyze what they want to build
         implementations = []
-        
+
         if 'ui' in message.lower() or 'interface' in message.lower():
             implementations.append({
                 'id': f'ui_impl_{datetime.now().timestamp()}',
@@ -1289,7 +1288,7 @@ class JavChat:
                 'code': '<!-- Generated UI code will go here -->',
                 'files': ['index.html', 'styles.css']
             })
-        
+
         if 'api' in message.lower() or 'endpoint' in message.lower():
             implementations.append({
                 'id': f'api_impl_{datetime.now().timestamp()}',
@@ -1299,14 +1298,14 @@ class JavChat:
                 'code': '# Generated API code will go here',
                 'files': ['main.py']
             })
-        
+
         memory_insights = ""
         if memories:
             memory_insights = f"\n\n💡 **Memory Insight**: I found {len(memories)} related memories that might help inform this implementation. "
             recent_builds = [m for m in memories if 'build' in m.get('type', '').lower() or 'feature' in m.get('type', '').lower()]
             if recent_builds:
                 memory_insights += f"You've built similar features before - let's build on that experience!"
-        
+
         response_content = f"""🚀 **Ready to Build!**
 
 I understand you want to create something new. Based on our conversation and memory context, here's my approach:
@@ -1333,16 +1332,16 @@ What specific aspect would you like me to focus on first?"""
             'insights': ['build_ready', 'memory_informed'],
             'suggestions': ['Review implementation', 'Test changes', 'Iterate design']
         }
-    
+
     def generate_ideation_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
         """Generate response for ideation/brainstorming"""
-        
+
         memory_connections = ""
         if memories:
             related_ideas = [m for m in memories if 'idea' in m.get('input', '').lower() or 'concept' in m.get('input', '').lower()]
             if related_ideas:
                 memory_connections = f"\n\n🔗 **Memory Connections**: I see connections to {len(related_ideas)} previous ideas we've discussed. Let's build on those concepts!"
-        
+
         response_content = f"""💡 **Creative Ideation Mode Activated**
 
 I love brainstorming with you! Let's explore this idea space together.
@@ -1368,16 +1367,16 @@ I'm ready to dive deep into creative exploration. What aspect excites you most?"
             'insights': ['creative_mode', 'ideation_ready'],
             'suggestions': ['Explore concepts', 'Create prototypes', 'Connect ideas']
         }
-    
+
     def generate_debug_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
         """Generate response for debugging/fixing issues"""
-        
+
         error_history = ""
         if memories:
             error_memories = [m for m in memories if not m.get('success', True) or 'error' in m.get('type', '').lower()]
             if error_memories:
                 error_history = f"\n\n🔍 **Error Pattern Analysis**: I found {len(error_memories)} related issues in our history. Let me apply those lessons here."
-        
+
         response_content = f"""🔧 **Debug Mode Engaged**
 
 I'm here to help solve this issue systematically.
@@ -1404,19 +1403,19 @@ I'll combine my debugging skills with our project memory to find the best soluti
             'insights': ['debug_mode', 'systematic_approach'],
             'suggestions': ['Identify root cause', 'Test solution', 'Document fix']
         }
-    
+
     def generate_memory_response(self, message: str, memories: List[Dict[str, Any]], context: str) -> Dict[str, Any]:
         """Generate response for memory-related queries"""
-        
+
         memory_stats = f"I currently have access to {len(memories)} relevant memories"
         if memories:
             categories = {}
             for memory in memories:
                 cat = memory.get('category', 'unknown')
                 categories[cat] = categories.get(cat, 0) + 1
-            
+
             memory_stats += f" across categories: {', '.join([f'{k}({v})' for k, v in categories.items()])}"
-        
+
         response_content = f"""🧠 **Memory Recall Active**
 
 {memory_stats}.
@@ -1450,15 +1449,15 @@ I'll combine my debugging skills with our project memory to find the best soluti
             'insights': ['memory_active', 'context_aware'],
             'suggestions': ['Explore connections', 'Review history', 'Build on past work']
         }
-    
+
     def generate_conversational_response(self, message: str, memories: List[Dict[str, Any]], 
                                        context: str, intent: Dict[str, Any]) -> Dict[str, Any]:
         """Generate general conversational response"""
-        
+
         contextual_note = ""
         if memories:
             contextual_note = f"\n\n💭 I'm drawing from {len(memories)} related memories to inform my response."
-        
+
         response_content = f"""👋 **Creative Partnership Mode**
 
 I'm here as your memory-driven creative partner, ready to build, brainstorm, and solve problems together.
@@ -1485,7 +1484,7 @@ What would you like to explore or create together?"""
             'insights': ['partnership_ready', 'creative_mode'],
             'suggestions': ['Start creating', 'Explore ideas', 'Solve problems']
         }
-    
+
     def store_conversation_memory(self, user_message: str, response: Dict[str, Any], 
                                  intent: Dict[str, Any], context: str):
         """
@@ -1503,7 +1502,7 @@ What would you like to explore or create together?"""
                 "tags": ["conversation", "user_input", intent['primary'], context] + intent['tech_context'],
                 "context": f"Creative studio conversation - Intent: {intent['primary']}"
             }
-            
+
             self.jav.log_to_memory(
                 user_memory["topic"],
                 user_memory["type"],
@@ -1512,7 +1511,7 @@ What would you like to explore or create together?"""
                 user_memory["success"],
                 user_memory["category"]
             )
-            
+
             # Store Jav response as memory
             jav_memory = {
                 "topic": f"Jav Creative Response: {response.get('insights', ['response'])[0]}",
@@ -1524,7 +1523,7 @@ What would you like to explore or create together?"""
                 "tags": ["conversation", "ai_response", intent['primary'], context] + intent['tech_context'],
                 "context": f"Creative studio response - Generated {len(response.get('implementations', []))} implementations"
             }
-            
+
             self.jav.log_to_memory(
                 jav_memory["topic"],
                 jav_memory["type"],
@@ -1533,47 +1532,47 @@ What would you like to explore or create together?"""
                 jav_memory["success"],
                 jav_memory["category"]
             )
-            
+
         except Exception as e:
             self.logger.error(f"Failed to store conversation memory: {e}")
-    
+
     def estimate_complexity(self, message: str) -> str:
         """Estimate the complexity of the user's request"""
         word_count = len(message.split())
         technical_terms = len([w for w in message.lower().split() if w in ['api', 'database', 'algorithm', 'optimization', 'integration']])
-        
+
         if word_count > 50 or technical_terms > 2:
             return 'high'
         elif word_count > 20 or technical_terms > 0:
             return 'medium'
         else:
             return 'low'
-    
+
     def estimate_creativity(self, message: str) -> str:
         """Estimate the creativity level needed for the request"""
         creative_terms = len([w for w in message.lower().split() if w in ['creative', 'innovative', 'unique', 'design', 'artistic', 'brainstorm']])
-        
+
         if creative_terms > 1:
             return 'high'
         elif creative_terms > 0:
             return 'medium'
         else:
             return 'low'
-    
+
     def get_time_ago(self, timestamp: str) -> str:
         """Get human-readable time ago string"""
         if not timestamp:
             return 'unknown time'
-        
+
         try:
             time_obj = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
             now = datetime.now(timezone.utc)
             diff = now - time_obj
-            
+
             days = diff.days
             hours = diff.seconds // 3600
             minutes = (diff.seconds // 60) % 60
-            
+
             if days > 0:
                 return f"{days} day{'s' if days > 1 else ''} ago"
             elif hours > 0:
@@ -1584,3 +1583,361 @@ What would you like to explore or create together?"""
                 return "just now"
         except:
             return 'unknown time'
+"""
+Jav Chat Interface - Central Command Hub
+Routes commands and integrates key features
+"""
+
+import logging
+from typing import Dict, Any, List
+
+class JavChat:
+    """
+    Jav Chat Interface - Command Routing Hub
+    Processes commands and dispatches to handlers
+    """
+
+    def __init__(self, jav_agent):
+        self.jav = jav_agent
+        self.logger = logging.getLogger('JavChat')
+
+    def process_command(self, command: str) -> Dict[str, Any]:
+        """Process user command and return response"""
+        command = command.strip().lower()
+
+        try:
+            if command.startswith("audit"):
+                return self.handle_audit_command(command)
+            elif command.startswith("health"):
+                return self.handle_health_command()
+            elif command.startswith("suggest"):
+                return self.handle_suggestions_command(command)
+            elif command.startswith("fix"):
+                return self.handle_fix_command(command)
+            elif command.startswith("deploy"):
+                return self.handle_deploy_command(command)
+            elif command.startswith("test"):
+                return self.handle_test_command(command)
+            elif command.startswith("bible"):
+                return self.handle_bible_command(command)
+            elif "help" in command:
+                return self.get_help()
+            else:
+                return self.handle_general_query(command)
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Error processing command: {str(e)}",
+                "suggestions": ["Try 'help' for available commands"]
+            }
+
+    def handle_audit_command(self, command: str) -> Dict[str, Any]:
+        """Handle audit command"""
+        # Placeholder for audit logic
+        return {
+            "type": "audit_result",
+            "message": "Audit command executed"
+        }
+
+    def handle_health_command(self) -> Dict[str, Any]:
+        """Handle health check command"""
+        # Placeholder for health check logic
+        return {
+            "type": "health_status",
+            "message": "Health command executed"
+        }
+
+    def handle_suggestions_command(self, command: str) -> Dict[str, Any]:
+        """Handle suggestions command"""
+        # Placeholder for suggestions logic
+        return {
+            "type": "suggestion",
+            "message": "Suggestion command executed"
+        }
+
+    def handle_fix_command(self, command: str) -> Dict[str, Any]:
+        """Handle fix command"""
+        # Placeholder for fix logic
+        return {
+            "type": "fix_result",
+            "message": "Fix command executed"
+        }
+
+    def handle_deploy_command(self, command: str) -> Dict[str, Any]:
+        """Handle deploy command"""
+        # Placeholder for deploy logic
+        return {
+            "type": "deploy_result",
+            "message": "Deploy command executed"
+        }
+
+    def handle_test_command(self, command: str) -> Dict[str, Any]:
+        """Handle test command"""
+        # Placeholder for test logic
+        return {
+            "type": "test_result",
+            "message": "Test command executed"
+        }
+
+    def handle_bible_command(self, command: str) -> Dict[str, Any]:
+        """Handle bible-related commands"""
+        try:
+            from bible_evolution_engine import bible_evolution
+            from bible_integration import bible_integration
+
+            if "review" in command:
+                return self.handle_bible_review()
+            elif "deviations" in command:
+                return self.handle_bible_deviations()
+            elif "compliance" in command:
+                return self.handle_bible_compliance()
+            elif "amendments" in command:
+                return self.handle_bible_amendments()
+            elif "onboard" in command:
+                return self.handle_bible_onboarding()
+            else:
+                return self.get_bible_help()
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Bible command error: {str(e)}",
+                "suggestions": ["bible help", "bible review", "bible deviations"]
+            }
+
+    def handle_bible_review(self) -> Dict[str, Any]:
+        """Handle bible review session generation"""
+        try:
+            from bible_integration import bible_integration
+
+            review_session = bible_integration.generate_team_review_session()
+
+            return {
+                "type": "bible_review",
+                "title": "📚 Bible Review Session Generated",
+                "session_id": review_session["session_id"],
+                "summary": review_session["summary"],
+                "highlights": [
+                    f"📊 {review_session['summary']['total_deviations']} deviations tracked",
+                    f"🔧 {review_session['summary']['proposed_amendments']} amendments proposed",
+                    f"📁 {len(review_session['summary']['files_affected'])} files affected"
+                ],
+                "next_steps": review_session["next_steps"],
+                "discussion_agenda": review_session.get("discussion_agenda", []),
+                "actions": [
+                    {"text": "View Full Review", "action": "view_review_details"},
+                    {"text": "Start Team Discussion", "action": "start_discussion"},
+                    {"text": "Review Amendments", "action": "review_amendments"}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Failed to generate review session: {str(e)}"
+            }
+
+    def handle_bible_deviations(self) -> Dict[str, Any]:
+        """Handle bible deviations query"""
+        try:
+            from bible_evolution_engine import bible_evolution
+
+            # Get recent high-frequency deviations
+            recent_deviations = [d for d in bible_evolution.deviations 
+                               if d.frequency >= 3][-10:]  # Last 10 high-frequency
+
+            if not recent_deviations:
+                return {
+                    "type": "bible_info",
+                    "title": "✅ Bible Compliance Good",
+                    "message": "No significant deviations detected",
+                    "suggestions": ["Continue monitoring for patterns"]
+                }
+
+            deviation_summary = []
+            for dev in recent_deviations:
+                deviation_summary.append(
+                    f"🔄 {dev.section}: {dev.frequency}x - {dev.actual_process[:50]}..."
+                )
+
+            return {
+                "type": "bible_deviations",
+                "title": f"📋 {len(recent_deviations)} Tracked Deviations",
+                "deviations": deviation_summary,
+                "patterns": {
+                    "most_frequent": max(recent_deviations, key=lambda d: d.frequency),
+                    "most_recent": max(recent_deviations, key=lambda d: d.last_seen)
+                },
+                "actions": [
+                    {"text": "Analyze Patterns", "action": "analyze_patterns"},
+                    {"text": "Propose Amendments", "action": "propose_amendments"},
+                    {"text": "View Details", "action": "view_deviation_details"}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "                "message": f"Failed to get deviations: {str(e)}"
+            }
+
+    def handle_bible_compliance(self) -> Dict[str, Any]:
+        """Handle bible compliance check"""
+        try:
+            from bible_evolution_engine import bible_evolution
+
+            compliance_report = bible_evolution.monitor_compliance("AGENT_BIBLE.md")
+
+            score = compliance_report["compliance_score"]
+            status = "🟢 Excellent" if score > 0.9 else "🟡 Good" if score > 0.7 else "🔴 Needs Attention"
+
+            return {
+                "type": "bible_compliance",
+                "title": f"📊 Bible Compliance: {status}",
+                "score": f"{score:.1%}",
+                "details": {
+                    "recent_deviations": len(compliance_report["deviations"]),
+                    "violations": len(compliance_report["violations"]),
+                    "last_check": compliance_report["check_date"][:10]
+                },
+                "recommendations": compliance_report["recommendations"],
+                "actions": [
+                    {"text": "View Full Report", "action": "view_compliance_report"},
+                    {"text": "Address Issues", "action": "address_compliance"},
+                    {"text": "Schedule Review", "action": "schedule_review"}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Failed to check compliance: {str(e)}"
+            }
+
+    def handle_bible_amendments(self) -> Dict[str, Any]:
+        """Handle bible amendments query"""
+        try:
+            from bible_evolution_engine import bible_evolution
+
+            pending_amendments = [a for a in bible_evolution.amendments 
+                                if a.status in ["draft", "reviewed"]]
+
+            if not pending_amendments:
+                return {
+                    "type": "bible_info",
+                    "title": "📚 No Pending Amendments",
+                    "message": "All amendments have been processed",
+                    "suggestions": ["Check for new deviation patterns"]
+                }
+
+            amendment_summary = []
+            for amend in pending_amendments[:5]:  # Top 5
+                confidence_emoji = "🟢" if amend.confidence > 0.8 else "🟡" if amend.confidence > 0.6 else "🔴"
+                amendment_summary.append(
+                    f"{confidence_emoji} {amend.section}: {amend.reasoning[:60]}..."
+                )
+
+            return {
+                "type": "bible_amendments",
+                "title": f"📝 {len(pending_amendments)} Pending Amendments",
+                "amendments": amendment_summary,
+                "by_status": {
+                    "draft": len([a for a in pending_amendments if a.status == "draft"]),
+                    "reviewed": len([a for a in pending_amendments if a.status == "reviewed"])
+                },
+                "actions": [
+                    {"text": "Review Amendments", "action": "review_amendments"},
+                    {"text": "Approve High-Confidence", "action": "approve_high_confidence"},
+                    {"text": "Schedule Team Review", "action": "schedule_team_review"}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Failed to get amendments: {str(e)}"
+            }
+
+    def handle_bible_onboarding(self) -> Dict[str, Any]:
+        """Handle bible onboarding brief"""
+        try:
+            from bible_evolution_engine import bible_evolution
+
+            brief = bible_evolution.generate_onboarding_brief("new_user")
+
+            return {
+                "type": "bible_onboarding",
+                "title": "👋 Bible Onboarding Brief",
+                "summary": brief["summary"],
+                "recent_changes": {
+                    "count": brief["recent_changes"]["total_updates"],
+                    "files": brief["recent_changes"]["files_updated"],
+                    "period": brief["recent_changes"]["period"]
+                },
+                "key_updates": brief["key_updates"][:3],  # Top 3
+                "action_items": brief["action_items"],
+                "support": brief["contacts"],
+                "actions": [
+                    {"text": "Start Onboarding", "action": "start_onboarding"},
+                    {"text": "Review Changes", "action": "review_recent_changes"},
+                    {"text": "Ask Questions", "action": "ask_questions"}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Failed to generate onboarding: {str(e)}"
+            }
+
+    def get_bible_help(self) -> Dict[str, Any]:
+        """Get bible command help"""
+        return {
+            "type": "bible_help",
+            "title": "📚 Bible Evolution Commands",
+            "commands": {
+                "bible review": "Generate comprehensive bible review session",
+                "bible deviations": "Show tracked deviations from documented processes",
+                "bible compliance": "Check current compliance with bible standards",
+                "bible amendments": "View proposed amendments to documentation",
+                "bible onboard": "Get onboarding brief for new team members"
+            },
+            "examples": [
+                "bible review",
+                "bible deviations",
+                "bible compliance",
+                "bible amendments"
+            ],
+            "features": [
+                "📊 Track real-world vs documented processes",
+                "🔄 Automatic amendment proposals",
+                "👥 Team review and consensus flows",
+                "📝 Version control for bible changes",
+                "🎯 Onboarding for new users"
+            ]
+        }
+
+    def get_help(self) -> Dict[str, Any]:
+        """Get help information"""
+        return {
+            "type": "help",
+            "message": "Jav Assistant Commands",
+            "commands": {
+                "audit": "Run comprehensive system audit",
+                "health": "Check system health status",
+                "suggest [task]": "Get memory-driven suggestions",
+                "fix [issue]": "Get fix recommendations",
+                "deploy": "Deploy with safety checks",
+                "test": "Run system tests",
+                "bible [action]": "Bible evolution and compliance management"
+            },
+            "examples": [
+                "audit current state",
+                "health check",
+                "suggest deployment",
+                "fix error logs",
+                "deploy to production",
+                "bible review"
+            ]
+        }
