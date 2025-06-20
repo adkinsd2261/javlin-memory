@@ -1,0 +1,158 @@
+openapi: 3.1.0
+info:
+  title: Javlin Memory API
+  description: API for logging memory entries to Javlin Builder Agent
+  version: 1.0.0
+servers:
+  - url: https://memoryos.replit.app/
+    description: Replit deployment server
+paths:
+  /memory:
+    post:
+      summary: Add memory entry
+      description: Logs a new memory entry with learning details
+      operationId: addMemory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topic:
+                  type: string
+                  description: The topic or subject of the memory entry
+                  example: "Python Functions"
+                type:
+                  type: string
+                  description: The type of learning activity
+                  example: "SkillDrill"
+                input:
+                  type: string
+                  description: The input or question presented
+                  example: "Write a function to calculate factorial"
+                output:
+                  type: string
+                  description: The output or response given
+                  example: "Created recursive factorial function"
+                score:
+                  type: integer
+                  description: Score achieved
+                  example: 25
+                maxScore:
+                  type: integer
+                  description: Maximum possible score
+                  example: 25
+                success:
+                  type: boolean
+                  description: Whether the task was completed successfully
+                  example: true
+                category:
+                  type: string
+                  description: Category of the learning topic
+                  example: "programming"
+                reviewed:
+                  type: boolean
+                  description: Whether this entry has been reviewed
+                  example: false
+              required:
+                - topic
+                - type
+                - input
+                - output
+                - score
+                - maxScore
+                - success
+                - category
+                - reviewed
+      responses:
+        '200':
+          description: Memory entry saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "✅ Memory saved"
+                  entry:
+                    type: object
+                    description: The saved memory entry with timestamp
+        '400':
+          description: Bad request - missing fields or invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  missing:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: Unauthorized - invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  error:
+                    type: string
+    get:
+      summary: Get all memory entries
+      description: Retrieves all stored memory entries
+      operationId: getMemories
+      responses:
+        '200':
+          description: Successfully retrieved memory entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    topic:
+                      type: string
+                    type:
+                      type: string
+                    input:
+                      type: string
+                    output:
+                      type: string
+                    score:
+                      type: integer
+                    maxScore:
+                      type: integer
+                    success:
+                      type: boolean
+                    category:
+                      type: string
+                    reviewed:
+                      type: boolean
+                    timestamp:
+                      type: string
+                      format: date-time
+        '500':
+          description: Error loading memories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
