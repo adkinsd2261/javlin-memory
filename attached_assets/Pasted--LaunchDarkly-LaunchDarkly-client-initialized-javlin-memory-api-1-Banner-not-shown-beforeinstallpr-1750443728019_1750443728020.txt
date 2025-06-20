@@ -1,0 +1,22 @@
+[LaunchDarkly] LaunchDarkly client initialized
+javlin-memory-api:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+10Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+framework-9432d335c9e74d77.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9432d335c9e74d77.js:1Understand this error
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
