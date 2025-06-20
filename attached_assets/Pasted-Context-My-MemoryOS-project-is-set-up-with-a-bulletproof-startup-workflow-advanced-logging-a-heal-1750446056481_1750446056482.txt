@@ -1,0 +1,89 @@
+Context:
+My MemoryOS project is set up with a bulletproof startup workflow, advanced logging, a health endpoint, an automated test suite, a deployment verification script, and all code runs on Replit.
+I’m currently experiencing a “death loop” (the app keeps restarting, failing to deploy, or gets stuck in a crash/restart cycle).
+
+Objective:
+Use all available bulletproofing tools to systematically audit and diagnose the root cause of this death loop.
+I need a step-by-step process and actionable findings—not just a crash report.
+
+Checklist for Replit Assistant:
+Run the Bulletproof Startup Script
+
+Start the project with the “Run” button or python bulletproof_startup.py
+
+Note any pre-flight check failures or warnings printed to the console or logs.
+
+Inspect the Logs Directory
+
+Open the logs/ directory.
+
+Find the most recent log file (from bulletproof_logger.py).
+
+Look for repeated error messages, stack traces, or failures that coincide with each crash or restart.
+
+Summarize the main recurring error or failure.
+
+Query the /health Endpoint
+
+Visit /health (e.g., https://<your-repl-name>.replit.app/health) in the browser, or run:
+
+bash
+Copy
+Edit
+curl https://<your-repl-name>.replit.app/health
+Record the status and any errors or degraded states reported.
+
+If /health fails, capture its output for further diagnosis.
+
+Run the Automated Test Suite
+
+Run all tests:
+
+bash
+Copy
+Edit
+python run_tests.py
+If there are failures, list which tests failed and copy any error messages or tracebacks.
+
+Optionally, run targeted or quick tests for relevant areas:
+
+bash
+Copy
+Edit
+python run_tests.py --quick
+python run_tests.py --test health
+Verify Deployment
+
+Run the deployment verification script:
+
+bash
+Copy
+Edit
+python verify_deployment.py https://<your-repl-name>.replit.app
+List any failed health checks, slow response times, or system errors flagged by the verifier.
+
+Rollback (If Needed)
+
+If the root cause is still unclear or irreparable, use Replit’s Git sidebar (or git in shell) to revert to the last known-good commit.
+
+Document the rollback and what was fixed.
+
+Expected Output:
+Summary of findings: (What is causing the death loop?)
+
+Relevant log snippets: (Paste the main error message)
+
+/health endpoint output: (Paste status + error details)
+
+Failed tests and messages: (Paste or summarize)
+
+Verification script results: (Paste relevant output)
+
+Actionable next steps: (What to fix, rollback, or patch?)
+
+If possible, automate this audit by combining log scanning, health query, test runner, and deployment verifier into a single diagnostic output.
+If more context about the codebase or specific error is needed, request those details.
+
+Stack: Python 3.x, Flask (assumed for endpoints), pytest, custom logging.
+
+Please perform this audit now and provide a detailed report or guidance on the exact cause of the death loop and how to resolve it.
