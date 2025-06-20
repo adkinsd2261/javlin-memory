@@ -38,7 +38,7 @@ function memoryOS() {
                         // Load GPT status
                         const gptResponse = await fetch('/gpt-status');
                         const gptData = await gptResponse.json();
-                        
+
                         this.systemStatus = gptData.system_status === 'online' ? 'operational' : 'degraded';
                         this.sessionId = Date.now().toString();
                         this.currentFocus = gptData.message || 'Ready';
@@ -80,9 +80,9 @@ function memoryOS() {
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({input: userMessage})
                         });
-                        
+
                         const result = await response.json();
-                        
+
                         this.chatHistory.push({
                             id: Date.now() + 1,
                             type: 'assistant',
@@ -105,81 +105,6 @@ function memoryOS() {
                                 container.scrollTop = container.scrollHeight;
                             }
                         });
-                    }
-                }
-            };
-        }
-                        this.sessionId = `SYS-${Date.now().toString().slice(-8)}`;
-
-                        // Set current focus
-                        if (this.totalMemories === 0) {
-                            this.currentFocus = 'Ready for first memory';
-                            this.nextSteps = 'System ready to receive data';
-                        } else {
-                            this.currentFocus = `Managing ${this.totalMemories} memories`;
-                            this.nextSteps = `${this.successRate} success rate`;
-                        }
-
-                        console.log('✅ MemoryOS data loaded successfully');
-                    } catch (error) {
-                        console.error('❌ Failed to load system data:', error);
-                        this.systemStatus = 'error';
-                        this.currentFocus = 'System offline';
-                        this.nextSteps = 'Check system health';
-                    }
-                },
-
-                setupPeriodicUpdates() {
-                    // Refresh data every 30 seconds
-                    setInterval(() => {
-                        this.loadSystemData();
-                    }, 30000);
-                },
-
-                async sendMessage() {
-                    if (!this.currentMessage.trim() || this.isTyping) return;
-
-                    const userMessage = this.currentMessage.trim();
-                    this.chatHistory.push({
-                        id: Date.now(),
-                        type: 'user',
-                        content: userMessage,
-                        timestamp: new Date().toLocaleTimeString()
-                    });
-
-                    this.currentMessage = '';
-                    this.isTyping = true;
-
-                    try {
-                        const response = await fetch('/ai/query', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ input: userMessage })
-                        });
-
-                        const result = await response.json();
-
-                        this.chatHistory.push({
-                            id: Date.now() + 1,
-                            type: 'assistant',
-                            content: result.ai_response?.response || result.error || 'No response received',
-                            timestamp: new Date().toLocaleTimeString()
-                        });
-
-                        // Scroll to bottom
-                        this.$nextTick(() => {
-                            this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight;
-                        });
-
-                    } catch (error) {
-                        this.chatHistory.push({
-                            id: Date.now() + 1,
-                            type: 'system',
-                            content: `Error: ${error.message}`,
-                            timestamp: new Date().toLocaleTimeString()
-                        });
-                    } finally {
-                        this.isTyping = false;
                     }
                 }
             };
