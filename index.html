@@ -644,6 +644,115 @@
             border-radius: 4px;
             font-family: monospace;
         }
+
+        /* Javatar Styles */
+        .floating-jav {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .jav-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+            animation: pulsing-glow 2s ease-in-out infinite;
+        }
+
+        .jav-orb.idle {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        }
+
+        .jav-orb.listening {
+            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+            animation: listening-pulse 1.5s ease-in-out infinite, subtle-swirl 5s linear infinite;
+        }
+
+        .jav-orb.creative {
+            background: linear-gradient(45deg, #a855f7, #ec4899);
+            animation: creative-flare 1s ease-in-out infinite, color-shift 4s linear infinite;
+        }
+
+        .jav-orb.dev {
+            background: linear-gradient(45deg, #3b82f6, #14b8a6);
+            animation: dev-pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulsing-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(99, 102, 241, 0.8);
+            }
+        }
+
+        @keyframes listening-pulse {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(59, 130, 246, 0.9);
+            }
+        }
+
+        @keyframes subtle-swirl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes creative-flare {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(236, 72, 153, 0.9);
+            }
+        }
+
+        @keyframes color-shift {
+            0%, 100% { background: linear-gradient(45deg, #a855f7, #ec4899); }
+            25% { background: linear-gradient(45deg, #ec4899, #f472b6); }
+            50% { background: linear-gradient(45deg, #f472b6, #a855f7); }
+            75% { background: linear-gradient(45deg, #a855f7, #ec4899); }
+        }
+
+        @keyframes dev-pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(20, 184, 166, 0.7);
+            }
+        }
+
+        .avatar-reaction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .avatar-reaction.success {
+            color: #a3e635;
+        }
+
+        .avatar-reaction.error {
+            color: #f44336;
+        }
     </style>
 </head>
 <body x-data="javWorkspace()" x-init="init()" class="text-white">
@@ -845,7 +954,16 @@
          @keydown.cmd.j.window="toggleCreativePanel()"
          class="floating-jav"
          :class="{ 'active': panelOpen || javIsThinking }">
-        <span class="text-2xl font-bold text-white">J</span>
+        <!-- Animated Jav Avatar -->
+        <div class="jav-orb"
+             :class="{
+                'idle': !javIsThinking && workspaceMode === 'creative',
+                'listening': javIsThinking,
+                'creative': workspaceMode === 'creative',
+                'dev': workspaceMode === 'dev'
+             }">
+             <div class="avatar-reaction" :class="{ 'success': avatarReaction === 'success', 'error': avatarReaction === 'error' }" x-text="avatarReactionIcon"></div>
+        </div>
     </div>
 
     <!-- Creative Panel -->
@@ -970,6 +1088,10 @@
                 memoryProvenanceText: '',
                 showMemoryIndicator: false,
                 currentProvenance: null,
+
+                // Avatar reactions
+                avatarReaction: null,
+                avatarReactionIcon: null,
 
                 async init() {
                     console.log('🚀 Initializing Jav Workspace...');
@@ -1158,12 +1280,28 @@
                             content: `Let's try a different approach together. ${error.message}`,
                             timestamp: this.formatTimestamp()
                         });
-                    } finally {
+
+                            // Avatar reacts to error
+                            this.triggerAvatarReaction('error');
+                        } finally {
                         this.javIsThinking = false;
                         this.scrollToBottom();
                         await this.loadMemories();
                         await this.loadMemoryTimeline();
+
+                        // Avatar celebrates successful interaction
+                        this.triggerAvatarReaction('success');
                     }
+                },
+
+                triggerAvatarReaction(reactionType) {
+                    this.avatarReaction = reactionType;
+                    this.avatarReactionIcon = reactionType === 'success' ? '✨' : '⚠️';
+
+                    // Reset after a short delay
+                    setTimeout(() => {
+                        this.avatarReaction = null;
+                    }, 1500);
                 },
 
                 handleEnter(event) {
@@ -1431,11 +1569,17 @@
                             content: `Let's try a different approach together. ${error.message}`,
                             timestamp: this.formatTimestamp()
                         });
-                    } finally {
+
+                            // Avatar reacts to error
+                            this.triggerAvatarReaction('error');
+                        } finally {
                         this.javIsThinking = false;
                         this.scrollToBottom();
                         await this.loadMemories();
                         await this.loadMemoryTimeline();
+
+                        // Avatar celebrates successful interaction
+                        this.triggerAvatarReaction('success');
                     }
                 },
 
