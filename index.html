@@ -4,27 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemoryOS - Creative AI Agent Terminal</title>
+    <title>MemoryOS - AI Co-Founder</title>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
-        /* Custom CSS for production-ready styling */
+        /* Premium Dark Theme - Inspired by Modern Dashboards */
         :root {
-            --primary-color: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary-color: #f8fafc;
-            --accent-color: #06b6d4;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
-            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --terminal-bg: #0f172a;
-            --terminal-text: #00ff88;
-            --cofounder-color: #8b5cf6;
-            --insight-bg: rgba(139, 92, 246, 0.1);
-            --glow-color: #00ff88;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111117;
+            --bg-card: #1a1a24;
+            --bg-card-hover: #212130;
+            --accent-blue: #3b82f6;
+            --accent-blue-bright: #60a5fa;
+            --accent-cyan: #06b6d4;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-primary: #2d2d3a;
+            --border-accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --glow-blue: rgba(59, 130, 246, 0.3);
+            --glow-cyan: rgba(6, 182, 212, 0.3);
         }
 
         * {
@@ -34,78 +35,92 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            background: var(--gradient-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+        /* Background Effects */
+        .bg-gradient {
+            background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.1) 0%, transparent 70%),
+                        radial-gradient(ellipse at bottom, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
         }
 
         /* Navigation */
         .nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
+            background: rgba(26, 26, 36, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-primary);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 0;
+            padding: 1rem 2rem;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: var(--text-primary);
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--primary-color);
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
+            box-shadow: 0 4px 20px var(--glow-blue);
         }
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 0.5rem;
             list-style: none;
         }
 
         .nav-link {
             cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: all 0.2s;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
             font-weight: 500;
+            color: var(--text-secondary);
         }
 
         .nav-link:hover {
-            background: var(--secondary-color);
-            color: var(--primary-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transform: translateY(-1px);
         }
 
         .nav-link.active {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
             color: white;
+            box-shadow: 0 4px 20px var(--glow-blue);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
         /* Main Content */
@@ -116,10 +131,6 @@
 
         .section {
             display: none;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
         }
 
         .section.active {
@@ -128,23 +139,48 @@
 
         /* Hero Section */
         .hero {
-            background: var(--gradient-bg);
-            color: white;
-            padding: 4rem 2rem;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 4rem 3rem;
             text-align: center;
-            border-radius: 12px 12px 0 0;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1));
+            border-radius: 24px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
         }
 
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
             font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-blue-bright));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero p {
             font-size: 1.25rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
+            margin-bottom: 2.5rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .cta-buttons {
@@ -155,279 +191,356 @@
         }
 
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
         }
 
         .btn-primary {
-            background: var(--accent-color);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
             color: white;
+            box-shadow: 0 8px 32px var(--glow-blue);
         }
 
         .btn-primary:hover {
-            background: #0891b2;
             transform: translateY(-2px);
+            box-shadow: 0 12px 40px var(--glow-blue);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: var(--bg-card-hover);
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
         }
 
         /* Stats Dashboard */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            padding: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 2rem;
             text-align: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: block;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Interactive Terminal */
-        .terminal-section {
-            padding: 0;
-            background: var(--terminal-bg);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .terminal-layout {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            min-height: 600px;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 20px 20px 0 0;
         }
 
-        .terminal-main {
-            padding: 2rem;
-            border-right: 1px solid #334155;
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .cofounder-panel {
-            background: rgba(139, 92, 246, 0.05);
-            border-left: 3px solid var(--cofounder-color);
-            padding: 1.5rem;
+        /* Circular Progress */
+        .circular-progress {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .circular-progress svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .circular-progress .bg-circle {
+            fill: none;
+            stroke: var(--border-primary);
+            stroke-width: 8;
+        }
+
+        .circular-progress .progress-circle {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        /* Chat Interface */
+        .chat-section {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid var(--border-primary);
+        }
+
+        .chat-header {
+            background: var(--bg-card);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-primary);
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 1rem;
         }
 
-        .terminal {
-            background: var(--terminal-bg);
+        .chat-header-icon {
+            width: 48px;
+            height: 48px;
             border-radius: 12px;
-            padding: 1.5rem;
-            color: var(--terminal-text);
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            min-height: 500px;
-            position: relative;
-            border: 1px solid #334155;
-        }
-
-        .terminal-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #334155;
-        }
-
-        .terminal-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .terminal-dot.red { background: #ef4444; }
-        .terminal-dot.yellow { background: #f59e0b; }
-        .terminal-dot.green { background: #10b981; }
-
-        .terminal-title {
-            margin-left: 1rem;
-            color: #94a3b8;
-        }
-
-        .chat-history {
-            max-height: 350px;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-        }
-
-        .chat-message {
-            margin: 1rem 0;
-            line-height: 1.4;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .chat-message.user {
-            color: #60a5fa;
-        }
-
-        .chat-message.ai {
-            color: var(--terminal-text);
-        }
-
-        .chat-message.system {
-            color: #fbbf24;
-        }
-
-        .chat-message.cofounder {
-            color: var(--cofounder-color);
-            border-left: 3px solid var(--cofounder-color);
-            padding-left: 1rem;
-            background: rgba(139, 92, 246, 0.1);
-            border-radius: 0 8px 8px 0;
-        }
-
-        .terminal-input {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(0, 255, 136, 0.1);
-            padding: 0.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--glow-color);
-        }
-
-        .terminal-prompt {
-            color: var(--terminal-text);
-            font-weight: bold;
-        }
-
-        .terminal-input input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--terminal-text);
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-        }
-
-        .terminal-input input::placeholder {
-            color: #64748b;
-        }
-
-        /* Co-founder Panel */
-        .cofounder-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--cofounder-color);
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .cofounder-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--cofounder-color);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .chat-header-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .chat-header-info p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            min-height: 600px;
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .chat-message {
+            margin-bottom: 1.5rem;
+            animation: slideInMessage 0.4s ease-out;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .message-bubble.user {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
             color: white;
-            font-weight: bold;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-bubble.ai {
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-bubble.system {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+            margin: 0 auto;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem 2rem;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--glow-blue);
+        }
+
+        .chat-input input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .chat-input input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px var(--glow-blue);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Insights Panel */
+        .insights-panel {
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-primary);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .insights-header {
+            margin-bottom: 2rem;
+        }
+
+        .insights-header h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .insights-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
         .insight-card {
-            background: var(--insight-bg);
-            border: 1px solid var(--cofounder-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 0.5rem 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
         }
 
         .insight-title {
             font-weight: 600;
-            color: var(--cofounder-color);
-            margin-bottom: 0.5rem;
+            color: var(--accent-blue-bright);
+            margin-bottom: 0.75rem;
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .insight-content {
-            font-size: 0.85rem;
             color: var(--text-secondary);
-            line-height: 1.4;
+            font-size: 0.85rem;
+            line-height: 1.5;
         }
 
         .insight-metric {
-            background: rgba(139, 92, 246, 0.2);
-            color: var(--cofounder-color);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 600;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue-bright);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 500;
             display: inline-block;
             margin: 0.25rem 0.25rem 0.25rem 0;
             font-size: 0.8rem;
-        }
-
-        .efficiency-score {
-            background: linear-gradient(45deg, var(--cofounder-color), var(--accent-color));
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        .efficiency-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .live-updates {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--glow-color);
-            animation: pulse 2s infinite;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         /* Memory Browser */
         .memory-browser {
+            background: var(--bg-secondary);
+            border-radius: 24px;
             padding: 2rem;
+            border: 1px solid var(--border-primary);
+        }
+
+        .memory-header {
+            margin-bottom: 2rem;
+        }
+
+        .memory-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
         .memory-filters {
@@ -438,187 +551,34 @@
         }
 
         .filter-input {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: white;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
         }
 
-        .memory-list {
-            space-y: 1rem;
+        .filter-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--glow-blue);
+            outline: none;
         }
 
         .memory-item {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
             padding: 1.5rem;
             margin-bottom: 1rem;
+            transition: all 0.3s ease;
         }
 
-        .memory-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-
-        .memory-topic {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .memory-timestamp {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .memory-content {
-            margin: 1rem 0;
-            color: var(--text-secondary);
-        }
-
-        .memory-tags {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .memory-tag {
-            background: var(--secondary-color);
-            color: var(--text-primary);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-
-        /* Onboarding Modal */
-        .onboarding-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 2rem;
-        }
-
-        .onboarding-content {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            max-width: 700px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .onboarding-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .onboarding-steps {
-            margin: 2rem 0;
-        }
-
-        .onboarding-step {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: var(--secondary-color);
-            border-radius: 8px;
-        }
-
-        .onboarding-step h4 {
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.5;
-                transform: scale(1.2);
-            }
-        }
-
-        @keyframes glow {
-            0%, 100% {
-                box-shadow: 0 0 5px var(--glow-color);
-            }
-            50% {
-                box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--glow-color);
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .terminal-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .cofounder-panel {
-                border-left: none;
-                border-top: 3px solid var(--cofounder-color);
-            }
-
-            .nav-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .memory-filters {
-                flex-direction: column;
-            }
-        }
-
-        /* Loading States */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--accent-color);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .memory-item:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
         }
 
         /* Status Indicators */
@@ -626,170 +586,262 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.25rem 0.75rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 500;
         }
 
         .status-healthy {
             background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
+            color: var(--success);
+            border: 1px solid var(--success);
         }
 
         .status-degraded {
             background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
+            color: var(--warning);
+            border: 1px solid var(--warning);
         }
 
         .status-error {
             background: rgba(239, 68, 68, 0.1);
-            color: var(--error-color);
+            color: var(--error);
+            border: 1px solid var(--error);
         }
 
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-
-        .typing-dot {
-            width: 6px;
-            height: 6px;
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-primary);
             border-radius: 50%;
-            background: var(--cofounder-color);
-            animation: typing 1.4s infinite;
+            border-top-color: var(--accent-blue);
+            animation: spin 1s ease-in-out infinite;
         }
 
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        /* Animations */
+        @keyframes slideInMessage {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .chat-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .insights-panel {
+                border-left: none;
+                border-top: 1px solid var(--border-primary);
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .hero {
+                padding: 2rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .memory-filters {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
-<body x-data="memoryOS()" x-init="init()">
+<body x-data="memoryOS()" x-init="init()" class="bg-gradient">
     <!-- Navigation -->
     <nav class="nav">
-        <div class="container">
-            <div class="nav-content">
-                <div class="logo">
-                    <div class="logo-icon">M</div>
-                    <span>MemoryOS</span>
-                </div>
-                <ul class="nav-links">
-                    <li class="nav-link" :class="{ active: activeSection === 'home' }" @click="setActiveSection('home')">Home</li>
-                    <li class="nav-link" :class="{ active: activeSection === 'terminal' }" @click="setActiveSection('terminal')">Co-Founder Terminal</li>
-                    <li class="nav-link" :class="{ active: activeSection === 'memory' }" @click="setActiveSection('memory')">Memory</li>
-                    <li class="nav-link" :class="{ active: activeSection === 'analytics' }" @click="setActiveSection('analytics')">Analytics</li>
-                </ul>
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <span>MemoryOS</span>
             </div>
+            <ul class="nav-links">
+                <li class="nav-link" :class="{ active: activeSection === 'home' }" @click="setActiveSection('home')">Dashboard</li>
+                <li class="nav-link" :class="{ active: activeSection === 'chat' }" @click="setActiveSection('chat')">AI Co-Founder</li>
+                <li class="nav-link" :class="{ active: activeSection === 'memory' }" @click="setActiveSection('memory')">Memory</li>
+                <li class="nav-link" :class="{ active: activeSection === 'analytics' }" @click="setActiveSection('analytics')">Analytics</li>
+            </ul>
         </div>
     </nav>
 
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <!-- Home Section -->
+            <!-- Dashboard Section -->
             <section class="section" :class="{ active: activeSection === 'home' }">
                 <div class="hero">
-                    <h1>Creative AI Agent Terminal</h1>
-                    <p>Your persistent AI co-founder for deep work, creative projects, and intelligent automation</p>
-                    <div class="cta-buttons">
-                        <button class="btn btn-primary" @click="setActiveSection('terminal')">Start Creating</button>
-                        <button class="btn btn-secondary" @click="showOnboarding = true">Learn More</button>
+                    <div class="hero-content">
+                        <h1>AI Co-Founder</h1>
+                        <p>Your persistent AI partner for deep work, creative projects, and intelligent automation. Building the future, together.</p>
+                        <div class="cta-buttons">
+                            <button class="btn btn-primary" @click="setActiveSection('chat')">
+                                <span>🚀</span> Start Building
+                            </button>
+                            <button class="btn btn-secondary" @click="showOnboarding = true">
+                                <span>📚</span> Learn More
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Live Stats -->
+                <!-- Performance Stats -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <span class="stat-number" x-text="totalMemories">0</span>
-                        <span class="stat-label">Creative Memories</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" x-text="successRate">0%</span>
-                        <span class="stat-label">Success Rate</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" x-text="efficiencyScore">0</span>
-                        <span class="stat-label">Efficiency Score</span>
-                    </div>
-                    <div class="stat-card">
-                        <div class="status-indicator" :class="systemStatus === 'healthy' ? 'status-healthy' : 'status-error'">
-                            <span x-text="systemStatus">checking...</span>
+                        <div class="circular-progress">
+                            <svg>
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="bg-circle" cx="60" cy="60" r="45"></circle>
+                                <circle class="progress-circle" cx="60" cy="60" r="45" 
+                                        :style="`stroke-dashoffset: ${283 - (283 * efficiencyScore / 100)}`"></circle>
+                            </svg>
+                            <div class="progress-text" x-text="efficiencyScore + '%'">85%</div>
                         </div>
-                        <span class="stat-label">System Status</span>
+                        <div class="stat-label">Efficiency Score</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="circular-progress">
+                            <svg>
+                                <circle class="bg-circle" cx="60" cy="60" r="45"></circle>
+                                <circle class="progress-circle" cx="60" cy="60" r="45" 
+                                        :style="`stroke-dashoffset: ${283 - (283 * (parseInt(successRate) || 0) / 100)}`"></circle>
+                            </svg>
+                            <div class="progress-text" x-text="successRate">0%</div>
+                        </div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="circular-progress">
+                            <svg>
+                                <circle class="bg-circle" cx="60" cy="60" r="45"></circle>
+                                <circle class="progress-circle" cx="60" cy="60" r="45" 
+                                        :style="`stroke-dashoffset: ${283 - (283 * Math.min(totalMemories / 100, 1))}`"></circle>
+                            </svg>
+                            <div class="progress-text" x-text="totalMemories">0</div>
+                        </div>
+                        <div class="stat-label">Total Memories</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div style="padding: 2rem 0;">
+                            <div class="status-indicator" :class="systemStatus === 'healthy' ? 'status-healthy' : 'status-error'">
+                                <span x-text="systemStatus">checking...</span>
+                            </div>
+                        </div>
+                        <div class="stat-label">System Status</div>
                     </div>
                 </div>
             </section>
 
-            <!-- Interactive Co-Founder Terminal -->
-            <section class="section" :class="{ active: activeSection === 'terminal' }">
-                <div class="terminal-section">
-                    <div class="live-updates">
-                        <div class="pulse-dot"></div>
-                        <span style="color: #94a3b8; font-size: 0.8rem;">Live Co-Founder Mode</span>
+            <!-- AI Chat Section -->
+            <section class="section" :class="{ active: activeSection === 'chat' }">
+                <div class="chat-section">
+                    <div class="chat-header">
+                        <div class="chat-header-icon">🤝</div>
+                        <div class="chat-header-info">
+                            <h3>AI Co-Founder Chat</h3>
+                            <p>Your persistent AI partner with <span x-text="totalMemories"></span> memories</p>
+                        </div>
                     </div>
 
-                    <div class="terminal-layout">
-                        <!-- Main Terminal -->
-                        <div class="terminal-main">
-                            <div class="terminal">
-                                <div class="terminal-header">
-                                    <div class="terminal-dot red"></div>
-                                    <div class="terminal-dot yellow"></div>
-                                    <div class="terminal-dot green"></div>
-                                    <div class="terminal-title">Co-Founder AI Terminal - Building Together</div>
-                                </div>
+                    <div class="chat-layout">
+                        <div class="chat-main">
+                            <div class="chat-messages" x-ref="chatMessages">
+                                <template x-for="message in chatHistory" :key="message.id">
+                                    <div class="chat-message">
+                                        <div class="message-bubble" :class="message.type" x-html="message.content"></div>
+                                    </div>
+                                </template>
+                            </div>
 
-                                <div class="chat-history" x-ref="chatHistory">
-                                    <template x-for="message in chatHistory" :key="message.id">
-                                        <div class="chat-message" :class="message.type">
-                                            <span x-html="message.content"></span>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <div class="terminal-input">
-                                    <span class="terminal-prompt">❯</span>
+                            <div class="chat-input-container">
+                                <div class="chat-input">
                                     <input 
                                         x-model="currentMessage" 
                                         @keydown.enter="sendMessage()"
                                         :disabled="isTyping"
-                                        placeholder="What are we building today? I have insights based on your memories..."
+                                        placeholder="What are we building today? I have insights from your memories..."
                                         autofocus
                                     >
-                                    <div x-show="isTyping" class="loading"></div>
+                                    <button 
+                                        class="chat-send-btn" 
+                                        @click="sendMessage()" 
+                                        :disabled="isTyping || !currentMessage.trim()"
+                                    >
+                                        <span x-show="!isTyping">→</span>
+                                        <div x-show="isTyping" class="loading"></div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Co-Founder Insights Panel -->
-                        <div class="cofounder-panel">
-                            <div class="cofounder-header">
-                                <div class="cofounder-avatar">CF</div>
-                                <span>Co-Founder Insights</span>
-                            </div>
-
-                            <div class="efficiency-score">
-                                <div class="efficiency-number" x-text="efficiencyScore + '%'">85%</div>
-                                <div>Current Efficiency</div>
+                        <div class="insights-panel">
+                            <div class="insights-header">
+                                <h4>Live Insights</h4>
+                                <p>Real-time analysis of your progress</p>
                             </div>
 
                             <div class="insight-card">
-                                <div class="insight-title">🎯 What You've Learned</div>
+                                <div class="insight-title">
+                                    <span>🎯</span> Current Learning
+                                </div>
                                 <div class="insight-content" x-text="currentLearnings">
-                                    Analyzing your memory patterns...
+                                    Analyzing your patterns...
                                 </div>
                             </div>
 
                             <div class="insight-card">
-                                <div class="insight-title">🚧 Current Blockers</div>
+                                <div class="insight-title">
+                                    <span>🚧</span> Active Blockers
+                                </div>
                                 <div class="insight-content">
-                                    <div x-show="blockers.length === 0" class="insight-metric">No blockers detected!</div>
+                                    <div x-show="blockers.length === 0" class="insight-metric">No blockers detected</div>
                                     <template x-for="blocker in blockers">
                                         <div class="insight-metric" x-text="blocker"></div>
                                     </template>
@@ -797,7 +849,9 @@
                             </div>
 
                             <div class="insight-card">
-                                <div class="insight-title">⚡ Efficiency Boosts</div>
+                                <div class="insight-title">
+                                    <span>⚡</span> Efficiency Boosts
+                                </div>
                                 <div class="insight-content">
                                     <template x-for="boost in efficiencyBoosts">
                                         <div class="insight-metric" x-text="boost"></div>
@@ -806,23 +860,13 @@
                             </div>
 
                             <div class="insight-card">
-                                <div class="insight-title">📊 Live Metrics</div>
+                                <div class="insight-title">
+                                    <span>📊</span> Session Metrics
+                                </div>
                                 <div class="insight-content">
                                     <div class="insight-metric">Sessions: <span x-text="totalSessions"></span></div>
-                                    <div class="insight-metric">Success Rate: <span x-text="successRate"></span></div>
                                     <div class="insight-metric">Categories: <span x-text="Object.keys(categories).length"></span></div>
-                                </div>
-                            </div>
-
-                            <div class="insight-card" x-show="isTyping">
-                                <div class="insight-title">🤔 AI Processing</div>
-                                <div class="insight-content">
-                                    <div class="typing-indicator">
-                                        Analyzing context
-                                        <div class="typing-dot"></div>
-                                        <div class="typing-dot"></div>
-                                        <div class="typing-dot"></div>
-                                    </div>
+                                    <div class="insight-metric">Provider: <span x-text="aiProvider"></span></div>
                                 </div>
                             </div>
                         </div>
@@ -833,8 +877,10 @@
             <!-- Memory Browser Section -->
             <section class="section" :class="{ active: activeSection === 'memory' }">
                 <div class="memory-browser">
-                    <h2>Memory Archive</h2>
-                    <p>Browse and search through your creative journey</p>
+                    <div class="memory-header">
+                        <h2>Memory Archive</h2>
+                        <p style="color: var(--text-secondary);">Browse and search through your creative journey</p>
+                    </div>
 
                     <div class="memory-filters">
                         <input class="filter-input" placeholder="Search memories..." x-model="memorySearch">
@@ -849,16 +895,16 @@
                     <div class="memory-list">
                         <template x-for="memory in filteredMemories" :key="memory.timestamp">
                             <div class="memory-item">
-                                <div class="memory-header">
-                                    <div class="memory-topic" x-text="memory.topic"></div>
-                                    <div class="memory-timestamp" x-text="formatTimestamp(memory.timestamp)"></div>
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div style="font-weight: 600; color: var(--text-primary);" x-text="memory.topic"></div>
+                                    <div style="color: var(--text-secondary); font-size: 0.875rem;" x-text="formatTimestamp(memory.timestamp)"></div>
                                 </div>
-                                <div class="memory-content" x-text="memory.input.substring(0, 200) + '...'"></div>
-                                <div class="memory-tags">
+                                <div style="margin: 1rem 0; color: var(--text-secondary);" x-text="memory.input.substring(0, 200) + '...'"></div>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                     <template x-for="tag in memory.tags || []">
-                                        <span class="memory-tag" x-text="tag"></span>
+                                        <span style="background: var(--bg-secondary); color: var(--text-primary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;" x-text="tag"></span>
                                     </template>
-                                    <span class="memory-tag" x-text="memory.category"></span>
+                                    <span style="background: var(--bg-secondary); color: var(--text-primary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;" x-text="memory.category"></span>
                                 </div>
                             </div>
                         </template>
@@ -868,36 +914,38 @@
 
             <!-- Analytics Section -->
             <section class="section" :class="{ active: activeSection === 'analytics' }">
-                <div style="padding: 2rem;">
-                    <h2>Creative Analytics</h2>
-                    <p>Insights into your creative process and AI collaboration</p>
+                <div class="memory-browser">
+                    <div class="memory-header">
+                        <h2>Creative Analytics</h2>
+                        <p style="color: var(--text-secondary);">Deep insights into your AI collaboration patterns</p>
+                    </div>
 
-                    <div class="stats-grid" style="margin-top: 2rem;">
+                    <div class="stats-grid">
                         <div class="stat-card">
-                            <span class="stat-number" x-text="Object.keys(categories).length">0</span>
-                            <span class="stat-label">Active Categories</span>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-blue); margin-bottom: 0.5rem;" x-text="Object.keys(categories).length">0</div>
+                            <div class="stat-label">Active Categories</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-number" x-text="aiProvider">Unknown</span>
-                            <span class="stat-label">AI Provider</span>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.5rem;" x-text="aiProvider">Unknown</div>
+                            <div class="stat-label">AI Provider</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-number" x-text="sessionId.substring(0, 8)">--------</span>
-                            <span class="stat-label">Session ID</span>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-blue-bright); margin-bottom: 0.5rem;" x-text="sessionId.substring(0, 8)">--------</div>
+                            <div class="stat-label">Session ID</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-number" x-text="recentMemories.length">0</span>
-                            <span class="stat-label">Recent Entries</span>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--success); margin-bottom: 0.5rem;" x-text="recentMemories.length">0</div>
+                            <div class="stat-label">Recent Entries</div>
                         </div>
                     </div>
 
                     <div style="margin-top: 3rem;">
-                        <h3>Category Breakdown</h3>
-                        <div style="margin-top: 1rem;">
+                        <h3 style="margin-bottom: 1.5rem; color: var(--text-primary);">Category Breakdown</h3>
+                        <div>
                             <template x-for="(count, category) in categories" :key="category">
-                                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
-                                    <span x-text="category"></span>
-                                    <span x-text="count"></span>
+                                <div style="display: flex; justify-content: space-between; padding: 1rem; margin-bottom: 0.5rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-primary);">
+                                    <span style="color: var(--text-primary);" x-text="category"></span>
+                                    <span style="color: var(--accent-blue);" x-text="count"></span>
                                 </div>
                             </template>
                         </div>
@@ -906,49 +954,6 @@
             </section>
         </div>
     </main>
-
-    <!-- Enhanced Onboarding Modal -->
-    <div x-show="showOnboarding" class="onboarding-modal" x-transition>
-        <div class="onboarding-content">
-            <div class="onboarding-header">
-                <h3>Welcome to MemoryOS Co-Founder Terminal</h3>
-                <button @click="showOnboarding = false" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem;">&times;</button>
-            </div>
-
-            <p>MemoryOS is your creative AI co-founder that learns, remembers, and grows with you. Experience the future of AI collaboration:</p>
-
-            <div class="onboarding-steps">
-                <div class="onboarding-step">
-                    <h4>🧠 Persistent AI Memory</h4>
-                    <p>Your AI co-founder remembers every conversation, insight, and breakthrough across all sessions. No more repeating context.</p>
-                </div>
-
-                <div class="onboarding-step">
-                    <h4>🎯 Live Insights & Blockers</h4>
-                    <p>Get real-time analysis of what's working, what's blocking you, and personalized efficiency recommendations.</p>
-                </div>
-
-                <div class="onboarding-step">
-                    <h4>⚡ Deep Work Optimization</h4>
-                    <p>Eliminate workflow-killing friction. Focus on creating while AI handles context, memory, and strategic guidance.</p>
-                </div>
-
-                <div class="onboarding-step">
-                    <h4>📈 Efficiency Tracking</h4>
-                    <p>Monitor your creative patterns, success rates, and growth over time with intelligent analytics.</p>
-                </div>
-
-                <div class="onboarding-step">
-                    <h4>🚀 Production Ready</h4>
-                    <p>Built for serious creators, entrepreneurs, and teams who need reliable AI that scales with their ambitions.</p>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 2rem;">
-                <button class="btn btn-primary" @click="showOnboarding = false; setActiveSection('terminal')">Start Building Together</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         function memoryOS() {
@@ -969,11 +974,11 @@
                 successRate: '0%',
                 recentMemories: [],
                 categories: {},
-                aiProvider: 'Unknown',
+                aiProvider: 'Claude AI',
                 sessionId: '',
                 efficiencyScore: 85,
 
-                // Co-founder insights
+                // Insights
                 currentLearnings: 'Analyzing your memory patterns to identify key learnings...',
                 blockers: [],
                 efficiencyBoosts: ['Memory Context', 'Pattern Recognition', 'Auto-Insights'],
@@ -988,13 +993,6 @@
                     await this.refreshMemories();
                     this.addWelcomeMessage();
                     this.startLiveInsights();
-
-                    // Show onboarding for first-time users
-                    const hasVisited = localStorage.getItem('memoryos-visited');
-                    if (!hasVisited) {
-                        this.showOnboarding = true;
-                        localStorage.setItem('memoryos-visited', 'true');
-                    }
                 },
 
                 // Navigation
@@ -1002,8 +1000,9 @@
                     this.activeSection = section;
                     if (section === 'memory') {
                         this.refreshMemories();
-                    } else if (section === 'terminal') {
+                    } else if (section === 'chat') {
                         this.updateCofounderInsights();
+                        this.scrollToBottom();
                     }
                 },
 
@@ -1052,19 +1051,12 @@
                     }
                 },
 
-                // Co-founder Intelligence
+                // Insights
                 updateCofounderInsights() {
-                    // Analyze learnings
                     const learnings = this.extractLearnings();
                     this.currentLearnings = learnings.length > 0 ? learnings.join(', ') : 'Building baseline understanding...';
-
-                    // Identify blockers
                     this.blockers = this.identifyBlockers();
-
-                    // Calculate efficiency score
                     this.efficiencyScore = this.calculateEfficiencyScore();
-
-                    // Update efficiency boosts
                     this.efficiencyBoosts = this.getEfficiencyBoosts();
                 },
 
@@ -1128,7 +1120,6 @@
                 },
 
                 startLiveInsights() {
-                    // Update insights every 30 seconds
                     setInterval(() => {
                         this.updateCofounderInsights();
                     }, 30000);
@@ -1138,10 +1129,12 @@
                 addWelcomeMessage() {
                     this.chatHistory.push({
                         id: Date.now(),
-                        type: 'cofounder',
-                        content: `🚀 <strong>Co-Founder AI Online</strong><br>
-                        Status: ${this.systemStatus} | Memories: ${this.totalMemories} | Efficiency: ${this.efficiencyScore}%<br><br>
-                        Hey! I'm your AI co-founder. I've been analyzing your ${this.totalMemories} memories and I'm ready to help you build. I can see patterns in your work, identify blockers, and suggest optimizations.<br><br>
+                        type: 'ai',
+                        content: `<strong>🚀 AI Co-Founder Online</strong><br><br>
+                        Status: <span style="color: var(--accent-blue);">${this.systemStatus}</span> | 
+                        Memories: <span style="color: var(--accent-cyan);">${this.totalMemories}</span> | 
+                        Efficiency: <span style="color: var(--success);">${this.efficiencyScore}%</span><br><br>
+                        Hey! I'm your AI co-founder with access to ${this.totalMemories} memories. I can see patterns in your work, identify blockers, and suggest optimizations.<br><br>
                         <em>What are we working on today?</em>`
                     });
                     this.scrollToBottom();
@@ -1161,16 +1154,6 @@
                     this.isTyping = true;
                     this.scrollToBottom();
 
-                    // Add co-founder thinking message
-                    setTimeout(() => {
-                        this.chatHistory.push({
-                            id: Date.now() + 0.5,
-                            type: 'cofounder',
-                            content: `<em>Analyzing your ${this.totalMemories} memories and current context...</em>`
-                        });
-                        this.scrollToBottom();
-                    }, 500);
-
                     try {
                         const response = await fetch('/ai/query', {
                             method: 'POST',
@@ -1181,16 +1164,12 @@
                         const result = await response.json();
 
                         if (result.status === 'success') {
-                            // Remove thinking message
-                            this.chatHistory = this.chatHistory.filter(msg => !msg.content.includes('Analyzing your'));
-                            
                             this.chatHistory.push({
                                 id: Date.now() + 1,
                                 type: 'ai',
                                 content: result.ai_response.response || 'No response received'
                             });
 
-                            // Add co-founder insight
                             setTimeout(() => {
                                 this.addCofounderInsight(userMessage, result.ai_response.response);
                             }, 1000);
@@ -1226,8 +1205,8 @@
                     
                     this.chatHistory.push({
                         id: Date.now() + 2,
-                        type: 'cofounder',
-                        content: `<small>${randomInsight}</small>`
+                        type: 'ai',
+                        content: `<small style="color: var(--text-secondary);">${randomInsight}</small>`
                     });
                     this.scrollToBottom();
                 },
@@ -1260,8 +1239,8 @@
 
                 scrollToBottom() {
                     this.$nextTick(() => {
-                        if (this.$refs.chatHistory) {
-                            this.$refs.chatHistory.scrollTop = this.$refs.chatHistory.scrollHeight;
+                        if (this.$refs.chatMessages) {
+                            this.$refs.chatMessages.scrollTop = this.$refs.chatMessages.scrollHeight;
                         }
                     });
                 },
