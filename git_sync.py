@@ -535,35 +535,42 @@ class GitHubSyncer:
     def _force_clear_git_locks(self):
         """Force clear all git lock files with process checking"""
         import time
-        import psutil
+        import subprocess
         
-        # Kill any running git processes first
+        # Use system pkill to terminate all git processes
         try:
-            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-                if proc.info['name'] and 'git' in proc.info['name'].lower():
-                    if proc.info['cmdline'] and any('git' in str(cmd).lower() for cmd in proc.info['cmdline']):
-                        try:
-                            proc.terminate()
-                            time.sleep(0.5)
-                            if proc.is_running():
-                                proc.kill()
-                            self.logger.info(f"Terminated git process: {proc.info['pid']}")
-                        except (psutil.NoSuchProcess, psutil.AccessDenied):
-                            pass
-        except Exception as e:
-            self.logger.warning(f"Failed to check/kill git processes: {e}")
+            subprocess.run(['pkill', '-f', 'git'], capture_output=True, timeout=5)
+            time.sleep(2)  # Give processes time to die
+        except:
+            pass
         
-        # Wait for processes to clean up
-        time.sleep(1)
+        # More aggressive process killing
+        try:
+            subprocess.run(['killall', 'git'], capture_output=True, timeout=5)
+            time.sleep(1)
+        except:
+            pass
         
+        # Clear all possible git lock files
         lock_patterns = [
             '.git/index.lock',
             '.git/refs/heads/main.lock',
             '.git/config.lock',
             '.git/HEAD.lock',
             '.git/COMMIT_EDITMSG.lock',
-            '.git/refs/remotes/origin/main.lock'
+            '.git/refs/remotes/origin/main.lock',
+            '.git/refs/heads/*.lock',
+            '.git/refs/remotes/origin/*.lock',
+            '.git/*.lock'
         ]
+        
+        # Use shell globbing to clear all lock files
+        try:
+            subprocess.run(['find', self.base_dir, '-name', '*.lock', '-path', '*/.git/*', '-delete'], 
+                         capture_output=True, timeout=10)
+            self.logger.info("Cleared all git lock files using find command")
+        except:
+            pass
 
         for pattern in lock_patterns:
             lock_path = os.path.join(self.base_dir, pattern)

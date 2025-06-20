@@ -998,12 +998,43 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Manual GitHub sync endpoint with improved lock handling"""
+    """Sync changes to GitHub with circuit breaker"""
+
+    # Circuit breaker: check for recent failures
+    try:
+        with open('git_sync_status.json', 'r') as f:
+            sync_status = json.load(f)
+    except:
+        sync_status = {"last_success": None, "failure_count": 0, "last_failure": None}
+
+    # If we've had 3+ failures in the last 5 minutes, block sync
+    if sync_status.get("failure_count", 0) >= 3:
+        last_failure = sync_status.get("last_failure")
+        if last_failure:
+            try:
+                from datetime import datetime, timedelta
+                last_fail_time = datetime.fromisoformat(last_failure.replace('Z', '+00:00'))
+                if datetime.now(timezone.utc) - last_fail_time < timedelta(minutes=5):
+                    return jsonify({"status": "blocked", "message": "Too many recent failures, sync blocked"}), 429
+            except:
+                pass
+
     try:
         force = request.args.get('force', 'false').lower() == 'true'
-        
+
         syncer = GitHubSyncer(BASE_DIR)
         result = syncer.run_auto_sync(force=force)
+
+        # Update sync status
+        if result.get('status') == 'success':
+            sync_status["last_success"] = datetime.now(timezone.utc).isoformat()
+            sync_status["failure_count"] = 0  # Reset failures
+        else:
+            sync_status["failure_count"] = sync_status.get("failure_count", 0) + 1
+            sync_status["last_failure"] = datetime.now(timezone.utc).isoformat()
+
+        with open('git_sync_status.json', 'w') as f:
+            json.dump(sync_status, f)
 
         # Don't log to memory if this was called from memory logging (prevent recursion)
         try:
@@ -1011,7 +1042,7 @@ def git_sync():
             should_log_to_memory = caller_frame and 'log_to_memory' not in str(caller_frame.f_code.co_filename)
         except:
             should_log_to_memory = True  # Default to logging if inspection fails
-            
+
         if should_log_to_memory:
             # Log the sync attempt to memory (only if not called from memory system)
             try:
@@ -1043,6 +1074,18 @@ def git_sync():
 
         return jsonify(result)
     except Exception as e:
+        # Log exception and increment failure count
+        try:
+            with open('git_sync_status.json', 'r') as f:
+                sync_status = json.load(f)
+        except:
+            sync_status = {"last_success": None, "failure_count": 0, "last_failure": None}
+
+        sync_status["failure_count"] = sync_status.get("failure_count", 0) + 1
+        sync_status["last_failure"] = datetime.now(timezone.utc).isoformat()
+        with open('git_sync_status.json', 'w') as f:
+            json.dump(sync_status, f)
+
         return jsonify({
             'status': 'error',
             'message': str(e)
@@ -1089,7 +1132,7 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
     try:
         syncer = GitHubSyncer(BASE_DIR)
         recent_logs = memory[-10:]  # Check last 10 entries
-        
+
         # Only check if sync is needed, don't actually sync to prevent recursion
         if syncer.should_auto_sync(recent_logs):
             print(f"Auto-sync scheduled: {len(recent_logs)} recent changes detected")
