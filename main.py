@@ -58,7 +58,9 @@ def load_config():
 SYSTEM_CONFIG = load_config()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://chat.openai.com", "https://chatgpt.com"], 
+     allow_headers=["Content-Type", "Authorization", "X-API-KEY", "x-api-key", "X-Api-Key"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Flask-Caching configuration (moved here to be available for decorators)
 from flask_caching import Cache
@@ -1211,8 +1213,8 @@ class ConnectionValidator:
     def _test_endpoint(self, endpoint: str) -> Dict[str, Any]:
         """Test individual endpoint connectivity"""
         try:
-            # Use deployment URL for production validation
-            base_url = os.getenv('DEPLOYMENT_URL', 'https://memoryos.replit.app')
+            # Always use deployment URL for GPT connections
+            base_url = 'https://memoryos.replit.app'
             url = f"{base_url}{endpoint}"
             
             # Check for timeout issues

@@ -11,7 +11,7 @@ import datetime
 from typing import Dict, Any
 
 class GPTSessionTransition:
-    def __init__(self, api_base_url: str = "http://127.0.0.1:5000"):
+    def __init__(self, api_base_url: str = "https://memoryos.replit.app"):
         self.api_base_url = api_base_url
     
     def prepare_new_session_context(self) -> Dict[str, Any]:

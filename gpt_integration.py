@@ -21,7 +21,7 @@ import logging
 from typing import Dict, Any, Optional
 
 class GPTReplitIntegration:
-    def __init__(self, base_dir: str, api_base_url: str = "http://127.0.0.1:5000"):
+    def __init__(self, base_dir: str, api_base_url: str = "https://memoryos.replit.app"):
         self.base_dir = base_dir
         self.api_base_url = api_base_url
         self.last_validation = None
