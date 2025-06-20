@@ -1,0 +1,73 @@
+Prompt: I Need a Memory-Driven, Agent-Powered Personal Builder Workspace—Not Just an Editor
+
+The current workspace (screenshot attached) is just a blank IDE shell.
+This is not what I requested. I want to build a fully interactive, agent-driven, memory-powered builder that’s more than an editor. Here’s what’s missing, and what I need you to implement:
+
+The Vision
+This is not a chat, not a plain editor.
+It’s a personalized, memory-driven workspace where my agent (Clude) actively manages, audits, and supports my work, using my own logic and preferences.
+
+Key Features Required:
+Memory-Driven Agent
+
+All actions and edits are tracked in session memory.
+
+The agent recalls recent files, last errors, last run/test, and my workflow style.
+
+Clude can audit every change, warn about common mistakes, and prompt before risky actions.
+
+Personalized Workflow Guidance
+
+The builder knows my dev style (from a Me.md or config file).
+
+Offers custom prompts, TODO tracking, and warns me about things I care about (skipped tests, bad commits, missing health checks, etc.).
+
+Builder-First UI
+
+Create/edit/run files like Replit, but with agent-assisted creation (e.g., “Create a new Flask server with my preferred structure”).
+
+Live project/task dashboard:
+
+See what changed recently, outstanding TODOs, test results, current errors.
+
+Logs and Errors:
+
+Live log viewing, filterable by error/warning, inline error explanation by the agent.
+
+One-click rollbacks/undoes tracked and explained by Clude.
+
+Integrated Terminal and Preview
+
+Shell access and output are visible, and every shell command is logged/audited by the agent.
+
+Preview area not just for files, but for build results, test output, and diffs.
+
+Memory/Agent Context Bar
+
+Visual area showing session memory:
+
+Current project, files, tests, errors, last agent suggestion, rollbacks, etc.
+
+(Optional but ideal) API Integration
+
+Let Clude create, edit, and run files via the Replit API or a backend, so this builder is as powerful as the main Replit IDE.
+
+How I Want To Interact:
+Through the builder UI, not just chat.
+
+All changes, runs, errors, and TODOs are agent-logged and surfaced contextually in the UI.
+
+Clude should nudge me, audit my workflow, and personalize every suggestion or fix.
+
+What I Need Now:
+
+An actionable plan and starter code for a true “memory-driven, agent-powered builder”—not a static workspace shell.
+
+Integrate Clude’s memory and management into the core experience.
+
+Sample modular config files, and a way for me to update my “Me.md” so the agent’s audit logic and workflow adapt to me.
+
+If you need clarification, ask about the specific pain points and vision above—don’t default to a generic file editor.
+
+Goal:
+A workspace where the agent is active, audits my work, prevents mistakes, and helps me build/code/run with my workflow—not just another static editor.
