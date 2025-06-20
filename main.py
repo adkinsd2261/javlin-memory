@@ -995,7 +995,11 @@ def system_health():
 @app.route('/')
 def health_check():
     """Root health check endpoint for Autoscale deployments"""
-    return "OK", 200
+    return jsonify({
+        "status": "healthy",
+        "service": "MemoryOS",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), 200
 
 @app.route('/health', methods=['GET'])
 def quick_health():
