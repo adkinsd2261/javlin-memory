@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,14 +24,14 @@
             --jav-text-muted: #94A3B8;
             --jav-gradient: linear-gradient(135deg, var(--jav-primary), var(--jav-secondary));
         }
-        
+
         body {
             background: var(--jav-bg);
             color: var(--jav-text);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow: hidden;
         }
-        
+
         .studio-container {
             display: grid;
             grid-template-columns: 1fr 420px;
@@ -40,13 +39,13 @@
             gap: 1px;
             background: var(--jav-border);
         }
-        
+
         .code-canvas {
             background: var(--jav-bg);
             position: relative;
             overflow: hidden;
         }
-        
+
         .creative-panel {
             background: var(--jav-surface);
             display: flex;
@@ -54,7 +53,7 @@
             overflow: hidden;
             border-left: 1px solid var(--jav-border);
         }
-        
+
         .panel-header {
             padding: 20px;
             background: var(--jav-gradient);
@@ -63,7 +62,7 @@
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .jav-avatar {
             width: 40px;
             height: 40px;
@@ -75,21 +74,21 @@
             margin-right: 12px;
             animation: pulse 2s infinite;
         }
-        
+
         .creative-space {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
-        
+
         .conversation-flow {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
             background: rgba(0, 0, 0, 0.1);
         }
-        
+
         .insight-card {
             margin-bottom: 16px;
             padding: 16px;
@@ -100,39 +99,39 @@
             transition: all 0.3s ease;
             background: var(--jav-card);
         }
-        
+
         .insight-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             border-color: var(--jav-primary);
         }
-        
+
         .insight-card.dragging {
             opacity: 0.8;
             transform: rotate(2deg);
             z-index: 1000;
         }
-        
+
         .insight-card.suggestion {
             border-left: 4px solid var(--jav-accent);
             background: linear-gradient(135deg, var(--jav-card), rgba(6, 182, 212, 0.05));
         }
-        
+
         .insight-card.error {
             border-left: 4px solid var(--jav-error);
             background: linear-gradient(135deg, var(--jav-card), rgba(239, 68, 68, 0.05));
         }
-        
+
         .insight-card.idea {
             border-left: 4px solid var(--jav-secondary);
             background: linear-gradient(135deg, var(--jav-card), rgba(139, 92, 246, 0.05));
         }
-        
+
         .insight-card.pinned {
             border: 2px solid var(--jav-warning);
             background: linear-gradient(135deg, var(--jav-card), rgba(245, 158, 11, 0.1));
         }
-        
+
         .insight-card.pinned::before {
             content: '📌';
             position: absolute;
@@ -140,14 +139,14 @@
             right: 8px;
             font-size: 12px;
         }
-        
+
         .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
         }
-        
+
         .card-source {
             display: flex;
             align-items: center;
@@ -156,18 +155,18 @@
             font-weight: 600;
             color: var(--jav-text-muted);
         }
-        
+
         .card-actions {
             display: flex;
             gap: 8px;
             opacity: 0;
             transition: opacity 0.2s;
         }
-        
+
         .insight-card:hover .card-actions {
             opacity: 1;
         }
-        
+
         .action-button {
             width: 24px;
             height: 24px;
@@ -182,24 +181,24 @@
             font-size: 12px;
             transition: all 0.2s;
         }
-        
+
         .action-button:hover {
             background: var(--jav-primary);
             color: white;
             transform: scale(1.1);
         }
-        
+
         .card-content {
             line-height: 1.6;
             margin-bottom: 12px;
         }
-        
+
         .quick-actions {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
-        
+
         .quick-action {
             padding: 6px 12px;
             border-radius: 20px;
@@ -210,29 +209,29 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .quick-action:hover {
             background: var(--jav-primary);
             border-color: var(--jav-primary);
             transform: translateY(-1px);
         }
-        
+
         .quick-action.primary {
             background: var(--jav-primary);
             border-color: var(--jav-primary);
             color: white;
         }
-        
+
         .chat-area {
             padding: 20px;
             border-top: 1px solid var(--jav-border);
             background: rgba(0, 0, 0, 0.2);
         }
-        
+
         .chat-input-container {
             position: relative;
         }
-        
+
         .chat-input {
             width: 100%;
             min-height: 60px;
@@ -247,17 +246,17 @@
             line-height: 1.5;
             transition: all 0.3s ease;
         }
-        
+
         .chat-input:focus {
             outline: none;
             border-color: var(--jav-primary);
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
-        
+
         .chat-input::placeholder {
             color: var(--jav-text-muted);
         }
-        
+
         .send-button {
             position: absolute;
             right: 8px;
@@ -274,25 +273,25 @@
             justify-content: center;
             transition: all 0.2s;
         }
-        
+
         .send-button:hover {
             transform: scale(1.1);
             box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
-        
+
         .send-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .conversation-bubble {
             margin-bottom: 16px;
             display: flex;
             gap: 12px;
             animation: slideIn 0.4s ease;
         }
-        
+
         .bubble-avatar {
             width: 32px;
             height: 32px;
@@ -303,17 +302,17 @@
             font-size: 14px;
             flex-shrink: 0;
         }
-        
+
         .jav-bubble-avatar {
             background: var(--jav-gradient);
             color: white;
         }
-        
+
         .user-bubble-avatar {
             background: var(--jav-accent);
             color: white;
         }
-        
+
         .bubble-content {
             flex: 1;
             padding: 12px 16px;
@@ -321,17 +320,17 @@
             max-width: 280px;
             position: relative;
         }
-        
+
         .jav-bubble {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
             border: 1px solid rgba(99, 102, 241, 0.2);
         }
-        
+
         .user-bubble {
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.1));
             border: 1px solid rgba(6, 182, 212, 0.2);
         }
-        
+
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -341,12 +340,12 @@
             border-radius: 16px;
             margin-left: 44px;
         }
-        
+
         .typing-dots {
             display: flex;
             gap: 4px;
         }
-        
+
         .typing-dot {
             width: 6px;
             height: 6px;
@@ -354,10 +353,10 @@
             background: var(--jav-primary);
             animation: typingDot 1.4s infinite;
         }
-        
+
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        
+
         .drop-zone {
             min-height: 60px;
             border: 2px dashed var(--jav-border);
@@ -369,13 +368,13 @@
             margin: 12px 0;
             transition: all 0.3s ease;
         }
-        
+
         .drop-zone.active {
             border-color: var(--jav-primary);
             background: rgba(99, 102, 241, 0.05);
             color: var(--jav-primary);
         }
-        
+
         .floating-toolbar {
             position: fixed;
             bottom: 20px;
@@ -384,7 +383,7 @@
             gap: 8px;
             z-index: 100;
         }
-        
+
         .toolbar-button {
             width: 48px;
             height: 48px;
@@ -400,14 +399,14 @@
             backdrop-filter: blur(10px);
             border: 1px solid var(--jav-border);
         }
-        
+
         .toolbar-button:hover {
             background: var(--jav-primary);
             border-color: var(--jav-primary);
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
         }
-        
+
         .health-indicator {
             position: absolute;
             top: 20px;
@@ -422,7 +421,7 @@
             font-size: 12px;
             backdrop-filter: blur(10px);
         }
-        
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -430,7 +429,7 @@
             background: var(--jav-success);
             animation: pulse 2s infinite;
         }
-        
+
         .code-overlay {
             position: absolute;
             top: 100px;
@@ -444,27 +443,27 @@
             z-index: 50;
             animation: popIn 0.3s ease;
         }
-        
+
         @keyframes slideIn {
             from { transform: translateX(-20px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         @keyframes popIn {
             from { transform: scale(0.9) translateY(10px); opacity: 0; }
             to { transform: scale(1) translateY(0); opacity: 1; }
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.7; transform: scale(1.05); }
         }
-        
+
         @keyframes typingDot {
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-8px); }
         }
-        
+
         .drag-helper {
             position: fixed;
             pointer-events: none;
@@ -472,7 +471,7 @@
             opacity: 0.8;
             transform: rotate(5deg);
         }
-        
+
         .reaction-menu {
             position: absolute;
             top: -10px;
@@ -487,12 +486,12 @@
             transform: scale(0.8);
             transition: all 0.2s;
         }
-        
+
         .insight-card:hover .reaction-menu {
             opacity: 1;
             transform: scale(1);
         }
-        
+
         .reaction-button {
             width: 24px;
             height: 24px;
@@ -506,7 +505,7 @@
             font-size: 12px;
             transition: all 0.2s;
         }
-        
+
         .reaction-button:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: scale(1.2);
@@ -515,17 +514,17 @@
 </head>
 <body>
     <div x-data="javStudio()" x-init="init()" class="studio-container">
-        
+
         <!-- Code Canvas -->
         <div class="code-canvas">
             <div id="monaco-editor" class="w-full h-full"></div>
-            
+
             <!-- Health Indicator -->
             <div class="health-indicator">
                 <div class="status-dot" :class="{ 'bg-red-500': hasErrors, 'bg-yellow-500': hasWarnings }"></div>
                 <span x-text="systemHealth"></span>
             </div>
-            
+
             <!-- Code Overlay Insights -->
             <div x-show="codeInsight" x-transition class="code-overlay">
                 <div class="text-sm font-medium mb-2" x-text="codeInsight?.title"></div>
@@ -538,10 +537,10 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Creative Studio Panel -->
         <div class="creative-panel">
-            
+
             <!-- Panel Header -->
             <div class="panel-header">
                 <div class="flex items-center">
@@ -560,13 +559,13 @@
                     <i class="fas fa-magic"></i>
                 </div>
             </div>
-            
+
             <!-- Creative Space -->
             <div class="creative-space">
-                
+
                 <!-- Conversation Flow -->
                 <div class="conversation-flow" x-ref="conversationContainer">
-                    
+
                     <!-- Insight Cards -->
                     <template x-for="item in studioItems" :key="item.id">
                         <div class="insight-card" 
@@ -574,14 +573,14 @@
                              draggable="true"
                              @dragstart="startDrag($event, item)"
                              @dragend="endDrag()">
-                            
+
                             <!-- Reaction Menu -->
                             <div class="reaction-menu">
                                 <button class="reaction-button" @click="reactToItem(item, '👍')">👍</button>
                                 <button class="reaction-button" @click="reactToItem(item, '💡')">💡</button>
                                 <button class="reaction-button" @click="reactToItem(item, '❤️')">❤️</button>
                             </div>
-                            
+
                             <!-- Card Header -->
                             <div class="card-header">
                                 <div class="card-source">
@@ -607,10 +606,10 @@
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <!-- Card Content -->
                             <div class="card-content" x-text="item.content"></div>
-                            
+
                             <!-- Quick Actions -->
                             <div x-show="item.actions && item.actions.length > 0" class="quick-actions">
                                 <template x-for="action in item.actions" :key="action.id">
@@ -620,7 +619,7 @@
                                             x-text="action.label"></button>
                                 </template>
                             </div>
-                            
+
                             <!-- Reactions Display -->
                             <div x-show="item.reactions && Object.keys(item.reactions).length > 0" 
                                  class="flex gap-1 mt-2">
@@ -631,7 +630,7 @@
                             </div>
                         </div>
                     </template>
-                    
+
                     <!-- Conversation Bubbles -->
                     <template x-for="message in conversationHistory" :key="message.id">
                         <div class="conversation-bubble">
@@ -648,7 +647,7 @@
                             </div>
                         </div>
                     </template>
-                    
+
                     <!-- Typing Indicator -->
                     <div x-show="javTyping" class="typing-indicator">
                         <span class="text-sm">Jav is thinking</span>
@@ -658,7 +657,7 @@
                             <div class="typing-dot"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Drop Zone -->
                     <div class="drop-zone" 
                          :class="{ 'active': dragActive }"
@@ -674,7 +673,7 @@
                             Drop to organize or combine ideas
                         </div>
                     </div>
-                    
+
                     <!-- Empty State -->
                     <div x-show="studioItems.length === 0 && conversationHistory.length === 0" 
                          class="text-center py-12 text-gray-400">
@@ -683,14 +682,77 @@
                         <div class="text-sm">Start coding or ask me anything to begin our creative session</div>
                     </div>
                 </div>
-                
-                <!-- Chat Area -->
+
+                <!-- Implementation Engine -->
                 <div class="chat-area">
+                    <!-- Active Implementation Preview -->
+                    <div x-show="activeImplementation" class="mb-4 p-4 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border border-purple-500/30">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-magic text-purple-400"></i>
+                                <span class="font-medium text-white">Ready to Implement</span>
+                            </div>
+                            <button @click="activeImplementation = null" class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="text-sm text-gray-300 mb-3" x-text="activeImplementation?.description"></div>
+
+                        <!-- Code Preview -->
+                        <div x-show="activeImplementation?.code" class="bg-black/50 rounded p-3 mb-3 font-mono text-sm text-green-300 max-h-32 overflow-y-auto">
+                            <pre x-text="activeImplementation?.code"></pre>
+                        </div>
+
+                        <!-- Implementation Actions -->
+                        <div class="flex gap-2 flex-wrap">
+                            <button @click="implementDirectly()" 
+                                    class="quick-action primary">
+                                <i class="fas fa-bolt mr-1"></i>Implement Now
+                            </button>
+                            <button @click="showImplementationDiff()" 
+                                    class="quick-action">
+                                <i class="fas fa-code-branch mr-1"></i>Preview Diff
+                            </button>
+                            <button @click="editImplementation()" 
+                                    class="quick-action">
+                                <i class="fas fa-edit mr-1"></i>Edit First
+                            </button>
+                            <button @click="partialImplementation()" 
+                                    class="quick-action">
+                                <i class="fas fa-layer-group mr-1"></i>Step by Step
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Implementation History -->
+                    <div x-show="implementationHistory.length > 0" class="mb-4">
+                        <div class="text-xs text-gray-400 mb-2 flex items-center gap-2">
+                            <i class="fas fa-history"></i>
+                            Recent Implementations
+                        </div>
+                        <div class="space-y-2">
+                            <template x-for="impl in implementationHistory.slice(0, 3)" :key="impl.id">
+                                <div class="flex items-center justify-between bg-gray-800/50 rounded p-2 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-check-circle text-green-400 text-xs"></i>
+                                        <span x-text="impl.summary" class="text-gray-300"></span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button @click="viewImplementation(impl)" 
+                                                class="text-xs text-blue-400 hover:text-blue-300">View</button>
+                                        <button @click="undoImplementation(impl)" 
+                                                class="text-xs text-red-400 hover:text-red-300">Undo</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
                     <div class="chat-input-container">
                         <textarea x-model="chatMessage" 
                                   @keydown.enter.prevent="handleEnter($event)"
                                   @input="handleInputChange()"
-                                  placeholder="What's on your mind? Let's brainstorm, debug, or just chat..."
+                                  placeholder="Let's brainstorm and build together... I'll help you implement ideas as we go!"
                                   class="chat-input"
                                   :disabled="javTyping"></textarea>
                         <button @click="sendMessage()" 
@@ -701,13 +763,13 @@
                         </button>
                     </div>
                     <div class="text-xs text-gray-400 mt-2 flex justify-between">
-                        <span>Press Enter to send, Shift+Enter for new line</span>
+                        <span>Describe ideas, fixes, features - I'll help implement them!</span>
                         <span x-text="chatMessage.length + '/500'"></span>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Floating Toolbar -->
         <div class="floating-toolbar">
             <button @click="runHealthCheck()" 
@@ -731,7 +793,7 @@
                 <i class="fas fa-microphone"></i>
             </button>
         </div>
-        
+
         <!-- Drag Helper -->
         <div x-show="dragging" 
              class="drag-helper"
@@ -755,7 +817,9 @@
                 hasErrors: false,
                 hasWarnings: false,
                 studioStatus: 'Ready to create together ✨',
-                
+                implementationHistory: [],
+                activeImplementation: null,
+
                 // Interaction State
                 dragging: false,
                 dragActive: false,
@@ -763,20 +827,20 @@
                 dragX: 0,
                 dragY: 0,
                 codeInsight: null,
-                
+
                 // Creative Features
                 sessionTheme: 'collaborative',
                 creativeMode: true,
                 lastActivity: Date.now(),
-                
+
                 async init() {
                     console.log('🎨 Initializing Jav Creative Studio...');
-                    
+
                     await this.initializeMonaco();
                     await this.loadSystemData();
                     this.setupEventListeners();
                     this.startCreativeFlow();
-                    
+
                     // Welcome with personality
                     this.addStudioItem({
                         type: 'idea',
@@ -788,16 +852,16 @@
                             { id: 'explore', label: '🔍 Explore Project' }
                         ]
                     });
-                    
+
                     console.log('✅ Creative Studio ready!');
                 },
-                
+
                 async initializeMonaco() {
                     return new Promise((resolve) => {
                         require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
                         require(['vs/editor/editor.main'], () => {
                             this.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                                value: '# Welcome to Jav Studio! 🎨\n# Let\'s create something amazing together\n\nprint("Building with Jav!")\n\n# Start typing and I\'ll provide real-time creative insights\n# Chat with me about ideas, improvements, or just to brainstorm',
+                                value: `# Welcome to Jav Studio! 🎨\n# Let\'s create something amazing together\n\nprint("Building with Jav!")\n\n# Start typing and I\'ll provide real-time creative insights\n# Chat with me about ideas, improvements, or just to brainstorm',
                                 language: 'python',
                                 theme: 'vs-dark',
                                 automaticLayout: true,
@@ -807,37 +871,37 @@
                                 wordWrap: 'on',
                                 scrollBeyondLastLine: false
                             });
-                            
+
                             // Real-time creative analysis
                             this.editor.onDidChangeModelContent(() => {
                                 this.analyzeCodeCreatively();
                                 this.updateActivity();
                             });
-                            
+
                             // Cursor-based insights
                             this.editor.onDidChangeCursorPosition((e) => {
                                 this.provideContextualInsights(e);
                             });
-                            
+
                             resolve();
                         });
                     });
                 },
-                
+
                 async loadSystemData() {
                     try {
                         const [healthResponse, statsResponse] = await Promise.all([
                             fetch('/health'),
                             fetch('/stats')
                         ]);
-                        
+
                         if (healthResponse.ok) {
                             const health = await healthResponse.json();
                             this.systemHealth = health.status === 'healthy' ? 'Healthy' : 'Needs Attention';
                             this.hasErrors = health.status === 'unhealthy';
                             this.hasWarnings = health.status === 'degraded';
                         }
-                        
+
                         if (statsResponse.ok) {
                             const stats = await statsResponse.json();
                             this.addStudioItem({
@@ -862,7 +926,7 @@
                         });
                     }
                 },
-                
+
                 setupEventListeners() {
                     // Global drag handling
                     document.addEventListener('dragover', (e) => {
@@ -871,7 +935,7 @@
                             this.dragY = e.clientY;
                         }
                     });
-                    
+
                     // Keyboard shortcuts
                     document.addEventListener('keydown', (e) => {
                         if (e.ctrlKey || e.metaKey) {
@@ -894,25 +958,25 @@
                         }
                     });
                 },
-                
+
                 startCreativeFlow() {
                     // Periodic creative suggestions
                     setInterval(() => {
                         this.generateCreativeInsights();
                     }, 30000); // Every 30 seconds
-                    
+
                     // Activity-based encouragement
                     setInterval(() => {
                         this.checkActivityAndEncourage();
                     }, 60000); // Every minute
                 },
-                
+
                 analyzeCodeCreatively() {
                     if (!this.editor) return;
-                    
+
                     const code = this.editor.getValue();
                     const lineCount = code.split('\n').length;
-                    
+
                     // Creative suggestions based on code patterns
                     setTimeout(() => {
                         if (code.includes('def ') && !code.includes('"""')) {
@@ -922,7 +986,7 @@
                                 action: 'add-docstring'
                             });
                         }
-                        
+
                         if (code.includes('TODO') || code.includes('FIXME')) {
                             this.addStudioItem({
                                 type: 'suggestion',
@@ -935,7 +999,7 @@
                                 ]
                             });
                         }
-                        
+
                         if (lineCount > 50 && Math.random() < 0.3) {
                             this.addStudioItem({
                                 type: 'idea',
@@ -949,7 +1013,7 @@
                         }
                     }, 1500);
                 },
-                
+
                 generateCreativeInsights() {
                     const insights = [
                         {
@@ -980,17 +1044,17 @@
                             ]
                         }
                     ];
-                    
+
                     // Only add if not too many items
                     if (this.studioItems.filter(item => item.type === 'suggestion').length < 3) {
                         const insight = insights[Math.floor(Math.random() * insights.length)];
                         this.addStudioItem(insight);
                     }
                 },
-                
+
                 checkActivityAndEncourage() {
                     const timeSinceActivity = Date.now() - this.lastActivity;
-                    
+
                     if (timeSinceActivity > 300000) { // 5 minutes idle
                         this.addStudioItem({
                             type: 'idea',
@@ -1004,24 +1068,24 @@
                         });
                     }
                 },
-                
+
                 // Studio Management
                 addStudioItem(item) {
                     item.id = Date.now() + Math.random();
                     item.timestamp = new Date();
                     item.pinned = false;
                     item.reactions = {};
-                    
+
                     this.studioItems.unshift(item);
-                    
+
                     // Keep manageable
                     if (this.studioItems.length > 20) {
                         this.studioItems = this.studioItems.slice(0, 20);
                     }
-                    
+
                     this.scrollToTop();
                 },
-                
+
                 addConversation(content, isJav = false) {
                     this.conversationHistory.unshift({
                         id: Date.now() + Math.random(),
@@ -1029,36 +1093,36 @@
                         isJav,
                         timestamp: new Date()
                     });
-                    
+
                     if (this.conversationHistory.length > 10) {
                         this.conversationHistory = this.conversationHistory.slice(0, 10);
                     }
                 },
-                
+
                 // Drag and Drop
                 startDrag(event, item) {
                     this.dragging = true;
                     this.draggedItem = item;
                     this.dragX = event.clientX;
                     this.dragY = event.clientY;
-                    
+
                     event.dataTransfer.effectAllowed = 'move';
                     event.dataTransfer.setData('text/plain', JSON.stringify(item));
                 },
-                
+
                 endDrag() {
                     this.dragging = false;
                     this.draggedItem = null;
                     this.dragActive = false;
                 },
-                
+
                 handleDrop(event) {
                     this.dragActive = false;
-                    
+
                     try {
                         const data = event.dataTransfer.getData('text/plain');
                         const item = JSON.parse(data);
-                        
+
                         this.addStudioItem({
                             type: 'idea',
                             source: 'Studio',
@@ -1072,33 +1136,33 @@
                         console.log('Drop handling error:', error);
                     }
                 },
-                
+
                 // Interactive Actions
                 async sendMessage() {
                     if (!this.chatMessage.trim() || this.javTyping) return;
-                    
+
                     const userMessage = this.chatMessage.trim();
                     this.chatMessage = '';
-                    
+
                     // Add user message
                     this.addConversation(userMessage, false);
-                    
+
                     // Start typing
                     this.javTyping = true;
-                    
+
                     try {
                         // Simulate creative AI response
                         setTimeout(() => {
                             const responses = this.generateCreativeResponse(userMessage);
                             this.addConversation(responses.message, true);
-                            
+
                             if (responses.suggestion) {
                                 this.addStudioItem(responses.suggestion);
                             }
-                            
+
                             this.javTyping = false;
                         }, 1000 + Math.random() * 2000);
-                        
+
                     } catch (error) {
                         setTimeout(() => {
                             this.addConversation("I'm having a creative moment! 😅 But I'm still here to brainstorm and help however I can!", true);
@@ -1106,10 +1170,10 @@
                         }, 1000);
                     }
                 },
-                
+
                 generateCreativeResponse(message) {
                     const lowerMessage = message.toLowerCase();
-                    
+
                     if (lowerMessage.includes('help') || lowerMessage.includes('stuck')) {
                         return {
                             message: "I'd love to help! What specifically are you working on? We can break it down together, brainstorm solutions, or explore different approaches. 🤝",
@@ -1156,10 +1220,10 @@
                         };
                     }
                 },
-                
+
                 executeAction(action, item) {
                     this.addConversation(`Executed: ${action.label}`, false);
-                    
+
                     // Simulate action execution
                     switch(action.id) {
                         case 'start-coding':
@@ -1174,7 +1238,7 @@
                                 ]
                             });
                             break;
-                            
+
                         case 'add-docstring':
                             this.addStudioItem({
                                 type: 'suggestion',
@@ -1185,7 +1249,7 @@
                                 ]
                             });
                             break;
-                            
+
                         case 'debug-together':
                             this.addStudioItem({
                                 type: 'idea',
@@ -1197,7 +1261,7 @@
                                 ]
                             });
                             break;
-                            
+
                         default:
                             this.addStudioItem({
                                 type: 'idea',
@@ -1206,30 +1270,30 @@
                                 actions: []
                             });
                     }
-                    
+
                     // Remove the item after action
                     this.removeItem(item.id);
                 },
-                
+
                 reactToItem(item, emoji) {
                     if (!item.reactions) item.reactions = {};
                     item.reactions[emoji] = (item.reactions[emoji] || 0) + 1;
-                    
+
                     this.addConversation(`Reacted ${emoji} to "${item.content.substring(0, 30)}..."`, false);
                 },
-                
+
                 togglePin(item) {
                     item.pinned = !item.pinned;
-                    
+
                     if (item.pinned) {
                         this.addConversation(`📌 Pinned for later: "${item.content.substring(0, 30)}..."`, false);
                     }
                 },
-                
+
                 removeItem(id) {
                     this.studioItems = this.studioItems.filter(item => item.id !== id);
                 },
-                
+
                 expandItem(item) {
                     this.addStudioItem({
                         type: 'idea',
@@ -1242,7 +1306,7 @@
                         ]
                     });
                 },
-                
+
                 // Toolbar Actions
                 async runHealthCheck() {
                     this.addStudioItem({
@@ -1251,11 +1315,11 @@
                         content: 'Running system health check... 🏥',
                         actions: []
                     });
-                    
+
                     try {
                         const response = await fetch('/health');
                         const data = await response.json();
-                        
+
                         this.addStudioItem({
                             type: data.status === 'healthy' ? 'suggestion' : 'error',
                             source: 'Health Monitor',
@@ -1277,7 +1341,7 @@
                         });
                     }
                 },
-                
+
                 triggerInspiration() {
                     const inspirations = [
                         "What if we added real-time collaboration features? 🤝",
@@ -1286,9 +1350,9 @@
                         "Want to explore using AI to enhance this feature? 🤖",
                         "Think about mobile users - how would this work on smaller screens? 📱"
                     ];
-                    
+
                     const inspiration = inspirations[Math.floor(Math.random() * inspirations.length)];
-                    
+
                     this.addStudioItem({
                         type: 'idea',
                         source: 'Inspiration Engine',
@@ -1300,7 +1364,7 @@
                         ]
                     });
                 },
-                
+
                 quickSave() {
                     this.addStudioItem({
                         type: 'suggestion',
@@ -1312,7 +1376,7 @@
                         ]
                     });
                 },
-                
+
                 voiceInput() {
                     this.addStudioItem({
                         type: 'idea',
@@ -1324,7 +1388,7 @@
                         ]
                     });
                 },
-                
+
                 clearStudio() {
                     this.studioItems = [];
                     this.conversationHistory = [];
@@ -1338,7 +1402,7 @@
                         ]
                     });
                 },
-                
+
                 // Code Insights
                 showCodeInsight(insight) {
                     this.codeInsight = insight;
@@ -1348,7 +1412,7 @@
                         }
                     }, 8000);
                 },
-                
+
                 applyCodeSuggestion() {
                     if (this.codeInsight) {
                         this.addStudioItem({
@@ -1360,14 +1424,14 @@
                         this.codeInsight = null;
                     }
                 },
-                
+
                 provideContextualInsights(event) {
                     // Occasionally provide contextual hints
                     if (Math.random() < 0.1) {
                         const position = event.position;
                         const model = this.editor.getModel();
                         const line = model.getLineContent(position.lineNumber);
-                        
+
                         if (line.includes('print') && Math.random() < 0.5) {
                             this.showCodeInsight({
                                 title: '💡 Logging Suggestion',
@@ -1377,7 +1441,68 @@
                         }
                     }
                 },
-                
+
+                // Implementation Flow
+                offerImplementation(description, code) {
+                    this.activeImplementation = {
+                        id: Date.now(),
+                        description,
+                        code
+                    };
+                },
+
+                implementDirectly() {
+                    if (this.activeImplementation) {
+                        this.applyCodeChanges(this.activeImplementation.code);
+                        this.recordImplementation('Direct Implementation', this.activeImplementation.description);
+                        this.activeImplementation = null;
+                    }
+                },
+
+                showImplementationDiff() {
+                    alert("Showing diff not implemented yet!");
+                },
+
+                editImplementation() {
+                    alert("Editing implementation not implemented yet!");
+                },
+
+                partialImplementation() {
+                    alert("Partial implementation not implemented yet!");
+                },
+
+                viewImplementation(impl) {
+                    alert(`Viewing implementation: ${impl.summary}`);
+                },
+
+                undoImplementation(impl) {
+                    alert(`Undoing implementation: ${impl.summary}`);
+                },
+
+                recordImplementation(summary, description) {
+                    this.implementationHistory.push({
+                        id: Date.now(),
+                        summary,
+                        description,
+                        timestamp: new Date()
+                    });
+
+                    if (this.implementationHistory.length > 5) {
+                        this.implementationHistory = this.implementationHistory.slice(0, 5);
+                    }
+                },
+
+                applyCodeChanges(code) {
+                    if (this.editor) {
+                        const model = this.editor.getModel();
+                        const fullRange = model.getFullModelRange();
+                        this.editor.executeEdits("Jav", [{
+                            range: fullRange,
+                            text: code
+                        }]);
+                    }
+                },
+
                 // Input Handling
                 handleEnter(event) {
                     if (event.shiftKey) {
@@ -1386,30 +1511,30 @@
                         this.sendMessage();
                     }
                 },
-                
+
                 handleInputChange() {
                     // Auto-resize textarea
                     const textarea = event.target;
                     textarea.style.height = 'auto';
                     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-                    
+
                     this.updateActivity();
                 },
-                
+
                 updateActivity() {
                     this.lastActivity = Date.now();
                 },
-                
+
                 // Utilities
                 timeAgo(timestamp) {
                     const diff = Date.now() - new Date(timestamp).getTime();
                     const minutes = Math.floor(diff / 60000);
                     const seconds = Math.floor(diff / 1000);
-                    
+
                     if (minutes > 0) return `${minutes}m ago`;
                     return `${seconds}s ago`;
                 },
-                
+
                 getSourceIcon(source) {
                     const icons = {
                         'Jav': 'fas fa-robot',
@@ -1422,7 +1547,7 @@
                     };
                     return icons[source] || 'fas fa-circle';
                 },
-                
+
                 scrollToTop() {
                     this.$nextTick(() => {
                         const container = this.$refs.conversationContainer;
