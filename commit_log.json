@@ -288,6 +288,27 @@
         "main.py"
       ],
       "logged_to_memory": true
+    },
+    {
+      "hash": "e05b6380f35704ee84ab410cc32405ab981dcf27",
+      "message": "Checkpoint before assistant change: Define guidelines for AI agent behavior and project workflow standardsCreate AGENT_BIBLE.md outlining agent roles, boundaries, and pipeline requirements, and reference it in the README.Replit-Commit-Author: Assistant",
+      "timestamp": "2025-06-20T01:50:43.418114+00:00",
+      "files_changed": [
+        "attached_assets/Pasted--MemoryOS-AGENT-BIBLE-md-This-document-defines-the-roles-limits-and-required-behaviors--1750384222220_1750384222221.txt",
+        "commit_log.json",
+        "memory.json"
+      ],
+      "logged_to_memory": true
+    },
+    {
+      "hash": "58901168ec83b82a3ec382419a859dcc47c7cefc",
+      "message": "Assistant checkpoint: Create AGENT_BIBLE.md and update README referenceAssistant generated file changes:- AGENT_BIBLE.md: Create agent behavior and pipeline documentation- README.md: Reference AGENT_BIBLE.md as source of truth---User prompt:Create a new file called AGENT_BIBLE.md in the project root with the contents above. Reference it in the README as the source of truth for agent behavior, pipeline boundaries, and onboarding.Replit-Commit-Author: AssistantReplit-Commit-Session-Id: 123af9d8-1e8f-4592-82e4-585aa9a47bd9",
+      "timestamp": "2025-06-20T01:51:09.069113+00:00",
+      "files_changed": [
+        "AGENT_BIBLE.md",
+        "README.md"
+      ],
+      "logged_to_memory": true
     }
   ],
   "auto_log_commits": true,
