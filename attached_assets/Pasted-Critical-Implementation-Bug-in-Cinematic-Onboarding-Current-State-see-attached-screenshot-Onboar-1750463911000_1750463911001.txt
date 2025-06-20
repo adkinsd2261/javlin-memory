@@ -1,0 +1,70 @@
+Critical Implementation Bug in Cinematic Onboarding
+Current State (see attached screenshot):
+
+Onboarding overlay is triggered when clicking “Start creating.”
+
+Background animates/fades as expected.
+
+BUT: There is no Jav avatar, no animation, no onboarding script, no steps, no content—just “Close Onboarding.”
+
+For a split second, I see an animation in the background, then it disappears and I’m left with a blank screen.
+
+This is not a timing issue—it’s a rendering/content bug.
+
+What’s Missing:
+
+The main onboarding content is never visible:
+
+Central Jav avatar, breathing/animated (2.5x)
+
+Animated welcome text (“typewriter” headline)
+
+Progress indicators (dots/bar)
+
+Step-by-step onboarding (tips, highlights, animated transitions, next/back)
+
+The “meeting Jav” story and UI walkthrough
+
+How to Fix:
+
+Check conditional rendering and component state:
+
+Ensure the core onboarding component (containing avatar, text, steps) is always mounted inside the overlay, not hidden by default.
+
+Check if state/props are resetting or unmounting after overlay loads.
+
+Look for any JavaScript exceptions that might break rendering after the overlay triggers.
+
+Test for content race condition:
+
+There might be an async or timing bug (e.g. onboarding loads before data/props/animation is ready, so it renders nothing).
+
+Debug by hardcoding onboarding step:
+
+Temporarily set the onboarding step to “Step 1” and ensure the avatar/text are visible, to isolate whether the steps engine is working.
+
+Review onboarding state logic:
+
+Verify the logic for “has seen onboarding” vs “new user” doesn’t instantly skip or hide onboarding content after overlay loads.
+
+Expected Outcome:
+
+When onboarding triggers, users see the full-canvas experience with animated avatar and step-by-step guide, not just a blank overlay and close button.
+
+If you need a reference UI or component tree, let me know.
+
+Extra: If You Want a Quick Debugging Pseudocode
+jsx
+Copy
+Edit
+// Example React structure inside the onboarding overlay
+<OnboardingOverlay>
+  {currentStep && (
+    <AnimatedAvatar state={currentStep.avatarState} />
+    <TypewriterText>{currentStep.title}</TypewriterText>
+    <StepInstructions>{currentStep.description}</StepInstructions>
+    <ProgressDots step={stepIndex} total={totalSteps} />
+    <NextBackButtons onNext={...} onBack={...} />
+  )}
+</OnboardingOverlay>
+If currentStep is null/undefined, nothing will show. That’s probably the culprit.
