@@ -1,6 +1,1 @@
-
-[
-  "cat background_prompter.py",
-  "cat routes/background.py",
-  "curl http://localhost:80/background"
-]
+[]
