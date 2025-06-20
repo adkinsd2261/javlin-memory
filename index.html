@@ -310,15 +310,17 @@
         function javStudio() {
             return {
                 // Core State
-                systemHealth: 'Loading...',
+                totalMemories: 0,
+                systemHealth: 'unknown',
                 hasErrors: false,
                 hasWarnings: false,
-                totalMemories: 0,
+                codeInsight: null,
+                studioStatus: "Initializing...",
+                studioItems: [],
+                smartSuggestions: [],
 
                 // Memory & Context
-                studioItems: [],
-                studioStatus: 'Initializing living project brain...',
-                codeInsight: null,
+                
 
                 // Conversation
                 conversationHistory: [],
@@ -336,14 +338,129 @@
                 dragY: 0,
                 draggedItem: null,
 
-                // Initialize the workspace
+                // Initialize the studio
                 async init() {
                     console.log('🚀 Initializing Jav Studio...');
-                    await this.loadSystemHealth();
+
+                    // Load initial data
                     await this.loadMemoryBrain();
-                    await this.loadConversationHistory();
-                    this.startPeriodicUpdates();
-                    this.showWelcomeInsight();
+                    await this.checkSystemHealth();
+                    await this.loadSmartSuggestions();
+
+                    // Set up periodic updates
+                    this.setupPeriodicUpdates();
+
+                    // Register current project
+                    this.registerProject();
+
+                    this.studioStatus = "Ready for creative collaboration";
+                },
+
+                // Load smart suggestions from persistent memory
+                async loadSmartSuggestions() {
+                    try {
+                        const response = await fetch('/jav/suggestions?task=general_development');
+                        const data = await response.json();
+
+                        this.smartSuggestions = data.suggestions.map(suggestion => ({
+                            id: Math.random().toString(36).substr(2, 9),
+                            ...suggestion
+                        }));
+                    } catch (error) {
+                        console.error('Failed to load smart suggestions:', error);
+                        this.smartSuggestions = [];
+                    }
+                },
+
+                // Apply a smart suggestion (automation)
+                async applySuggestion(suggestion) {
+                    if (suggestion.type !== 'automation') return;
+
+                    try {
+                        const response = await fetch('/jav/apply-automation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                playbook_id: suggestion.playbook_id,
+                                context: {
+                                    current_task: 'user_requested_automation'
+                                }
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            this.addConversationMessage({
+                                type: 'automation_applied',
+                                content: `✅ **Automation Applied**: ${suggestion.title}\n\n${result.result.message}`,
+                                timestamp: new Date().toISOString(),
+                                metadata: { playbook_id: suggestion.playbook_id }
+                            });
+
+                            // Remove applied suggestion
+                            this.smartSuggestions = this.smartSuggestions.filter(s => s.id !== suggestion.id);
+
+                            // Refresh suggestions
+                            await this.loadSmartSuggestions();
+                        } else {
+                            this.addConversationMessage({
+                                type: 'error',
+                                content: `❌ **Automation Failed**: ${result.error}`,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Failed to apply suggestion:', error);
+                        this.addConversationMessage({
+                            type: 'error',
+                            content: `❌ **Error applying automation**: ${error.message}`,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                },
+
+                // Dismiss a suggestion
+                dismissSuggestion(suggestionId) {
+                    this.smartSuggestions = this.smartSuggestions.filter(s => s.id !== suggestionId);
+                },
+
+                // Create automation from successful solution
+                async createAutomationFromSolution(problemDescription, solutionSteps) {
+                    try {
+                        const response = await fetch('/jav/create-playbook', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                problem_description: problemDescription,
+                                solution_steps: solutionSteps,
+                                success: true
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            this.addConversationMessage({
+                                type: 'playbook_created',
+                                content: `🤖 **New Automation Created**: ${result.playbook.name}\n\nThis solution will be available for similar problems in the future.`,
+                                timestamp: new Date().toISOString(),
+                                metadata: { playbook_id: result.playbook.id }
+                            });
+
+                            // Refresh suggestions to include new automations
+                            await this.loadSmartSuggestions();
+                        }
+
+                        return result;
+                    } catch (error) {
+                        console.error('Failed to create automation:', error);
+                        return { status: 'error', error: error.message };
+                    }
                 },
 
                 // Load system health and memory status
@@ -615,7 +732,7 @@
                     const time = new Date(timestamp);
                     const diff = now - time;
                     const minutes = Math.floor(diff / 60000);
-                    const hours = Math.floor(hours / 24);
+                    const hours = Math.floor(diff / 24);
 
                     if (days > 0) return `${days}d ago`;
                     if (hours > 0) return `${hours}h ago`;
@@ -653,6 +770,62 @@
                         this.loadSystemHealth();
                         this.loadMemoryBrain();
                     }, 30000); // Every 30 seconds
+                },
+
+                async registerProject() {
+                    try {
+                        const response = await fetch('/jav/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                project_name: 'current-replit-project',
+                                project_type: 'web_development'
+                            })
+                        });
+
+                        const result = await response.json();
+                        console.log('Project registered:', result);
+                    } catch (error) {
+                        console.error('Failed to register project:', error);
+                    }
+                },
+
+                async checkSystemHealth() {
+                    try {
+                        const response = await fetch('/health');
+                        const health = await response.json();
+
+                        this.systemHealth = health.status || 'unknown';
+                        this.hasErrors = health.status === 'unhealthy' || health.status === 'error';
+                        this.hasWarnings = health.status === 'degraded';
+                    } catch (error) {
+                        console.error('Health check failed:', error);
+                        this.systemHealth = 'offline';
+                        this.hasErrors = true;
+                    }
+                },
+
+                setupPeriodicUpdates() {
+                    setInterval(() => {
+                        this.checkSystemHealth();
+                        this.loadMemoryBrain();
+                        this.loadSmartSuggestions();
+                    }, 30000); // Every 30 seconds
+                },
+
+                addConversationMessage(message) {
+                    this.conversationHistory.push({
+                        id: Date.now(),
+                        role: 'assistant',
+                        content: message.content,
+                        timestamp: this.formatTimestamp(message.timestamp),
+                        type: message.type,
+                        metadata: message.metadata
+                    });
+
+                    this.scrollToBottom();
                 }
             };
         }

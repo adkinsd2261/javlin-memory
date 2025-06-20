@@ -510,9 +510,13 @@ def jav_status():
     """Get Jav agent status"""
     try:
         from jav_agent import jav
+        from persistent_memory_engine import persistent_memory
         
         # Get current state
         audit_result = jav.audit_current_state()
+        
+        # Get persistent memory insights
+        persistent_insights = persistent_memory.get_cross_project_insights()
         
         return jsonify({
             "status": "active",
@@ -520,11 +524,192 @@ def jav_status():
             "current_state": audit_result,
             "config_loaded": bool(jav.me_config),
             "workflows_loaded": len(jav.workflows),
+            "persistent_memory": {
+                "total_projects": persistent_insights["total_projects"],
+                "total_playbooks": persistent_insights["total_playbooks"],
+                "global_memory_path": persistent_memory.global_memory_path
+            },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
     except Exception as e:
         logger.error(f"Jav status error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/suggestions')
+def jav_suggestions():
+    """Get proactive suggestions from persistent memory"""
+    try:
+        from jav_agent import jav
+        
+        current_task = request.args.get('task', 'General development')
+        suggestions = jav.get_proactive_suggestions(current_task)
+        
+        return jsonify({
+            "suggestions": suggestions,
+            "task": current_task,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Suggestions error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/apply-automation', methods=['POST'])
+def apply_automation():
+    """Apply an automation playbook"""
+    try:
+        from jav_agent import jav
+        
+        data = request.get_json()
+        if not data or 'playbook_id' not in data:
+            return jsonify({"error": "playbook_id required"}), 400
+        
+        playbook_id = data['playbook_id']
+        context = data.get('context', {})
+        
+        result = jav.apply_automation(playbook_id, context)
+        
+        return jsonify({
+            "status": "success",
+            "result": result,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Apply automation error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/create-playbook', methods=['POST'])
+def create_playbook():
+    """Create a new automation playbook"""
+    try:
+        from jav_agent import jav
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Request data required"}), 400
+        
+        problem_description = data.get('problem_description', '')
+        solution_steps = data.get('solution_steps', [])
+        success = data.get('success', True)
+        
+        if not problem_description or not solution_steps:
+            return jsonify({"error": "problem_description and solution_steps required"}), 400
+        
+        playbook = jav.create_automation_from_solution(problem_description, solution_steps, success)
+        
+        return jsonify({
+            "status": "success",
+            "playbook": {
+                "id": playbook.id,
+                "name": playbook.name,
+                "description": playbook.description,
+                "auto_apply": playbook.auto_apply
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Create playbook error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/playbooks')
+def list_playbooks():
+    """List all automation playbooks"""
+    try:
+        from persistent_memory_engine import persistent_memory
+        
+        playbooks = []
+        for playbook in persistent_memory.playbooks:
+            if not playbook.retired:
+                playbooks.append({
+                    "id": playbook.id,
+                    "name": playbook.name,
+                    "description": playbook.description,
+                    "success_rate": playbook.success_rate,
+                    "usage_count": playbook.usage_count,
+                    "auto_apply": playbook.auto_apply,
+                    "tags": playbook.tags,
+                    "project_origin": playbook.project_origin,
+                    "created_at": playbook.created_at,
+                    "last_used": playbook.last_used
+                })
+        
+        return jsonify({
+            "playbooks": playbooks,
+            "total": len(playbooks),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"List playbooks error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/retire-playbook', methods=['POST'])
+def retire_playbook():
+    """Retire an outdated playbook"""
+    try:
+        from persistent_memory_engine import persistent_memory
+        
+        data = request.get_json()
+        if not data or 'playbook_id' not in data:
+            return jsonify({"error": "playbook_id required"}), 400
+        
+        playbook_id = data['playbook_id']
+        reason = data.get('reason', 'User requested')
+        
+        persistent_memory.retire_playbook(playbook_id, reason)
+        
+        return jsonify({
+            "status": "success",
+            "message": f"Playbook {playbook_id} retired",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Retire playbook error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/cross-project-insights')
+def cross_project_insights():
+    """Get cross-project insights and patterns"""
+    try:
+        from persistent_memory_engine import persistent_memory
+        
+        insights = persistent_memory.get_cross_project_insights()
+        
+        return jsonify({
+            "insights": insights,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Cross-project insights error: {e}")
         return jsonify({
             "status": "error",
             "error": str(e),

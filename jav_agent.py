@@ -15,6 +15,7 @@ from pathlib import Path
 import subprocess
 import re
 import glob
+from persistent_memory_engine import persistent_memory, AutomationPlaybook
 
 @dataclass
 class JavState:
@@ -424,9 +425,206 @@ class JavAgent:
             headers = {"X-API-KEY": os.getenv('JAVLIN_API_KEY', 'default-key-change-me')}
             response = requests.post(f"{self.memory_api}/memory", json=data, headers=headers)
             
+            # Also check for persistent memory patterns
+            if not success:
+                self.analyze_failure_for_patterns(data)
+            
             return response.status_code == 200
         except Exception as e:
             self.logger.error(f"Failed to log to memory: {e}")
+            return False
+    
+    def analyze_failure_for_patterns(self, failure_data: Dict[str, Any]):
+        """Analyze failures for cross-project patterns"""
+        context = {
+            "title": failure_data.get("topic", ""),
+            "description": failure_data.get("input", ""),
+            "error_type": self.extract_error_type(failure_data.get("output", "")),
+            "file_types": self.get_current_file_types(),
+            "project_type": self.detect_project_type(),
+            "environment": self.get_environment_info()
+        }
+        
+        # Analyze with persistent memory
+        analysis = persistent_memory.analyze_situation(context)
+        
+        if analysis["matching_playbooks"]:
+            self.logger.info(f"Found {len(analysis['matching_playbooks'])} potential solutions from past projects")
+        
+        return analysis
+    
+    def get_proactive_suggestions(self, current_task: str) -> List[Dict[str, Any]]:
+        """Get proactive suggestions based on persistent memory"""
+        context = {
+            "title": current_task,
+            "description": f"Working on: {current_task}",
+            "file_types": self.get_current_file_types(),
+            "project_type": self.detect_project_type(),
+            "environment": self.get_environment_info()
+        }
+        
+        analysis = persistent_memory.analyze_situation(context)
+        suggestions = []
+        
+        # Convert analysis to actionable suggestions
+        for match in analysis["matching_playbooks"]:
+            playbook = match["playbook"]
+            suggestions.append({
+                "type": "automation",
+                "title": f"Auto-fix available: {playbook.name}",
+                "description": playbook.description,
+                "confidence": match["confidence"],
+                "auto_apply": playbook.auto_apply,
+                "playbook_id": playbook.id
+            })
+        
+        for warning in analysis["preventive_warnings"]:
+            suggestions.append({
+                "type": "warning",
+                "title": "Preventive Warning",
+                "description": warning,
+                "confidence": 0.9
+            })
+        
+        return suggestions
+    
+    def apply_automation(self, playbook_id: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Apply an automation playbook"""
+        playbook = next((p for p in persistent_memory.playbooks if p.id == playbook_id), None)
+        
+        if not playbook:
+            return {"success": False, "error": "Playbook not found"}
+        
+        if context is None:
+            context = {
+                "project_path": os.getcwd(),
+                "file_types": self.get_current_file_types(),
+                "environment": self.get_environment_info()
+            }
+        
+        result = persistent_memory.apply_playbook(playbook, context)
+        
+        # Log the automation application
+        self.log_to_memory(
+            topic=f"Applied automation: {playbook.name}",
+            type_="Automation",
+            input_=f"Playbook ID: {playbook_id}",
+            output=str(result),
+            success=result.get("success", False),
+            category="automation"
+        )
+        
+        return result
+    
+    def create_automation_from_solution(self, problem_description: str, 
+                                      solution_steps: List[str], 
+                                      success: bool) -> AutomationPlaybook:
+        """Create a new automation from a successful solution"""
+        context = {
+            "title": problem_description,
+            "description": problem_description,
+            "error_type": self.extract_error_type(problem_description),
+            "file_types": self.get_current_file_types(),
+            "project_type": self.detect_project_type(),
+            "environment": self.get_environment_info(),
+            "tags": ["user_created", "jav_agent"]
+        }
+        
+        # Convert solution steps to automation format
+        automation_steps = []
+        for step in solution_steps:
+            if step.startswith("run ") or step.startswith("execute "):
+                automation_steps.append({
+                    "type": "command",
+                    "command": step.replace("run ", "").replace("execute ", ""),
+                    "description": f"Execute: {step}"
+                })
+            elif "create file" in step.lower() or "edit file" in step.lower():
+                automation_steps.append({
+                    "type": "file_edit",
+                    "description": step,
+                    "manual_review": True
+                })
+            else:
+                automation_steps.append({
+                    "type": "manual",
+                    "description": step,
+                    "requires_human": True
+                })
+        
+        playbook = persistent_memory.create_playbook_from_solution(context, automation_steps, success)
+        
+        self.log_to_memory(
+            topic=f"Created automation playbook: {playbook.name}",
+            type_="PlaybookCreation",
+            input_=problem_description,
+            output=f"Playbook ID: {playbook.id}, Steps: {len(automation_steps)}",
+            success=True,
+            category="automation"
+        )
+        
+        return playbook
+    
+    def extract_error_type(self, text: str) -> str:
+        """Extract error type from text"""
+        import re
+        error_patterns = [
+            r'(\w*Error)',
+            r'(\w*Exception)',
+            r'(FAILED|ERROR|CRITICAL)',
+            r'(ModuleNotFoundError|ImportError|SyntaxError|NameError)'
+        ]
+        
+        for pattern in error_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                return match.group(1)
+        
+        return "Unknown"
+    
+    def get_current_file_types(self) -> List[str]:
+        """Get file types in current directory"""
+        file_types = set()
+        for file_path in glob.glob("*"):
+            if os.path.isfile(file_path):
+                ext = os.path.splitext(file_path)[1]
+                if ext:
+                    file_types.add(ext[1:])  # Remove dot
+        return list(file_types)
+    
+    def detect_project_type(self) -> str:
+        """Detect the type of current project"""
+        if os.path.exists("package.json"):
+            return "nodejs"
+        elif os.path.exists("requirements.txt") or os.path.exists("pyproject.toml"):
+            return "python"
+        elif os.path.exists("Cargo.toml"):
+            return "rust"
+        elif os.path.exists("go.mod"):
+            return "go"
+        elif os.path.exists("pom.xml"):
+            return "java"
+        else:
+            return "unknown"
+    
+    def get_environment_info(self) -> Dict[str, Any]:
+        """Get current environment information"""
+        return {
+            "os": os.name,
+            "cwd": os.getcwd(),
+            "python_version": os.sys.version.split()[0] if hasattr(os, 'sys') else "unknown",
+            "has_git": os.path.exists(".git"),
+            "has_docker": os.path.exists("Dockerfile"),
+            "port_5000_used": self.is_port_in_use(5000)
+        }
+    
+    def is_port_in_use(self, port: int) -> bool:
+        """Check if a port is in use"""
+        import socket
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                return s.connect_ex(('localhost', port)) == 0
+        except:
             return False
 
 # Global instance
