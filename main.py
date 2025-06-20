@@ -992,6 +992,15 @@ def system_health():
         logging.error(f"Error checking system health: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
 
+@app.route('/')
+def health_check():
+    """Root health check endpoint for Autoscale deployments"""
+    return jsonify({
+        "status": "healthy",
+        "service": "MemoryOS",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), 200
+
 @app.route('/health', methods=['GET'])
 def quick_health():
     """Fast health check without caching overhead"""
@@ -1148,7 +1157,9 @@ if __name__ == '__main__':
             pass
 
         # Use threaded mode for better concurrent performance
-        app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+        # Bind to 0.0.0.0 for Autoscale deployment compatibility
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     except Exception as e:
         logging.error(f"Failed to start Flask app: {e}")
         print(f"Error starting app: {e}")
