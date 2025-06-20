@@ -60,13 +60,15 @@ CORS(app)
 from routes.task_output import task_output_bp
 app.register_blueprint(task_output_bp)
 
-# Import session management and bible compliance
+# Import session management, bible compliance, and connection validation
 from session_manager import SessionManager
 from bible_compliance import init_bible_compliance, requires_confirmation
+from connection_validator import ConnectionValidator
 
-# Initialize bible compliance and session management
+# Initialize bible compliance, session management, and connection validation
 bible_compliance = init_bible_compliance(BASE_DIR)
 session_manager = SessionManager(BASE_DIR)
+connection_validator = ConnectionValidator(BASE_DIR)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -781,6 +783,53 @@ def extract_learning_insights(feedback_entries):
             insights.append(f"Low-value pattern: {feedback.get('comment', '')[:100]}")
     
     return insights[:3]  # Return top 3 insights
+
+def log_connection_check(connection_response):
+    """Log connection check for audit and compliance"""
+    try:
+        connection_memory = {
+            "topic": f"Connection Check: {connection_response['overall_status']}",
+            "type": "SystemTest",
+            "input": "Agent connection validation check performed",
+            "output": f"Status: {connection_response['overall_status']}, Health Score: {connection_response.get('connection_health_score', 0)}/100, Agent Ready: {connection_response.get('agent_confirmation_ready', False)}",
+            "score": 25 if connection_response['overall_status'] == 'healthy' else 15,
+            "maxScore": 25,
+            "success": connection_response['overall_status'] == 'healthy',
+            "category": "system",
+            "tags": ["connection", "validation", "audit", "agent_ready"],
+            "context": "Connection-first confirmation system validation per AGENT_BIBLE.md requirements",
+            "related_to": [],
+            "reviewed": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "auto_generated": True,
+            "confirmed": True,
+            "confirmation_method": "system_check",
+            "confirmation_required": False,
+            "replit_connection_confirmed": connection_response['overall_status'] == 'healthy',
+            "connection_check_data": {
+                "health_score": connection_response.get('connection_health_score', 0),
+                "checks_performed": len(connection_response.get('connection_checks', [])),
+                "fresh_check": connection_response.get('fresh_check', False),
+                "cache_duration": connection_response.get('cache_duration_seconds', 60)
+            }
+        }
+        
+        # Save to memory
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            memory = []
+        
+        memory.append(connection_memory)
+        
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+            
+        logging.info(f"Connection check logged: {connection_response['overall_status']}")
+        
+    except Exception as e:
+        logging.error(f"Error logging connection check: {e}")
 
 def check_agent_bible_compliance():
     """Check if current agent behavior matches AGENT_BIBLE.md requirements"""
@@ -1911,10 +1960,216 @@ def get_last_commit():
         logging.error(f"Error getting last commit: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/health', methods=['GET'])
+@app.route('/connection-status', methods=['GET'])
+def get_connection_status():
+    """Live connection status and session state for agent confirmation system"""
+    try:
+        current_time = datetime.datetime.now(datetime.timezone.utc)
+        connection_checks = []
+        
+        # File system connectivity check
+        file_check = {
+            "check_type": "filesystem",
+            "status": "healthy",
+            "timestamp": current_time.isoformat(),
+            "details": {}
+        }
+        
+        try:
+            # Test memory file access
+            with open(MEMORY_FILE, 'r') as f:
+                memory_data = json.load(f)
+            file_check["details"]["memory_file"] = {
+                "accessible": True,
+                "entries": len(memory_data),
+                "last_modified": datetime.datetime.fromtimestamp(os.path.getmtime(MEMORY_FILE)).isoformat()
+            }
+        except Exception as e:
+            file_check["status"] = "error"
+            file_check["details"]["memory_file"] = {"accessible": False, "error": str(e)}
+        
+        # Test other critical files
+        critical_files = [
+            'AGENT_BIBLE.md', 'session_manager.py', 'bible_compliance.py',
+            'build_state.json', 'config.json'
+        ]
+        
+        for file_name in critical_files:
+            file_path = os.path.join(BASE_DIR, file_name)
+            file_check["details"][file_name] = {
+                "exists": os.path.exists(file_path),
+                "readable": False,
+                "last_modified": None
+            }
+            
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, 'r') as f:
+                        f.read(100)  # Test read
+                    file_check["details"][file_name]["readable"] = True
+                    file_check["details"][file_name]["last_modified"] = datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).isoformat()
+                except Exception as e:
+                    file_check["details"][file_name]["error"] = str(e)
+        
+        connection_checks.append(file_check)
+        
+        # API endpoint connectivity check
+        api_check = {
+            "check_type": "api_endpoints",
+            "status": "healthy",
+            "timestamp": current_time.isoformat(),
+            "details": {"total_routes": 0, "accessible_routes": 0, "route_tests": []}
+        }
+        
+        # Test key endpoints
+        test_endpoints = [
+            ("GET", "/"),
+            ("GET", "/memory"),
+            ("GET", "/stats"),
+            ("GET", "/system-health")
+        ]
+        
+        for method, endpoint in test_endpoints:
+            route_test = {
+                "endpoint": endpoint,
+                "method": method,
+                "accessible": False,
+                "status_code": None
+            }
+            
+            try:
+                # Simulate internal route test
+                with app.test_client() as client:
+                    if method == "GET":
+                        response = client.get(endpoint)
+                    route_test["accessible"] = response.status_code < 500
+                    route_test["status_code"] = response.status_code
+                    
+                    if route_test["accessible"]:
+                        api_check["details"]["accessible_routes"] += 1
+            except Exception as e:
+                route_test["error"] = str(e)
+            
+            api_check["details"]["route_tests"].append(route_test)
+            api_check["details"]["total_routes"] += 1
+        
+        if api_check["details"]["accessible_routes"] < api_check["details"]["total_routes"] // 2:
+            api_check["status"] = "degraded"
+        
+        connection_checks.append(api_check)
+        
+        # Bible compliance connectivity check
+        compliance_check = {
+            "check_type": "bible_compliance",
+            "status": "healthy",
+            "timestamp": current_time.isoformat(),
+            "details": {}
+        }
+        
+        try:
+            compliance_audit = bible_compliance.run_compliance_audit()
+            compliance_check["details"] = {
+                "overall_compliance": compliance_audit['overall_compliance'],
+                "compliance_score": compliance_audit['compliance_score'],
+                "violations": len(compliance_audit['violations']),
+                "warnings": len(compliance_audit['warnings'])
+            }
+            
+            if not compliance_audit['overall_compliance'] or compliance_audit['compliance_score'] < 80:
+                compliance_check["status"] = "degraded"
+        except Exception as e:
+            compliance_check["status"] = "error"
+            compliance_check["details"]["error"] = str(e)
+        
+        connection_checks.append(compliance_check)
+        
+        # System process connectivity check
+        process_check = {
+            "check_type": "system_processes",
+            "status": "healthy", 
+            "timestamp": current_time.isoformat(),
+            "details": {}
+        }
+        
+        try:
+            # Check if Flask is responsive
+            process_check["details"]["flask_app"] = {
+                "running": True,
+                "port": 80,
+                "host": "0.0.0.0"
+            }
+            
+            # Check memory usage
+            import psutil
+            process_check["details"]["system_resources"] = {
+                "memory_percent": psutil.virtual_memory().percent,
+                "cpu_percent": psutil.cpu_percent(interval=0.1),
+                "disk_usage_percent": psutil.disk_usage('/').percent
+            }
+        except Exception as e:
+            process_check["status"] = "degraded"
+            process_check["details"]["error"] = str(e)
+        
+        connection_checks.append(process_check)
+        
+        # Calculate overall connection health
+        healthy_checks = len([c for c in connection_checks if c["status"] == "healthy"])
+        total_checks = len(connection_checks)
+        connection_health_score = (healthy_checks / total_checks) * 100
+        
+        overall_status = "healthy"
+        if connection_health_score < 100:
+            overall_status = "degraded"
+        if connection_health_score < 50:
+            overall_status = "critical"
+        
+        # Session state information
+        session_state = {
+            "active_sessions": len(session_manager.get_session_history(100)),
+            "memory_entries": len(memory_data) if 'memory_data' in locals() else 0,
+            "last_activity": current_time.isoformat(),
+            "agent_ready": overall_status == "healthy"
+        }
+        
+        connection_response = {
+            "timestamp": current_time.isoformat(),
+            "overall_status": overall_status,
+            "connection_health_score": connection_health_score,
+            "session_state": session_state,
+            "connection_checks": connection_checks,
+            "agent_confirmation_ready": overall_status == "healthy",
+            "fresh_check": True,
+            "cache_duration_seconds": 60,  # Cache validity duration
+            "next_required_check": (current_time + datetime.timedelta(seconds=60)).isoformat()
+        }
+        
+        # Log this connection check
+        log_connection_check(connection_response)
+        
+        return jsonify(connection_response)
+        
+    except Exception as e:
+        logging.error(f"Error in connection status check: {e}")
+        error_response = {
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "overall_status": "error",
+            "connection_health_score": 0,
+            "agent_confirmation_ready": False,
+            "fresh_check": True,
+            "error": str(e)
+        }
+        log_connection_check(error_response)
+        return jsonify(error_response), 500
+
 @app.route('/system-health', methods=['GET'])
 def get_system_health():
     """Get comprehensive system health status"""
     try:
+        # Get fresh connection status first
+        connection_status_response = get_connection_status()
+        connection_data = json.loads(connection_status_response.data)
+        
         # Memory count
         memory_count = 0
         try:
@@ -2003,6 +2258,7 @@ def get_system_health():
         
         health_data = {
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "connection_status": connection_data,  # Include fresh connection check
             "memory": {
                 "total_entries": memory_count,
                 "file_exists": os.path.exists(MEMORY_FILE)
@@ -2058,7 +2314,12 @@ def get_system_health():
         if session_status["sessions_available"] == 0:
             health_score -= 5
         
+        # Connection status penalty
+        if connection_data["overall_status"] != "healthy":
+            health_score -= 20
+        
         health_data["health_score"] = max(health_score, 0)
+        health_data["agent_confirmation_ready"] = connection_data["agent_confirmation_ready"] and health_score >= 70
         
         return jsonify(health_data)
         
@@ -2209,6 +2470,68 @@ def check_replit_connection():
         
     except Exception as e:
         logging.error(f"Error checking Replit connection: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/validate-connection', methods=['POST'])
+def validate_connection_endpoint():
+    """Validate connection for specific action type with fresh backend checks"""
+    try:
+        data = request.get_json() or {}
+        action_type = data.get('action_type', 'general')
+        require_endpoints = data.get('require_endpoints', None)
+        force_fresh = data.get('force_fresh', True)
+        
+        if force_fresh:
+            validation_result = connection_validator.force_fresh_validation(action_type, require_endpoints)
+        else:
+            # Try cache first
+            cached = connection_validator.get_cached_validation(action_type)
+            if cached:
+                validation_result = cached
+            else:
+                validation_result = connection_validator.validate_fresh_connection(action_type, require_endpoints)
+        
+        # Log validation request
+        validation_memory = {
+            "topic": f"Connection Validation: {action_type}",
+            "type": "SystemTest",
+            "input": f"Connection validation requested for {action_type}",
+            "output": f"Validation {'passed' if validation_result['validation_passed'] else 'failed'}: Health {validation_result.get('overall_health_score', 0)}/100, Confirmation {'allowed' if validation_result.get('confirmation_allowed') else 'blocked'}",
+            "score": 25 if validation_result['validation_passed'] else 10,
+            "maxScore": 25,
+            "success": validation_result['validation_passed'],
+            "category": "system",
+            "tags": ["connection", "validation", "confirmation", action_type],
+            "context": "Connection-first confirmation system validation",
+            "related_to": [],
+            "reviewed": False,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "auto_generated": True,
+            "confirmed": validation_result['validation_passed'],
+            "confirmation_method": "connection_validation",
+            "confirmation_required": False,
+            "replit_connection_confirmed": validation_result['validation_passed'],
+            "validation_details": validation_result.get('validation_details', {})
+        }
+        
+        # Save validation to memory
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            memory = []
+        
+        memory.append(validation_memory)
+        with open(MEMORY_FILE, 'w') as f:
+            json.dump(memory, f, indent=2)
+        
+        return jsonify({
+            "validation_result": validation_result,
+            "logged_to_memory": True
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in connection validation endpoint: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/onboarding', methods=['GET'])

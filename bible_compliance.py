@@ -176,27 +176,75 @@ class BibleCompliance:
         return decorator
     
     def _check_confirmation_requirement(self, action_type: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
-        """Check if action requires confirmation per bible policies"""
+        """Check if action requires confirmation per bible policies with connection-first validation"""
+        
+        # FIRST: Always check connection for any confirmation request
+        connection_validation = self.require_fresh_connection_check(action_type)
+        
+        if connection_validation['confirmation_blocked']:
+            return {
+                'required': True,
+                'reason': f'Connection-first validation failed: {connection_validation["block_reason"]}',
+                'next_steps': [
+                    'Verify backend connection via GET /health',
+                    'Check system status via GET /system-health', 
+                    'Ensure fresh connection before confirmation',
+                    'Reconnect if connection is stale or lost'
+                ],
+                'connection_blocked': True,
+                'connection_status': connection_validation
+            }
         
         # Check for "live" claims
         output_text = kwargs.get('output', '')
-        if any(word in output_text.lower() for word in ['live', 'deployed', 'running', 'active', 'complete']):
+        if any(word in output_text.lower() for word in ['live', 'deployed', 'running', 'active', 'complete', 'working', 'ready']):
             return {
                 'required': True,
-                'reason': 'AGENT_BIBLE.md: Cannot claim "live" status without endpoint validation',
-                'next_steps': ['Verify via API endpoint', 'Get human confirmation', 'Check system health']
+                'reason': 'AGENT_BIBLE.md: Cannot claim "live" status without fresh endpoint validation',
+                'next_steps': [
+                    'Perform fresh connection check via GET /health',
+                    'Verify specific feature via targeted endpoint',
+                    'Get human confirmation if automated validation fails',
+                    'Check system health for comprehensive status'
+                ],
+                'connection_status': connection_validation
             }
         
         # Check high-risk actions
-        high_risk_actions = ['deployment', 'feature_activation', 'system_change', 'endpoint_creation']
+        high_risk_actions = ['deployment', 'feature_activation', 'system_change', 'endpoint_creation', 'file_modification', 'api_change']
         if action_type in high_risk_actions:
             return {
                 'required': True,
-                'reason': f'AGENT_BIBLE.md: {action_type} requires manual confirmation',
-                'next_steps': ['Human operator approval', 'System validation', 'Endpoint verification']
+                'reason': f'AGENT_BIBLE.md: {action_type} requires fresh connection validation and manual confirmation',
+                'next_steps': [
+                    'Perform fresh connection check via GET /health',
+                    'Human operator approval required',
+                    'System validation via relevant endpoints',
+                    'Endpoint verification for changed functionality'
+                ],
+                'connection_status': connection_validation
             }
         
-        return {'required': False, 'reason': '', 'next_steps': []}
+        # Any system state changes require connection validation
+        state_change_actions = ['session_save', 'session_load', 'memory_add', 'config_update']
+        if action_type in state_change_actions:
+            return {
+                'required': True,
+                'reason': f'System state change requires fresh connection validation',
+                'next_steps': [
+                    'Verify connection via GET /health',
+                    'Confirm system health via GET /system-health',
+                    'Validate state change was successful'
+                ],
+                'connection_status': connection_validation
+            }
+        
+        return {
+            'required': False, 
+            'reason': '', 
+            'next_steps': [],
+            'connection_status': connection_validation
+        }
     
     def validate_memory_entry(self, memory_entry: Dict[str, Any]) -> Dict[str, Any]:
         """Validate memory entry against MEMORY_BIBLE.md schema"""
@@ -232,32 +280,53 @@ class BibleCompliance:
         
         return validation_result
     
-    def check_replit_connection(self) -> Dict[str, Any]:
-        """Validate real-time connection to Replit backend"""
+    def check_replit_connection(self, require_fresh: bool = True) -> Dict[str, Any]:
+        """Validate real-time connection to Replit backend with fresh check requirements"""
         try:
-            # Check if we can access local endpoints
+            current_time = datetime.datetime.now(datetime.timezone.utc)
+            
+            # Check cache if fresh check not required
+            if not require_fresh:
+                cache_file = os.path.join(self.base_dir, 'connection_cache.json')
+                try:
+                    with open(cache_file, 'r') as f:
+                        cached_result = json.load(f)
+                    
+                    cache_time = datetime.datetime.fromisoformat(cached_result['timestamp'].replace('Z', '+00:00'))
+                    if (current_time - cache_time).total_seconds() < 60:  # Cache valid for 60 seconds
+                        cached_result['from_cache'] = True
+                        return cached_result
+                except (FileNotFoundError, json.JSONDecodeError, KeyError):
+                    pass
+            
+            # Perform fresh connection checks
             local_checks = [
                 'http://127.0.0.1:80/',
-                'http://127.0.0.1:80/system-health'
+                'http://127.0.0.1:80/memory',
+                'http://127.0.0.1:80/stats'
             ]
             
             connection_status = {
                 'connected': False,
                 'checks_passed': 0,
                 'total_checks': len(local_checks),
-                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                'details': []
+                'timestamp': current_time.isoformat(),
+                'fresh_check': True,
+                'from_cache': False,
+                'details': [],
+                'validation_level': 'comprehensive'
             }
             
             for endpoint in local_checks:
                 try:
-                    response = requests.get(endpoint, timeout=5)
+                    response = requests.get(endpoint, timeout=3)
                     if response.status_code == 200:
                         connection_status['checks_passed'] += 1
                         connection_status['details'].append({
                             'endpoint': endpoint,
                             'status': 'success',
-                            'response_code': response.status_code
+                            'response_code': response.status_code,
+                            'response_time_ms': response.elapsed.total_seconds() * 1000
                         })
                     else:
                         connection_status['details'].append({
@@ -272,7 +341,16 @@ class BibleCompliance:
                         'error': str(e)
                     })
             
-            connection_status['connected'] = connection_status['checks_passed'] > 0
+            connection_status['connected'] = connection_status['checks_passed'] >= 2  # At least 2 of 3 must pass
+            connection_status['connection_quality'] = (connection_status['checks_passed'] / connection_status['total_checks']) * 100
+            
+            # Cache the result
+            cache_file = os.path.join(self.base_dir, 'connection_cache.json')
+            try:
+                with open(cache_file, 'w') as f:
+                    json.dump(connection_status, f, indent=2)
+            except Exception as e:
+                logging.warning(f"Could not cache connection result: {e}")
             
             return connection_status
             
@@ -282,7 +360,54 @@ class BibleCompliance:
                 'checks_passed': 0,
                 'total_checks': 0,
                 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                'error': str(e)
+                'fresh_check': True,
+                'from_cache': False,
+                'error': str(e),
+                'validation_level': 'error'
+            }
+    
+    def require_fresh_connection_check(self, action_type: str = 'general') -> Dict[str, Any]:
+        """Require fresh connection check before agent confirmations"""
+        try:
+            connection_status = self.check_replit_connection(require_fresh=True)
+            
+            validation_result = {
+                'connection_valid': connection_status['connected'],
+                'fresh_check_performed': connection_status.get('fresh_check', False),
+                'connection_quality': connection_status.get('connection_quality', 0),
+                'timestamp': connection_status['timestamp'],
+                'action_type': action_type,
+                'confirmation_blocked': False,
+                'reconnection_required': False
+            }
+            
+            # Determine if confirmation should be blocked
+            if not connection_status['connected']:
+                validation_result['confirmation_blocked'] = True
+                validation_result['reconnection_required'] = True
+                validation_result['block_reason'] = 'Backend connection lost or unavailable'
+            
+            elif connection_status.get('connection_quality', 0) < 66:  # Less than 2/3 checks passed
+                validation_result['confirmation_blocked'] = True
+                validation_result['block_reason'] = 'Connection quality degraded - require full validation'
+            
+            elif connection_status.get('from_cache', False):
+                validation_result['confirmation_blocked'] = True  
+                validation_result['block_reason'] = 'Stale connection data - fresh check required'
+            
+            return validation_result
+            
+        except Exception as e:
+            return {
+                'connection_valid': False,
+                'fresh_check_performed': False,
+                'connection_quality': 0,
+                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                'action_type': action_type,
+                'confirmation_blocked': True,
+                'reconnection_required': True,
+                'error': str(e),
+                'block_reason': 'Connection validation failed with error'
             }
     
     def run_compliance_audit(self) -> Dict[str, Any]:
