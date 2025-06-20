@@ -603,3 +603,425 @@ Help:
             "count": len(commands),
             "message": f"Available commands: {', '.join(commands)}"
         }
+"""
+Jav Chat Interface - Memory-driven agent communication
+Handles natural language interaction with the Jav agent
+"""
+
+import re
+from typing import Dict, Any, List
+from datetime import datetime, timezone
+import logging
+
+class JavChat:
+    """
+    Natural language interface for Jav agent
+    Processes commands and provides contextual responses
+    """
+    
+    def __init__(self, jav_agent):
+        self.jav = jav_agent
+        self.logger = logging.getLogger('JavChat')
+        self.conversation_history = []
+        
+        # Command patterns
+        self.command_patterns = {
+            'health': [r'health', r'status', r'how.*doing', r'system.*ok'],
+            'audit': [r'audit', r'check.*system', r'what.*wrong', r'problems'],
+            'files': [r'files?', r'changed', r'what.*modified', r'git.*status'],
+            'run': [r'run', r'start', r'execute', r'launch'],
+            'test': [r'test', r'pytest', r'check.*tests'],
+            'commit': [r'commit', r'save.*changes', r'git.*add'],
+            'help': [r'help', r'what.*can.*do', r'commands?', r'assist'],
+            'memory': [r'memory', r'remember', r'recall', r'what.*did'],
+            'todo': [r'todo', r'task', r'remind', r'track'],
+            'rollback': [r'rollback', r'undo', r'revert', r'go.*back']
+        }
+        
+    def process_command(self, message: str) -> Dict[str, Any]:
+        """Process natural language command and return structured response"""
+        message_lower = message.lower().strip()
+        
+        # Add to conversation history
+        self.conversation_history.append({
+            'input': message,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'type': 'user_input'
+        })
+        
+        # Analyze command intent
+        intent = self.analyze_intent(message_lower)
+        
+        # Process based on intent
+        if intent == 'health':
+            return self.handle_health_command()
+        elif intent == 'audit':
+            return self.handle_audit_command()
+        elif intent == 'files':
+            return self.handle_files_command()
+        elif intent == 'run':
+            return self.handle_run_command(message)
+        elif intent == 'test':
+            return self.handle_test_command()
+        elif intent == 'commit':
+            return self.handle_commit_command()
+        elif intent == 'help':
+            return self.handle_help_command()
+        elif intent == 'memory':
+            return self.handle_memory_command(message)
+        elif intent == 'todo':
+            return self.handle_todo_command(message)
+        elif intent == 'rollback':
+            return self.handle_rollback_command()
+        else:
+            return self.handle_general_query(message)
+    
+    def analyze_intent(self, message: str) -> str:
+        """Analyze message intent using pattern matching"""
+        for intent, patterns in self.command_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, message):
+                    return intent
+        return 'general'
+    
+    def handle_health_command(self) -> Dict[str, Any]:
+        """Handle health check requests"""
+        try:
+            health_result = self.jav.run_health_checks()
+            
+            if health_result['summary'] == 'PASSED':
+                message = f"✅ System is healthy! All {len(health_result['passed'])} checks passed."
+                if health_result['warnings']:
+                    message += f" {len(health_result['warnings'])} warnings noted."
+            elif health_result['summary'] == 'WARNING':
+                message = f"⚠️ System has warnings. {len(health_result['passed'])} checks passed, {len(health_result['warnings'])} warnings."
+            else:
+                message = f"❌ System has issues. {len(health_result['failed'])} checks failed."
+            
+            return {
+                'type': 'health_status',
+                'message': message,
+                'details': health_result,
+                'action_needed': health_result['summary'] != 'PASSED'
+            }
+            
+        except Exception as e:
+            return {
+                'type': 'error',
+                'message': f"Health check failed: {str(e)}",
+                'error': str(e)
+            }
+    
+    def handle_audit_command(self) -> Dict[str, Any]:
+        """Handle system audit requests"""
+        try:
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            audit_result = loop.run_until_complete(self.jav.audit_current_state())
+            
+            message = f"📊 System Audit Complete\n"
+            message += f"Flow State: {audit_result['flow_state']}\n"
+            message += f"Health: {audit_result['health_status']}\n"
+            
+            if audit_result['warnings']:
+                message += f"Warnings: {len(audit_result['warnings'])}\n"
+                for warning in audit_result['warnings'][:3]:  # Top 3
+                    message += f"• {warning}\n"
+            
+            if audit_result['next_steps']:
+                message += f"Next Steps: {', '.join(audit_result['next_steps'][:2])}"
+            
+            return {
+                'type': 'audit_result',
+                'message': message,
+                'details': audit_result,
+                'action_needed': len(audit_result['warnings']) > 0
+            }
+            
+        except Exception as e:
+            return {
+                'type': 'error',
+                'message': f"Audit failed: {str(e)}",
+                'error': str(e)
+            }
+    
+    def handle_files_command(self) -> Dict[str, Any]:
+        """Handle file status requests"""
+        try:
+            import subprocess
+            result = subprocess.run(['git', 'status', '--porcelain'], 
+                                  capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                changed_files = [line.strip() for line in result.stdout.split('\n') if line.strip()]
+                
+                if changed_files:
+                    message = f"📁 {len(changed_files)} file(s) have changes:\n"
+                    for file_line in changed_files[:5]:  # Show first 5
+                        message += f"• {file_line}\n"
+                    if len(changed_files) > 5:
+                        message += f"... and {len(changed_files) - 5} more"
+                else:
+                    message = "✅ No uncommitted changes detected."
+                
+                return {
+                    'type': 'file_status',
+                    'message': message,
+                    'changed_files': changed_files,
+                    'action_needed': len(changed_files) > 0
+                }
+            else:
+                return {
+                    'type': 'error',
+                    'message': "Could not check file status (not a git repository?)",
+                    'error': result.stderr
+                }
+                
+        except Exception as e:
+            return {
+                'type': 'error',
+                'message': f"File check failed: {str(e)}",
+                'error': str(e)
+            }
+    
+    def handle_run_command(self, message: str) -> Dict[str, Any]:
+        """Handle run/start requests"""
+        if 'health' in message:
+            return self.handle_health_command()
+        elif 'test' in message:
+            return self.handle_test_command()
+        else:
+            recovery_options = self.jav.get_recovery_options()
+            
+            message_text = "🚀 Available run commands:\n"
+            message_text += "• Health Check: I can run system diagnostics\n"
+            message_text += "• Tests: I can execute test suites\n"
+            message_text += "• Service Restart: I can restart the main service\n"
+            message_text += "What would you like me to run?"
+            
+            return {
+                'type': 'run_options',
+                'message': message_text,
+                'options': recovery_options,
+                'action_needed': True
+            }
+    
+    def handle_test_command(self) -> Dict[str, Any]:
+        """Handle test execution requests"""
+        try:
+            import subprocess
+            result = subprocess.run(['python', '-m', 'pytest', '--tb=short'], 
+                                  capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0:
+                message = "✅ Tests passed successfully!"
+            else:
+                message = f"❌ Tests failed. Exit code: {result.returncode}"
+                if result.stdout:
+                    message += f"\nOutput: {result.stdout[-200:]}"  # Last 200 chars
+            
+            return {
+                'type': 'test_result',
+                'message': message,
+                'exit_code': result.returncode,
+                'output': result.stdout,
+                'error': result.stderr,
+                'action_needed': result.returncode != 0
+            }
+            
+        except subprocess.TimeoutExpired:
+            return {
+                'type': 'error',
+                'message': "Tests timed out after 30 seconds",
+                'action_needed': True
+            }
+        except Exception as e:
+            return {
+                'type': 'error',
+                'message': f"Test execution failed: {str(e)}",
+                'error': str(e)
+            }
+    
+    def handle_commit_command(self) -> Dict[str, Any]:
+        """Handle git commit requests"""
+        try:
+            import subprocess
+            
+            # Check for changes first
+            status_result = subprocess.run(['git', 'status', '--porcelain'], 
+                                         capture_output=True, text=True)
+            
+            if not status_result.stdout.strip():
+                return {
+                    'type': 'info',
+                    'message': "No changes to commit. Working directory is clean.",
+                    'action_needed': False
+                }
+            
+            # Add files
+            add_result = subprocess.run(['git', 'add', '.'], 
+                                      capture_output=True, text=True)
+            
+            if add_result.returncode != 0:
+                return {
+                    'type': 'error',
+                    'message': f"Failed to add files: {add_result.stderr}",
+                    'action_needed': True
+                }
+            
+            # Generate commit message based on changes
+            commit_msg = f"Agent-assisted changes - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            
+            commit_result = subprocess.run(['git', 'commit', '-m', commit_msg], 
+                                         capture_output=True, text=True)
+            
+            if commit_result.returncode == 0:
+                message = f"✅ Changes committed successfully!\nMessage: {commit_msg}"
+            else:
+                message = f"❌ Commit failed: {commit_result.stderr}"
+            
+            return {
+                'type': 'commit_result',
+                'message': message,
+                'success': commit_result.returncode == 0,
+                'commit_message': commit_msg
+            }
+            
+        except Exception as e:
+            return {
+                'type': 'error',
+                'message': f"Commit operation failed: {str(e)}",
+                'error': str(e)
+            }
+    
+    def handle_help_command(self) -> Dict[str, Any]:
+        """Handle help requests"""
+        help_text = """🤖 Clude Agent - Available Commands:
+
+**System Management:**
+• "health" or "status" - Check system health
+• "audit" - Run comprehensive system audit
+• "files" - Check file changes and git status
+
+**Development:**
+• "test" - Run test suite
+• "run [something]" - Execute commands
+• "commit" - Save and commit changes
+
+**Memory & Context:**
+• "memory" - Access session memory
+• "todo" - Manage tasks and reminders
+• "rollback" - Undo recent changes
+
+**General:**
+• "help" - Show this help
+• Ask me anything about your code or system!
+
+I maintain full context of your work and can proactively warn about issues."""
+
+        return {
+            'type': 'help',
+            'message': help_text,
+            'action_needed': False
+        }
+    
+    def handle_memory_command(self, message: str) -> Dict[str, Any]:
+        """Handle memory/recall requests"""
+        try:
+            # Get recent memories from the API
+            import requests
+            response = requests.get(f"{self.jav.memory_api}/memory?limit=5")
+            
+            if response.status_code == 200:
+                data = response.json()
+                memories = data.get('memories', [])
+                
+                message_text = f"🧠 Recent Memory Context ({len(memories)} entries):\n"
+                for memory in memories:
+                    topic = memory.get('topic', 'Unknown')
+                    success = '✅' if memory.get('success', False) else '❌'
+                    message_text += f"{success} {topic}\n"
+                
+                return {
+                    'type': 'memory_recall',
+                    'message': message_text,
+                    'memories': memories,
+                    'action_needed': False
+                }
+            else:
+                return {
+                    'type': 'error',
+                    'message': "Could not access memory system",
+                    'action_needed': True
+                }
+                
+        except Exception as e:
+            return {
+                'type': 'error',
+                'message': f"Memory recall failed: {str(e)}",
+                'error': str(e)
+            }
+    
+    def handle_todo_command(self, message: str) -> Dict[str, Any]:
+        """Handle TODO tracking requests"""
+        # Scan for TODOs in codebase
+        todo_files = self.jav.scan_for_todos()
+        
+        if todo_files:
+            message_text = f"📋 Found TODOs in {len(todo_files)} files:\n"
+            for file in todo_files[:3]:  # Show first 3
+                message_text += f"• {file}\n"
+            if len(todo_files) > 3:
+                message_text += f"... and {len(todo_files) - 3} more files"
+                
+            message_text += "\nWould you like me to extract and track these?"
+        else:
+            message_text = "✅ No TODO comments found in your codebase."
+        
+        return {
+            'type': 'todo_status',
+            'message': message_text,
+            'todo_files': todo_files,
+            'action_needed': len(todo_files) > 0
+        }
+    
+    def handle_rollback_command(self) -> Dict[str, Any]:
+        """Handle rollback/undo requests"""
+        recovery_options = self.jav.get_recovery_options()
+        
+        message_text = "🔄 Available rollback options:\n"
+        message_text += "• Git rollback: " + recovery_options.get('rollback_commit', 'Not available') + "\n"
+        message_text += "• Service restart: " + recovery_options.get('restart_service', 'Available') + "\n"
+        message_text += "• Check git status first: " + recovery_options.get('git_status', 'Available') + "\n"
+        message_text += "\nWhich rollback action would you like me to perform?"
+        
+        return {
+            'type': 'rollback_options',
+            'message': message_text,
+            'options': recovery_options,
+            'action_needed': True
+        }
+    
+    def handle_general_query(self, message: str) -> Dict[str, Any]:
+        """Handle general questions and queries"""
+        # Try to provide contextual help based on keywords
+        if any(word in message.lower() for word in ['error', 'broken', 'wrong', 'issue']):
+            return {
+                'type': 'diagnostic_suggestion',
+                'message': "I detected you might have an issue. Let me run a quick audit to identify problems.",
+                'suggested_action': 'audit',
+                'action_needed': True
+            }
+        elif any(word in message.lower() for word in ['how', 'what', 'explain']):
+            return {
+                'type': 'explanation',
+                'message': "I'm here to help explain and guide your development process. Can you be more specific about what you'd like to know? I have full context of your MemoryOS system and can provide detailed explanations.",
+                'action_needed': False
+            }
+        else:
+            return {
+                'type': 'general_response',
+                'message': "I understand you want to interact with the system. I can help with health checks, file management, testing, commits, and system auditing. What would you like me to assist with?",
+                'action_needed': False
+            }
