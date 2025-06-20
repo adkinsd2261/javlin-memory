@@ -364,6 +364,34 @@ def gpt_memory_preview():
             "system_healthy": False
         }), 500
 
+@app.route('/memory/read', methods=['GET'])
+def memory_read():
+    """GPT-accessible read-only memory endpoint"""
+    try:
+        with open(MEMORY_FILE, 'r') as f:
+            memory = json.load(f)
+        
+        # Get pagination parameters
+        limit = min(int(request.args.get('limit', 10)), 50)
+        offset = int(request.args.get('offset', 0))
+        
+        # Apply pagination
+        paginated_memory = memory[offset:offset + limit]
+        
+        return jsonify({
+            "memories": paginated_memory,
+            "total": len(memory),
+            "limit": limit,
+            "offset": offset,
+            "has_more": (offset + limit) < len(memory),
+            "status": "success"
+        })
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "status": "error"
+        }), 500
+
 @app.route('/stats')
 def get_stats():
     try:
