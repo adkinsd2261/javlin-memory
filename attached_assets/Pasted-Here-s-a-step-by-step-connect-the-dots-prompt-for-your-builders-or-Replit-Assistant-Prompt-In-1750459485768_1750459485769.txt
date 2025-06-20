@@ -1,0 +1,89 @@
+Here’s a step-by-step “connect the dots” prompt for your builders (or Replit Assistant):
+
+Prompt: Integrate Existing Tools into Calm, Creative, Siri-like Workspace
+
+You’ve redesigned the UI for a minimalist, focused, deep-work creative experience (à la Apple/Notion/Siri). Now, here’s exactly how to integrate all our key tools, features, and memory workflows into this new environment:
+
+1. Jav Assistant (“Siri” Presence)
+Lives as a glowing, floating icon in the lower right/left.
+
+Click, hover, or keyboard shortcut expands Jav to a full-width chat/workspace overlay.
+
+Default state: Subtle glow. Active: Pulses, animates, or expands.
+
+All interactions—chat, prompts, suggestions, actions—happen here.
+
+Jav can pop up contextually (e.g., error, question, creative moment) with a notification or quick action.
+
+2. Memory Timeline/Creative Timeline
+Hidden by default. Pull out from the side (slide-in panel), or show as a “memory lens” overlay.
+
+Allows users to browse, search, filter, and replay creative history—never intrusive.
+
+Memory cards are actionable: drag to workspace, remix, compare, or restore.
+
+“On this day” or “Suggested memories” can pop up as subtle, dismissible notifications (never modal!).
+
+3. Workspace Canvas (Code/Project)
+No boxed-in areas—just one big, beautiful canvas.
+
+All code/project work happens here, with inline suggestions (e.g., floating card or gentle underline) when Jav detects something to help with.
+
+Jav’s suggestions are actionable: click to accept, edit, pin, or learn more.
+
+Errors, warnings, and memory-based hints show up as glows or overlays—never blocking, always dismissible.
+
+4. Quick Actions & Smart Suggestions
+When relevant (e.g., idle, stuck, brainstorming), Jav’s avatar pulses and a “Quick Actions” panel expands:
+
+“Debug this”
+
+“Try alternative”
+
+“Add feature”
+
+“Improve this”
+
+These actions are contextual—surface only when useful, and disappear when not.
+
+5. Memory Search & Recall
+A dedicated search bar or shortcut (Cmd/Ctrl+K) opens the “memory recall” overlay.
+
+User can search all past ideas, code snippets, solutions, and creative sessions.
+
+Memory recall results are actionable: open in new tab, insert into project, remix, or ask Jav to explain.
+
+6. Personalization & Mode Switching
+Top-right “Mode” toggle: Creative Mode (Jav builds with you) vs Dev Mode (Jav as sidekick).
+
+When switching, Jav briefly summarizes what changes (“Now in Dev Mode: I’ll wait for your commands and focus on reviews.”).
+
+All preferences, workspace layouts, and last session are remembered—users pick up right where they left off.
+
+7. Minimal, Focused Notifications
+All alerts, errors, and suggestions are delivered via non-intrusive toasts, pop-overs, or glows.
+
+“Jav suggests…” cards float in the workspace, can be pinned/dismissed, and never block the main workflow.
+
+All actionable messages (“Apply fix,” “Explain,” “Undo”) are single-click, with optional previews.
+
+8. Memory/Automation Library
+Slide-out panel or workspace “drawer” lists automations, playbooks, and common fixes.
+
+User can create, edit, or disable automations—Jav never applies without permission.
+
+All automations are explained: “Why is this suggested?” links to original memory or user feedback.
+
+Implementation Notes
+No part of the UI should ever force users to stop or switch context.
+
+Every tool, memory, or suggestion is always available—but always just out of the way unless called for.
+
+Design everything for keyboard and mouse/trackpad—pro users should be able to fly.
+
+Use animation and glow sparingly—when in doubt, keep it calm and let the work shine.
+
+Goal:
+Ship a calm, focused, “Siri-for-builders” workspace where every tool, memory, and feature enhances deep work and creativity—never distracts.
+
+If you need example user flows, Figma mockups, or interaction scripts for these integrations, let me know!
