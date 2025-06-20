@@ -1,25 +1,30 @@
 {
-  "timestamp": "2025-06-20T19:12:51.476466+00:00",
+  "timestamp": "2025-06-20T19:21:10.188895+00:00",
   "startup_log": [
-    "[2025-06-20T19:12:51.311034+00:00] INFO: Starting MemoryOS Bulletproof Startup Checks",
-    "[2025-06-20T19:12:51.311072+00:00] INFO: ==================================================",
-    "[2025-06-20T19:12:51.311090+00:00] INFO: Running Python Version check...",
-    "[2025-06-20T19:12:51.311104+00:00] INFO: Python version 3.11.10 - OK",
-    "[2025-06-20T19:12:51.311115+00:00] INFO: Running Required Files check...",
-    "[2025-06-20T19:12:51.311166+00:00] INFO: All required files present - OK",
-    "[2025-06-20T19:12:51.311184+00:00] INFO: Running Memory File Integrity check...",
-    "[2025-06-20T19:12:51.311384+00:00] INFO: memory.json valid with 17 entries - OK",
-    "[2025-06-20T19:12:51.311413+00:00] INFO: Running Logs Directory check...",
-    "[2025-06-20T19:12:51.311464+00:00] INFO: Logs directory ready - OK",
-    "[2025-06-20T19:12:51.311479+00:00] INFO: Running Port Availability check...",
-    "[2025-06-20T19:12:51.315411+00:00] INFO: Port 5000 is available - OK",
-    "[2025-06-20T19:12:51.315436+00:00] INFO: Running Health Tests check...",
-    "[2025-06-20T19:12:51.475697+00:00] INFO: Memory loading test - OK (17 entries)",
-    "[2025-06-20T19:12:51.476376+00:00] INFO: Memory saving test - OK",
-    "[2025-06-20T19:12:51.476400+00:00] INFO: ==================================================",
-    "[2025-06-20T19:12:51.476446+00:00] INFO: ALL STARTUP CHECKS PASSED - READY TO START"
+    "[2025-06-20T19:21:09.997561+00:00] INFO: Starting MemoryOS Bulletproof Startup Checks",
+    "[2025-06-20T19:21:09.997601+00:00] INFO: ==================================================",
+    "[2025-06-20T19:21:09.997619+00:00] INFO: Running Python Version check...",
+    "[2025-06-20T19:21:09.997635+00:00] INFO: Python version 3.11.10 - OK",
+    "[2025-06-20T19:21:09.997648+00:00] INFO: Running Required Files check...",
+    "[2025-06-20T19:21:09.997680+00:00] INFO: All required files present - OK",
+    "[2025-06-20T19:21:09.997694+00:00] INFO: Running Memory File Integrity check...",
+    "[2025-06-20T19:21:09.997920+00:00] INFO: memory.json valid with 17 entries - OK",
+    "[2025-06-20T19:21:09.997955+00:00] INFO: Running Logs Directory check...",
+    "[2025-06-20T19:21:09.998012+00:00] INFO: Logs directory ready - OK",
+    "[2025-06-20T19:21:09.998030+00:00] INFO: Running Port Availability check...",
+    "[2025-06-20T19:21:10.003118+00:00] ERROR: Port 5000 is already in use",
+    "[2025-06-20T19:21:10.003455+00:00] INFO: Running Health Tests check...",
+    "[2025-06-20T19:21:10.187426+00:00] INFO: Memory loading test - OK (17 entries)",
+    "[2025-06-20T19:21:10.188811+00:00] INFO: Memory saving test - OK",
+    "[2025-06-20T19:21:10.188854+00:00] INFO: ==================================================",
+    "[2025-06-20T19:21:10.188871+00:00] ERROR: STARTUP CHECKS FAILED: ['Port Availability']",
+    "[2025-06-20T19:21:10.188882+00:00] ERROR: Please fix the above issues before starting the server"
   ],
-  "errors": [],
+  "errors": [
+    "Port 5000 is already in use",
+    "STARTUP CHECKS FAILED: ['Port Availability']",
+    "Please fix the above issues before starting the server"
+  ],
   "warnings": [],
-  "status": "success"
+  "status": "failed"
 }

@@ -1,0 +1,122 @@
+
+Vision:
+I want to build “Clude Agent,” a next-generation personal dev assistant that thinks like me, works like a productivity manager, and helps me code and ship faster, with fewer bugs.
+It should combine the best of Replit’s in-browser dev experience with an agent that audits my work, preempts errors, and enables fluid code/preview/build—all guided by my own philosophy, not generic advice.
+
+Here’s what I need built, step by step:
+1. Core Agent Setup
+Use the existing Clude agent filing as the root.
+
+Create/configure a backend (Python or Node—my preference is Python+Flask/FastAPI for control).
+
+Architect the agent so it loads a modular .md system on startup—these files will define workflows, checks, and even agent “personality.”
+
+2. Cognitive Alignment & Personalization
+Add a Me.md file (or equivalent) with my dev rules, preferred checks, common anti-patterns, and the way I debug/think.
+
+The agent should read this file at launch and:
+
+Mirror my thinking style (practical, fast, proactive, clear—no hand-holding).
+
+Prompt me for missing steps if I skip something I usually care about.
+
+Review PRs, commits, and deploys based on my standards, not just general best practices.
+
+3. Workflow Auditing & Error Prevention
+Track all edits, commands, tests, and deployments I perform.
+
+Before any deploy, merge, or major commit:
+
+Auto-run health checks, tests, config/file audits.
+
+Alert me to my common error patterns (e.g., skipped test, TODO left, race condition not covered).
+
+Summarize any warnings, ask for confirmation to proceed or offer one-click fixes.
+
+4. Builder-In-Chat Interface
+Create a chat UI (or TUI) with:
+
+Code editor pane: Edit/view files directly in the chat
+
+Terminal/log pane: Run commands, see output, filter logs
+
+Preview pane: Live preview of UI, docs, or test results
+
+Task pane: Track todos, suggested fixes, and recent changes
+
+Integrate this builder directly with the agent, so all edits, builds, and previews are contextual and logged.
+
+5. Proactive Manager/Coach Features
+Have Clude:
+
+Nudge me when my flow is drifting (long time since last test, repeated syntax errors, loop detected)
+
+Offer daily/weekly summaries (“Here’s what you shipped, what broke, what’s left”)
+
+Provide clear suggestions for next steps—based on my rules, not boilerplate productivity tips.
+
+6. Customization & Modularity
+Make all agent behaviors extensible via .md or config files—easy to add new checks, workflows, or modify agent “attitude.”
+
+Example modular workflows:
+
+health-check.md: Full health audit
+
+rollback.md: Revert to last known good
+
+release.md: Step-by-step prod release, with my custom checks
+
+7. Integrated Error Preemption
+Real-time audit of code and commits:
+
+Flag common traps before I hit run (unclosed function, no error handling, missing tests, etc.)
+
+Offer fixes or open an inline review.
+
+8. Replit/Cloud Control
+Allow me to run, stop, or restart my environment from chat
+
+Show me live status of all services/processes, and alert if something is stuck/crashed
+
+Give me a live, filterable log viewer inside the agent UI
+
+9. (Optional) AI Integration
+Let me call Claude/GPT in-context for:
+
+Explaining errors in my style
+
+Writing modular workflow snippets
+
+Reviewing code, but always following my “Me.md” rules first
+
+10. Easy Recovery/Undo
+One-click or command rollback to last good state
+
+Show what changed and why before rollback
+
+Allow “undo” after a rollback
+
+Pain Points To Solve (Non-Negotiable):
+No silent death loops or invisible auto-restarts—I want to see, control, and recover from every failure.
+
+No generic error advice—agent should flag issues that I care about (config, tests, code style, custom logic), not boilerplate.
+
+All logs, previews, and process controls are in one place—never “hunt” through multiple tabs/panes.
+
+Modular, extensible, and “me-first”—the system is designed around my workflow, not one-size-fits-all.
+
+How I Want To Interact:
+Conversational commands: “Clude, run health checks and show me all warnings.” “Clude, open main.py and let’s refactor together.”
+
+Command palette: @clude rollback, @clude tests, @clude logs error
+
+Natural context passing: Clude always knows what I’m working on and can anticipate the next step.
+
+Inline audits and suggestions: If I’m about to do something risky, Clude intervenes before I get stuck.
+
+Final Outcome:
+A personal dev executive agent + builder that keeps me in “flow,” prevents my usual mistakes, manages my projects how I would, and gives me full Replit-like build/test/run/preview power—but always on my terms.
+
+Please review my vision and begin building out this agent, ensuring every step above is covered and all pain points are directly addressed.
+If you need to see my “Me.md” or example workflows, prompt me for those files.
+Ask clarifying questions if anything is ambiguous—I want Clude to work for me from day one.
