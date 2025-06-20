@@ -96,5 +96,25 @@
     "score": 15,
     "maxScore": 25,
     "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_171007",
+    "type": "Interaction",
+    "input": "I am having worries regardining my product, can you do a full audit and help me hit pain points to fully flush out what I am actually selling? ",
+    "output": "Hello, I am the MemoryOS AI Agent with full persistent awareness. Let's review the current system state and memory context to better assist you with your product audit and understanding your sales pai...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_171007",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 5,
+    "timestamp": "2025-06-20T17:10:16.586978+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
   }
 ]
