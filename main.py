@@ -650,6 +650,105 @@ def get_suggestion_reasoning(suggestion_id: str):
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
+@app.route('/jav/memory-provenance')
+def get_memory_provenance():
+    """Get full memory provenance for transparency"""
+    try:
+        from jav_chat import JavChat
+        from jav_agent import jav
+
+        chat = JavChat(jav)
+        
+        # Get current memory context
+        if hasattr(chat, 'active_memory_context'):
+            provenance = chat.active_memory_context.get('provenance', {})
+        else:
+            provenance = {"message": "No active memory context"}
+
+        return jsonify({
+            "provenance": provenance,
+            "memory_sources": provenance.get("memory_sources", []),
+            "pattern_derivation": provenance.get("pattern_derivation", {}),
+            "user_editable": True,
+            "transparency_level": "full",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Memory provenance error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/memory-actions', methods=['POST'])
+def handle_memory_actions():
+    """Handle memory-related actions like curation, exploration, automation creation"""
+    try:
+        from jav_chat import JavChat
+        from jav_agent import jav
+
+        data = request.get_json()
+        if not data or 'action_id' not in data:
+            return jsonify({"error": "action_id required"}), 400
+
+        action_id = data['action_id']
+        chat = JavChat(jav)
+        
+        if action_id == "explore_related_memories":
+            # Return detailed view of related memories
+            memory_context = getattr(chat, 'active_memory_context', {})
+            memories = memory_context.get('memories', [])
+            
+            return jsonify({
+                "action": "memory_exploration",
+                "memories": memories,
+                "total_count": len(memories),
+                "narrative": f"Exploring {len(memories)} memories related to your current context",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+        elif action_id == "create_automation":
+            # Create automation from repeated patterns
+            memory_context = getattr(chat, 'active_memory_context', {})
+            patterns = memory_context.get('patterns', [])
+            
+            automation_candidates = [p for p in patterns if p["type"] == "repeated_topic"]
+            
+            return jsonify({
+                "action": "automation_creation",
+                "candidates": automation_candidates,
+                "message": f"Found {len(automation_candidates)} automation opportunities",
+                "next_step": "Select patterns to automate",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+        elif action_id == "curate_memory":
+            # Return memory curation interface
+            return jsonify({
+                "action": "memory_curation",
+                "message": "Memory curation interface",
+                "options": [
+                    "Review and edit memories",
+                    "Organize by themes",
+                    "Archive old memories",
+                    "Create memory collections"
+                ],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+        else:
+            return jsonify({"error": f"Unknown action: {action_id}"}), 400
+
+    except Exception as e:
+        logger.error(f"Memory action error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
 @app.route('/jav/preferences', methods=['GET', 'POST'])
 def jav_preferences():
     """Get or update user preferences"""

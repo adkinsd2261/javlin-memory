@@ -674,8 +674,19 @@
     <div class="workspace-canvas">
 
         <!-- Memory Indicator -->
-        <div class="memory-indicator">
-            <span x-text="totalMemories + ' memories'"></span>
+        <div class="memory-indicator" :class="{ 'active': showMemoryIndicator }">
+            <div x-show="!showMemoryIndicator">
+                <span x-text="totalMemories + ' memories'"></span>
+            </div>
+            <div x-show="showMemoryIndicator" class="memory-narrative">
+                <span x-text="memoryIndicatorText"></span>
+                <div x-show="memoryNarrative" class="memory-narrative-detail">
+                    <span x-text="memoryNarrative"></span>
+                </div>
+            </div>
+            <button @click="viewMemoryProvenance()" class="provenance-btn" x-show="currentProvenance" title="View Memory Provenance">
+                🔍
+            </button>
         </div>
 
         <!-- Contextual Suggestion -->
@@ -729,7 +740,7 @@
     <!-- Memory Timeline Slide-out Panel -->
     <div class="memory-timeline-panel" 
          :class="{ 'expanded': showMemoryTimeline }">
-        
+
         <div class="panel-header">
             <h3 class="text-lg font-medium text-white mb-4">Creative Timeline</h3>
             <button @click="showMemoryTimeline = false" class="control-button">✕</button>
@@ -768,7 +779,7 @@
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
          class="memory-search-overlay">
-        
+
         <div class="memory-search-card">
             <h3 class="text-xl font-light mb-4">Memory Recall</h3>
             <input type="text" 
@@ -777,7 +788,7 @@
                    @input="performMemorySearch()"
                    placeholder="Search all memories and solutions..."
                    class="creative-input mb-4">
-            
+
             <div class="search-results">
                 <template x-for="result in searchResults" :key="result.timestamp">
                     <div class="search-result-card" @click="insertSearchResult(result)">
@@ -787,7 +798,7 @@
                     </div>
                 </template>
             </div>
-            
+
             <button @click="showMemorySearch = false" class="text-gray-400 text-sm mt-4">
                 Close
             </button>
@@ -800,9 +811,9 @@
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100"
          class="quick-actions-panel">
-        
+
         <h3 class="text-lg font-medium text-white mb-4">Quick Actions</h3>
-        
+
         <div class="quick-actions-grid">
             <template x-for="action in quickActions" :key="action.id">
                 <button @click="action.action()" class="quick-action-card">
@@ -814,7 +825,7 @@
                 </button>
             </template>
         </div>
-        
+
         <button @click="showQuickActions = false" class="text-gray-400 text-sm mt-4">
             Close
         </button>
@@ -948,6 +959,18 @@
                 showMemorySearch: false,
                 searchResults: [],
 
+                // Memory and timeline
+                memories: [],
+                memoryTimeline: [],
+                memoryStats: { total: 0, success_rate: '0%' },
+
+                // Memory integration and provenance
+                memoryNarrative: '',
+                memoryIndicatorText: '',
+                memoryProvenanceText: '',
+                showMemoryIndicator: false,
+                currentProvenance: null,
+
                 async init() {
                     console.log('🚀 Initializing Jav Workspace...');
 
@@ -988,31 +1011,31 @@
                             e.preventDefault();
                             this.toggleCreativePanel();
                         }
-                        
+
                         // Memory Search & Recall
                         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                             e.preventDefault();
                             this.toggleMemorySearch();
                         }
-                        
+
                         // Memory Timeline
                         if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
                             e.preventDefault();
                             this.toggleMemoryTimeline();
                         }
-                        
+
                         // Quick Actions
                         if ((e.metaKey || e.ctrlKey) && e.key === 'q') {
                             e.preventDefault();
                             this.toggleQuickActions();
                         }
-                        
+
                         // Mode Switch
                         if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'M') {
                             e.preventDefault();
                             this.switchWorkspaceMode();
                         }
-                        
+
                         // Escape to close all overlays
                         if (e.key === 'Escape') {
                             this.closeAllOverlays();
@@ -1073,7 +1096,7 @@
                     this.showContextualSuggestion = false;
                 },
 
-                async sendMessage() {
+               async sendMessage() {
                     if (!this.chatMessage.trim() || this.javIsThinking) return;
 
                     const userMessage = this.chatMessage.trim();
@@ -1088,8 +1111,6 @@
                     });
 
                     this.scrollToBottom();
-
-                    // Start thinking
                     this.javIsThinking = true;
 
                     try {
@@ -1098,21 +1119,36 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 message: userMessage,
-                                context: 'minimalist_workspace'
+                                context: {
+                                    workspace_mode: this.workspaceMode,
+                                    conversation_length: this.conversationHistory.length
+                                }
                             })
                         });
 
-                        const result = await response.json();
+                        const data = await response.json();
 
-                        if (result.status === 'success') {
+                        // Handle different response types
+                        if (data.status === 'success') {
                             this.conversationHistory.push({
                                 id: Date.now() + 1,
                                 role: 'assistant',
-                                content: result.response?.message || result.message,
+                                content: data.response?.message || data.message,
                                 timestamp: this.formatTimestamp()
                             });
+
+                            // Display memory integration info
+                            if (data.memory_integration) {
+                                this.showMemoryIntegration(data.memory_integration);
+                            }
+
+                            // Show provenance if available
+                            if (data.provenance) {
+                                this.updateMemoryProvenance(data.provenance);
+                            }
+
                         } else {
-                            throw new Error(result.error || 'Something went wrong');
+                            throw new Error(data.error || 'Something went wrong');
                         }
                     } catch (error) {
                         console.error('Chat error:', error);
@@ -1126,6 +1162,7 @@
                         this.javIsThinking = false;
                         this.scrollToBottom();
                         await this.loadMemories();
+                        await this.loadMemoryTimeline();
                     }
                 },
 
@@ -1182,7 +1219,7 @@
                         this.filteredMemories = this.memoryHistory;
                         return;
                     }
-                    
+
                     const query = this.memorySearchQuery.toLowerCase();
                     this.filteredMemories = this.memoryHistory.filter(memory => 
                         memory.topic?.toLowerCase().includes(query) ||
@@ -1219,7 +1256,7 @@
                         const response = await fetch(`/memory?limit=20`);
                         const data = await response.json();
                         const memories = data.memories || [];
-                        
+
                         const query = this.memorySearchQuery.toLowerCase();
                         this.searchResults = memories.filter(memory => 
                             memory.topic?.toLowerCase().includes(query) ||
@@ -1291,14 +1328,14 @@
                 async executeQuickAction(type) {
                     this.showQuickActions = false;
                     this.openCreativePanel();
-                    
+
                     const prompts = {
                         debug: 'Please analyze my current code and help debug any issues you find.',
                         improve: 'What improvements can you suggest for my current project?',
                         feature: 'What new features would enhance this project? Help me brainstorm.',
                         recall: 'Search my memory for similar problems I\'ve solved before.'
                     };
-                    
+
                     this.chatMessage = prompts[type];
                     await this.sendMessage();
                 },
@@ -1308,12 +1345,12 @@
                     const newMode = this.workspaceMode === 'creative' ? 'dev' : 'creative';
                     this.workspaceMode = newMode;
                     this.showModeSwitch = true;
-                    
+
                     // Auto-hide mode switch notification
                     setTimeout(() => {
                         this.showModeSwitch = false;
                     }, 3000);
-                    
+
                     // Save preference
                     localStorage.setItem('jav-workspace-mode', newMode);
                 },
@@ -1362,23 +1399,29 @@
                             })
                         });
 
-                        const result = await response.json();
+                        const data = await response.json();
 
-                        if (result.status === 'success') {
+                        // Handle different response types
+                        if (data.status === 'success') {
                             this.conversationHistory.push({
                                 id: Date.now() + 1,
                                 role: 'assistant',
-                                content: result.response?.message || result.message,
+                                content: data.response?.message || data.message,
                                 timestamp: this.formatTimestamp()
                             });
 
-                            // Handle interventions if present
-                            if (result.interventions && result.interventions.length > 0) {
-                                this.interventions = result.interventions;
-                                this.showInterventions();
+                            // Display memory integration info
+                            if (data.memory_integration) {
+                                this.showMemoryIntegration(data.memory_integration);
                             }
+
+                            // Show provenance if available
+                            if (data.provenance) {
+                                this.updateMemoryProvenance(data.provenance);
+                            }
+
                         } else {
-                            throw new Error(result.error || 'Something went wrong');
+                            throw new Error(data.error || 'Something went wrong');
                         }
                     } catch (error) {
                         console.error('Chat error:', error);
@@ -1402,7 +1445,7 @@
                         this.showContextualSuggestion = true;
                         this.contextualMessage = intervention.title;
                         this.contextualAction = intervention.suggested_actions[0];
-                        
+
                         // Auto-dismiss after 10 seconds
                         setTimeout(() => {
                             this.showContextualSuggestion = false;
@@ -1418,6 +1461,27 @@
                     this.showQuickActions = false;
                     this.showContextualSuggestion = false;
                     this.showModeSwitch = false;
+                },
+
+                showMemoryIntegration(integrationData) {
+                    this.memoryNarrative = integrationData.narrative;
+                    this.memoryIndicatorText = integrationData.indicator_text;
+                    this.showMemoryIndicator = true;
+
+                    // Reset after 8 seconds
+                    setTimeout(() => {
+                        this.showMemoryIndicator = false;
+                    }, 8000);
+                },
+
+                updateMemoryProvenance(provenanceData) {
+                    this.currentProvenance = provenanceData;
+                    this.memoryProvenanceText = provenanceData.text;
+                },
+
+                viewMemoryProvenance() {
+                    // Display the full memory provenance details, perhaps in an overlay
+                    alert(this.memoryProvenanceText);
                 }
             };
         }
