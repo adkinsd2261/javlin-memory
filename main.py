@@ -12,6 +12,14 @@ from flask_cors import CORS
 import time
 import traceback
 
+# Import bulletproof logging
+try:
+    from bulletproof_logger import bulletproof_logger
+    BULLETPROOF_LOGGING = True
+except ImportError:
+    BULLETPROOF_LOGGING = False
+    print("⚠️ Bulletproof logging not available, using standard logging")
+
 # Setup
 app = Flask(__name__)
 CORS(app, origins="*")
@@ -87,24 +95,52 @@ def handle_method_not_allowed(e):
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    """Log and handle unexpected exceptions"""
-    error_msg = str(e)
-    logger.error(f"UNHANDLED EXCEPTION: {error_msg}")
-    logger.error(f"TRACEBACK: {traceback.format_exc()}")
-    
-    # Record error for alerting only for serious errors, not method errors
-    if not isinstance(e, Exception.__class__.__bases__[0]):
+    """Log and handle unexpected exceptions - BULLETPROOF VERSION"""
+    try:
+        error_msg = str(e)
+        error_traceback = traceback.format_exc()
+        timestamp = datetime.now(timezone.utc).isoformat()
+        
+        # Log to multiple places for bulletproofing
+        logger.error(f"CRITICAL EXCEPTION [{timestamp}]: {error_msg}")
+        logger.error(f"FULL TRACEBACK: {error_traceback}")
+        
+        # Also log to console for immediate visibility in Replit
+        print(f"🚨 CRITICAL ERROR [{timestamp}]: {error_msg}")
+        print(f"📍 TRACEBACK: {error_traceback}")
+        
+        # Write to dedicated error log file
         try:
-            from alerts import alert_manager
-            alert_manager.record_error(f"Unhandled exception: {error_msg}", "CRITICAL_ERROR")
-        except ImportError:
-            pass  # Alerting system not available
-    
-    return jsonify({
-        "error": "Internal server error",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "status": "error"
-    }), 500
+            with open('logs/errors.log', 'a') as f:
+                f.write(f"[{timestamp}] CRITICAL ERROR: {error_msg}\n")
+                f.write(f"TRACEBACK: {error_traceback}\n")
+                f.write("-" * 80 + "\n")
+        except Exception as log_error:
+            print(f"⚠️ Could not write to error log: {log_error}")
+        
+        # Record error for alerting only for serious errors, not method errors
+        if not isinstance(e, Exception.__class__.__bases__[0]):
+            try:
+                from alerts import alert_manager
+                alert_manager.record_error(f"Unhandled exception: {error_msg}", "CRITICAL_ERROR")
+            except ImportError:
+                pass  # Alerting system not available
+        
+        return jsonify({
+            "error": "Internal server error",
+            "timestamp": timestamp,
+            "status": "error",
+            "error_id": str(hash(error_msg))[:8]  # Unique error ID for tracking
+        }), 500
+        
+    except Exception as meta_error:
+        # If error handling itself fails, fall back to basic response
+        print(f"🔥 META ERROR: Error handler failed: {meta_error}")
+        return jsonify({
+            "error": "Critical system error",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "status": "critical_error"
+        }), 500
 
 def validate_api_key():
     """Simple API key validation"""
@@ -127,33 +163,66 @@ def index():
 
 @app.route('/health')
 def health_check():
-    """Comprehensive health check for monitoring services"""
+    """BULLETPROOF health check - NEVER crashes, always returns status"""
+    # Multiple fallback levels to ensure this endpoint NEVER fails
     try:
         start_time = time.time()
         
-        # Test memory file access
-        memory = load_memory()
-        memory_accessible = True
-        memory_count = len(memory)
+        # Initialize health status
+        health_data = {
+            "status": "unknown",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "service": "MemoryOS-Clean",
+            "version": "2.0.0",
+            "bulletproof": True
+        }
         
-        # Test memory write capability
-        test_write = True
+        # Level 1: Test memory file access
         try:
-            with open(MEMORY_FILE, 'r') as f:
-                pass
+            memory = load_memory()
+            memory_accessible = True
+            memory_count = len(memory) if memory else 0
+        except Exception as mem_error:
+            memory_accessible = False
+            memory_count = 0
+            health_data["memory_error"] = str(mem_error)
+        
+        # Level 2: Test memory write capability
+        try:
+            test_write = os.access(MEMORY_FILE, os.W_OK) if os.path.exists(MEMORY_FILE) else False
         except Exception:
             test_write = False
             
-        # Calculate response time
-        response_time_ms = round((time.time() - start_time) * 1000, 2)
+        # Level 3: Calculate response time
+        try:
+            response_time_ms = round((time.time() - start_time) * 1000, 2)
+        except Exception:
+            response_time_ms = 999  # Fallback value
         
-        # Determine overall health
-        healthy = memory_accessible and test_write and response_time_ms < 1000
+        # Level 4: Determine overall health with multiple checks
+        healthy_checks = 0
+        total_checks = 3
         
-        health_data = {
-            "status": "healthy" if healthy else "degraded",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+        if memory_accessible:
+            healthy_checks += 1
+        if test_write:
+            healthy_checks += 1
+        if response_time_ms < 1000:
+            healthy_checks += 1
+            
+        # Calculate health status
+        if healthy_checks == total_checks:
+            status = "healthy"
+        elif healthy_checks >= 1:
+            status = "degraded"
+        else:
+            status = "unhealthy"
+        
+        # Build comprehensive health data
+        health_data.update({
+            "status": status,
             "response_time_ms": response_time_ms,
+            "health_score": f"{healthy_checks}/{total_checks}",
             "checks": {
                 "memory_file_accessible": memory_accessible,
                 "memory_file_writable": test_write,
@@ -161,24 +230,33 @@ def health_check():
             },
             "metrics": {
                 "memory_entries": memory_count,
-                "memory_file_exists": os.path.exists(MEMORY_FILE),
+                "memory_file_exists": os.path.exists(MEMORY_FILE) if MEMORY_FILE else False,
                 "memory_file_size_bytes": os.path.getsize(MEMORY_FILE) if os.path.exists(MEMORY_FILE) else 0
-            },
-            "version": "2.0.0",
-            "service": "MemoryOS-Clean"
-        }
+            }
+        })
         
-        # Log health check
-        logger.info(f"HEALTH CHECK: {health_data['status']} - {response_time_ms}ms")
+        # Log health check (with fallback)
+        try:
+            logger.info(f"HEALTH CHECK: {status} - {response_time_ms}ms ({healthy_checks}/{total_checks})")
+        except Exception:
+            print(f"Health: {status} - {response_time_ms}ms")
         
-        return jsonify(health_data), 200 if healthy else 503
+        return jsonify(health_data), 200 if status == "healthy" else 503
         
-    except Exception as e:
-        logger.error(f"HEALTH CHECK FAILED: {str(e)}")
+    except Exception as critical_error:
+        # ULTIMATE FALLBACK - If everything fails, still return something
+        try:
+            logger.error(f"CRITICAL HEALTH CHECK FAILURE: {str(critical_error)}")
+        except Exception:
+            print(f"🔥 CRITICAL HEALTH FAILURE: {str(critical_error)}")
+            
         return jsonify({
-            "status": "unhealthy",
-            "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "status": "critical_failure",
+            "error": str(critical_error),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "service": "MemoryOS-Clean",
+            "bulletproof": False,
+            "message": "Health check failed but system is responding"
         }), 503
 
 @app.route('/memory', methods=['GET'])
@@ -538,32 +616,103 @@ def product_audit():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
-if __name__ == '__main__':
-    # Ensure memory file exists
-    if not os.path.exists(MEMORY_FILE):
-        save_memory([])
-        print(f"Created memory file: {MEMORY_FILE}")
-
-    # Initialize alerting
+def bulletproof_main():
+    """Bulletproof main function with comprehensive error handling"""
     try:
-        from alerts import alert_manager
-        print("🚨 Alerting system initialized")
+        # Ensure logs directory exists
+        try:
+            os.makedirs('logs', exist_ok=True)
+        except Exception as e:
+            print(f"⚠️ Could not create logs directory: {e}")
         
-        # Check if alerting is configured
-        webhook_configured = bool(os.getenv('ALERT_WEBHOOK_URL') or os.getenv('EMAIL_WEBHOOK_URL'))
-        if webhook_configured:
-            print("📧 Alert webhooks configured")
-        else:
-            print("⚠️  Alert webhooks not configured (optional)")
-            print("   Set ALERT_WEBHOOK_URL or EMAIL_WEBHOOK_URL to enable alerts")
+        # Log startup with bulletproof logger
+        if BULLETPROOF_LOGGING:
+            bulletproof_logger.log_info("Starting MemoryOS with bulletproof safeguards")
+        
+        # Ensure memory file exists
+        if not os.path.exists(MEMORY_FILE):
+            try:
+                save_memory([])
+                print(f"✅ Created memory file: {MEMORY_FILE}")
+                if BULLETPROOF_LOGGING:
+                    bulletproof_logger.log_info(f"Created new memory file: {MEMORY_FILE}")
+            except Exception as e:
+                error_msg = f"CRITICAL: Could not create memory file: {e}"
+                print(f"❌ {error_msg}")
+                if BULLETPROOF_LOGGING:
+                    bulletproof_logger.log_error("Failed to create memory file", e)
+                raise
+
+        # Initialize alerting with error handling
+        try:
+            from alerts import alert_manager
+            print("🚨 Alerting system initialized")
             
-    except ImportError:
-        print("⚠️  Alerting system not available")
+            # Check if alerting is configured
+            webhook_configured = bool(os.getenv('ALERT_WEBHOOK_URL') or os.getenv('EMAIL_WEBHOOK_URL'))
+            if webhook_configured:
+                print("📧 Alert webhooks configured")
+            else:
+                print("⚠️  Alert webhooks not configured (optional)")
+                print("   Set ALERT_WEBHOOK_URL or EMAIL_WEBHOOK_URL to enable alerts")
+                
+        except ImportError as e:
+            print("⚠️  Alerting system not available")
+            if BULLETPROOF_LOGGING:
+                bulletproof_logger.log_warning(f"Alerting system not available: {e}")
 
-    print("🚀 Starting MemoryOS Clean...")
-    print(f"📁 Memory file: {MEMORY_FILE}")
-    print(f"🔑 API Key required for POST /memory")
-    print(f"📊 Logs: memoryos.log")
-    print(f"🏥 Health check: /health")
+        # Print startup information
+        startup_info = [
+            "🚀 Starting MemoryOS Clean with BULLETPROOF safeguards...",
+            f"📁 Memory file: {MEMORY_FILE}",
+            f"🔑 API Key required for POST /memory",
+            f"📊 Logs: memoryos.log + logs/",
+            f"🏥 Health check: /health (bulletproof)",
+            f"🛡️  Error handling: Enhanced with bulletproof logging",
+            f"🧪 Tests: Run 'python -m pytest test_memoryos.py' before deploy"
+        ]
+        
+        for info in startup_info:
+            print(info)
+            if BULLETPROOF_LOGGING:
+                bulletproof_logger.log_info(info.replace("🚀", "").replace("📁", "").replace("🔑", "").replace("📊", "").replace("🏥", "").replace("🛡️", "").replace("🧪", "").strip())
 
-    app.run(host='0.0.0.0', port=5000, debug=False)
+        # Start the Flask app with bulletproof error handling
+        try:
+            app.run(host='0.0.0.0', port=5000, debug=False)
+        except Exception as e:
+            error_msg = f"CRITICAL: Flask app failed to start: {e}"
+            print(f"💥 {error_msg}")
+            if BULLETPROOF_LOGGING:
+                bulletproof_logger.log_error("Flask app startup failed", e, include_traceback=True)
+            raise
+            
+    except KeyboardInterrupt:
+        print("\n🛑 MemoryOS shutdown by user")
+        if BULLETPROOF_LOGGING:
+            bulletproof_logger.log_info("MemoryOS shutdown by user interrupt")
+        
+    except Exception as critical_error:
+        error_msg = f"CRITICAL SYSTEM FAILURE: {critical_error}"
+        print(f"💥 {error_msg}")
+        print(f"📍 TRACEBACK: {traceback.format_exc()}")
+        
+        if BULLETPROOF_LOGGING:
+            bulletproof_logger.log_error("Critical system failure during startup", critical_error, include_traceback=True)
+        
+        # Write emergency error log
+        try:
+            with open('emergency_startup_failure.log', 'a') as f:
+                f.write(f"[{datetime.now(timezone.utc).isoformat()}] CRITICAL FAILURE\n")
+                f.write(f"Error: {error_msg}\n")
+                f.write(f"Traceback: {traceback.format_exc()}\n")
+                f.write("-" * 80 + "\n")
+        except Exception:
+            pass  # Even emergency logging can fail
+        
+        # Exit with error code
+        import sys
+        sys.exit(1)
+
+if __name__ == '__main__':
+    bulletproof_main()

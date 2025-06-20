@@ -20,7 +20,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Start MemoryOS Clean"
+runButton = "Bulletproof Start"
 
 [[workflows.workflow]]
 name = "Start MemoryOS API"
@@ -74,3 +74,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
+
+[[workflows.workflow]]
+name = "Bulletproof Start"
+author = 44033680
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python bulletproof_startup.py"
