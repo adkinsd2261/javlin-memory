@@ -1031,23 +1031,20 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Sync changes to GitHub using coordinated git operations"""
+    """Simple git sync using unified manager"""
     try:
-        from git_coordinator import coordinated_git_add_commit_push
+        from simple_git_manager import git_manager
         
-        force = request.args.get('force', 'false').lower() == 'true'
         message = request.args.get('message', '🔧 Manual sync via API endpoint')
-        
-        # Use the coordinated git operation
-        result = coordinated_git_add_commit_push(message)
+        result = git_manager.commit_and_push(message)
         
         # Log to memory if successful
         if result.get('status') == 'success':
             log_to_memory(
                 topic="Manual GitHub Sync", 
                 type_="SystemUpdate",
-                input_=f"Manual sync via /git-sync (force={force})",
-                output=f"✅ {result.get('result', 'Sync completed')}",
+                input_=f"Manual sync via /git-sync",
+                output=f"✅ {result.get('message', 'Sync completed')}",
                 success=True,
                 category="development",
                 tags=["git", "sync", "manual", "api"]
