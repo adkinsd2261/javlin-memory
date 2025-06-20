@@ -538,8 +538,9 @@ class GitHubSyncer:
         import subprocess
         import psutil
         
-        # Kill all git processes using psutil for better reliability
+        # Kill all git processes using multiple methods for better reliability
         try:
+            # Method 1: psutil (most reliable)
             for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
                 try:
                     if 'git' in proc.info['name'] or any('git' in cmd for cmd in (proc.info['cmdline'] or [])):
@@ -549,10 +550,13 @@ class GitHubSyncer:
                     pass
             time.sleep(2)
         except ImportError:
-            # Fallback to system commands if psutil not available
+            # Fallback methods if psutil not available
             try:
+                # Method 2: pkill with force
                 subprocess.run(['pkill', '-9', '-f', 'git'], capture_output=True, timeout=5)
-                time.sleep(2)
+                subprocess.run(['pkill', '-9', 'git'], capture_output=True, timeout=5)
+                subprocess.run(['killall', '-9', 'git'], capture_output=True, timeout=5)
+                time.sleep(3)
             except:
                 pass
         
