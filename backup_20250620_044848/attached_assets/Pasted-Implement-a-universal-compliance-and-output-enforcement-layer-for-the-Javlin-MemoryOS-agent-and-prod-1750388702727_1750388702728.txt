@@ -1,0 +1,33 @@
+Implement a universal compliance and output enforcement layer for the Javlin/MemoryOS agent and product:
+
+1. **Centralize Output Compliance**
+   - Route all agent and system outputs (chat, API, UI, logs, notifications, CLI, emails) through a single compliance module or middleware.
+   - In Flask/Python, use a response hook or decorator; in JS, use middleware.
+
+2. **Code Linting & Review Enforcement**
+   - Add static code analysis/linter rules that flag any output (e.g., `return`, `print`, `console.log`, direct template render) not piped through the compliance module.
+   - Update code review and PR guidelines: no user/log-facing output allowed unless reviewed for compliance.
+
+3. **Comprehensive Output Interface**
+   - Define a strict output interface (e.g., `send_user_output(content)` or `log_and_respond(content)`), which always runs compliance checks before anything is displayed or logged.
+
+4. **Automated & E2E Testing**
+   - Add tests that mock all endpoints and user flows to ensure every output path fires the compliance check.
+   - Break builds or block merges if any output skips the middleware.
+
+5. **System Health/Drift Audits**
+   - Build a tool or cron job that scans all outputs, routes, and logs to verify they originate from the compliance module.
+   - Surface warnings or errors in system health checks and admin dashboards if bypasses are detected.
+
+6. **Human Bypass Mitigation**
+   - Add onboarding reminders, PR templates, and README warnings: “Never claim ‘live’ unless system-verified.”
+   - In all system/user-facing logs or statuses, annotate:  
+      - “Confirmed by system” (green check)  
+      - “Not system-confirmed” (warning)
+   - Log any direct/manual status claims for review.
+
+7. **Documentation**
+   - Reference AGENT_BIBLE.md and PRODUCT_BIBLE.md as the source of truth for these rules.
+   - Document the compliance layer and bypass protection in CONTRIBUTING.md and onboarding.
+
+This ensures all outputs are always product-compliant, no matter the channel or interface, and makes bypassing the compliance contract both visible and auditable.

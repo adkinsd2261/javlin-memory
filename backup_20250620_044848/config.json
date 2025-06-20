@@ -1,0 +1,23 @@
+
+{
+  "agent_auto_log": true,
+  "auto_log_threshold": 60,
+  "trusted_agents": ["Javlin Builder Agent", "Assistant"],
+  "audit_logging": true,
+  "autolog_trace_file": "autolog_trace.json",
+  "git_sync": {
+    "enabled": true,
+    "auto_push": true,
+    "branch": "main",
+    "batch_interval": 300,
+    "max_logs_for_commit": 10,
+    "version_bump_strategy": "auto"
+  },
+  "personalization": {
+    "commit_format": "emoji",
+    "sign_off": "Javlin Builder Agent",
+    "delay_commits": false,
+    "batch_commits": true,
+    "custom_commit_template": ""
+  }
+}

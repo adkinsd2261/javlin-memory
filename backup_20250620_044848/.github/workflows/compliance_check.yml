@@ -1,0 +1,107 @@
+
+name: Universal Compliance Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compliance-lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flask
+    
+    - name: Run Compliance Linter
+      run: |
+        python compliance_linter.py --directory . --format json --output compliance_report.json --fail-on-violations
+    
+    - name: Upload Compliance Report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: compliance-report
+        path: compliance_report.json
+    
+    - name: Comment PR with Compliance Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          try {
+            const report = JSON.parse(fs.readFileSync('compliance_report.json', 'utf8'));
+            const score = report.compliance_score;
+            const violations = report.summary.total_violations;
+            const warnings = report.summary.total_warnings;
+            
+            const comment = `## 🛡️ Compliance Check Results
+            
+            **Compliance Score:** ${score}/100
+            **Violations:** ${violations} (must fix)
+            **Warnings:** ${warnings} (recommended)
+            
+            ${violations > 0 ? '❌ **COMPLIANCE FAILURES DETECTED**' : '✅ **COMPLIANCE PASSED**'}
+            
+            ${violations > 0 ? 'Please review AGENT_BIBLE.md and ensure all outputs use compliance middleware.' : ''}
+            
+            View full report in the workflow artifacts.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          } catch (error) {
+            console.log('Could not read compliance report:', error);
+          }
+
+  compliance-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flask
+    
+    - name: Run Compliance Tests
+      run: |
+        python compliance_tests.py
+    
+    - name: Check for Compliance Violations in Memory
+      run: |
+        python -c "
+        import json
+        try:
+            with open('memory.json', 'r') as f:
+                memory = json.load(f)
+            violations = [m for m in memory if m.get('category') == 'compliance' and 'violation' in m.get('type', '').lower()]
+            if violations:
+                print(f'Found {len(violations)} compliance violations in memory system')
+                exit(1)
+            else:
+                print('No compliance violations found in memory system')
+        except FileNotFoundError:
+            print('No memory file found')
+        "

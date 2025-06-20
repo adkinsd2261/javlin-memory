@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryOS Founder Intelligence</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .founder-dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .founder-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .founder-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .founder-status {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            flex: 1;
+            min-width: 250px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .status-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.inactive {
+            background: #ef4444;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .insights-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .insight-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .insight-header {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #fbbf24;
+        }
+        
+        .insight-content {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .insight-meta {
+            font-size: 0.8em;
+            opacity: 0.7;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            justify-content: center;
+        }
+        
+        .founder-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .founder-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .founder-btn.primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+        }
+        
+        .live-feed {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .feed-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feed-timestamp {
+            font-size: 0.8em;
+            opacity: 0.6;
+        }
+        
+        @media (max-width: 768px) {
+            .insights-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .founder-status {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="founder-dashboard">
+        <div class="founder-header">
+            <h1 class="founder-title">🧠 MemoryOS Founder Intelligence</h1>
+            <p>Living AI cofounder with real-time Replit awareness</p>
+        </div>
+        
+        <div class="founder-status">
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-indicator" id="founder-status"></div>
+                    Founder Agent Status
+                </div>
+                <div id="founder-active">Loading...</div>
+                <div id="monitoring-duration"></div>
+            </div>
+            
+            <div class="status-card">
+                <div class="status-header">
+                    📊 Intelligence Metrics
+                </div>
+                <div id="decisions-count">Decisions Made: Loading...</div>
+                <div id="insights-count">Active Insights: Loading...</div>
+                <div id="last-check">Last State Check: Loading...</div>
+            </div>
+            
+            <div class="status-card">
+                <div class="status-header">
+                    🎯 Current Focus
+                </div>
+                <div id="focus-areas">Loading focus areas...</div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="founder-btn primary" onclick="startFounderMode()">🚀 Start Founder Mode</button>
+            <button class="founder-btn" onclick="refreshStatus()">🔄 Refresh Status</button>
+            <button class="founder-btn" onclick="viewSystemHealth()">🏥 System Health</button>
+        </div>
+        
+        <div class="insights-section">
+            <div class="insight-card">
+                <div class="insight-header">💡 Latest Strategic Insights</div>
+                <div id="strategic-insights">Loading insights...</div>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-header">⚡ Recent Decisions</div>
+                <div id="recent-decisions">Loading decisions...</div>
+            </div>
+        </div>
+        
+        <div class="insight-card">
+            <div class="insight-header">📡 Live Intelligence Feed</div>
+            <div class="live-feed" id="live-feed">
+                <div class="feed-item">
+                    <div>Initializing founder intelligence...</div>
+                    <div class="feed-timestamp">Waiting for data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval;
+        
+        async function refreshStatus() {
+            try {
+                const response = await fetch('/founder/status');
+                const status = await response.json();
+                
+                updateStatusDisplay(status);
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                document.getElementById('founder-active').textContent = 'Connection Error';
+            }
+        }
+        
+        async function refreshInsights() {
+            try {
+                const response = await fetch('/founder/insights');
+                const insights = await response.json();
+                
+                updateInsightsDisplay(insights);
+            } catch (error) {
+                console.error('Error fetching insights:', error);
+            }
+        }
+        
+        function updateStatusDisplay(status) {
+            const statusIndicator = document.getElementById('founder-status');
+            const founderActive = document.getElementById('founder-active');
+            
+            if (status.is_active) {
+                statusIndicator.className = 'status-indicator';
+                founderActive.textContent = '🟢 Active & Monitoring';
+            } else {
+                statusIndicator.className = 'status-indicator inactive';
+                founderActive.textContent = '🔴 Inactive';
+            }
+            
+            document.getElementById('decisions-count').textContent = `Decisions Made: ${status.decisions_made || 0}`;
+            document.getElementById('insights-count').textContent = `Active Insights: ${status.active_insights || 0}`;
+            document.getElementById('last-check').textContent = `Last Check: ${status.last_state_check || 'Never'}`;
+            
+            const focusAreas = status.founder_context?.focus_areas || [];
+            document.getElementById('focus-areas').innerHTML = focusAreas.map(area => 
+                `<div>• ${area.replace(/_/g, ' ').toUpperCase()}</div>`
+            ).join('');
+        }
+        
+        function updateInsightsDisplay(insights) {
+            const strategicInsights = document.getElementById('strategic-insights');
+            const recentDecisions = document.getElementById('recent-decisions');
+            const liveFeed = document.getElementById('live-feed');
+            
+            // Strategic insights
+            if (insights.active_insights && insights.active_insights.length > 0) {
+                strategicInsights.innerHTML = insights.active_insights.slice(-3).map(insight => `
+                    <div class="insight-content">${insight.insight}</div>
+                    <div class="insight-meta">Confidence: ${insight.confidence} | ${new Date(insight.timestamp).toLocaleTimeString()}</div>
+                `).join('');
+            } else {
+                strategicInsights.innerHTML = '<div>No recent insights available</div>';
+            }
+            
+            // Recent decisions
+            if (insights.recent_decisions && insights.recent_decisions.length > 0) {
+                recentDecisions.innerHTML = insights.recent_decisions.slice(-3).map(decision => `
+                    <div class="insight-content"><strong>${decision.event}:</strong> ${decision.founder_decision}</div>
+                    <div class="insight-meta">${new Date(decision.timestamp).toLocaleTimeString()}</div>
+                `).join('');
+            } else {
+                recentDecisions.innerHTML = '<div>No recent decisions available</div>';
+            }
+            
+            // Live feed
+            const allActivities = [
+                ...(insights.active_insights || []).map(i => ({...i, type: 'insight'})),
+                ...(insights.recent_decisions || []).map(d => ({...d, type: 'decision'}))
+            ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+            
+            if (allActivities.length > 0) {
+                liveFeed.innerHTML = allActivities.map(activity => `
+                    <div class="feed-item">
+                        <div>${activity.type === 'insight' ? '💡' : '⚡'} ${
+                            activity.type === 'insight' ? activity.insight : 
+                            `${activity.event}: ${activity.founder_decision}`
+                        }</div>
+                        <div class="feed-timestamp">${new Date(activity.timestamp).toLocaleString()}</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        async function startFounderMode() {
+            try {
+                const response = await fetch('/founder/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.status || result.includes?.('LIVE')) {
+                    alert('🧠 Founder mode activated! Check the live feed for activity.');
+                    refreshStatus();
+                } else {
+                    alert('Error starting founder mode: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Connection error: ' + error.message);
+            }
+        }
+        
+        function viewSystemHealth() {
+            window.open('/system-health', '_blank');
+        }
+        
+        // Initialize and set up auto-refresh
+        refreshStatus();
+        refreshInsights();
+        
+        refreshInterval = setInterval(() => {
+            refreshStatus();
+            refreshInsights();
+        }, 30000); // Refresh every 30 seconds
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
