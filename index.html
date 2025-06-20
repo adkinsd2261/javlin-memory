@@ -1,453 +1,234 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jav Studio - Your Creative AI Partner</title>
+    <title>Jav Studio - Creative Workspace</title>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background: radial-gradient(circle at 20% 20%, rgba(15, 15, 35, 1) 0%, rgba(8, 8, 20, 1) 100%);
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .magic-gradient {
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
-            background-size: 400% 400%;
-            animation: gradient-dance 8s ease infinite;
-        }
-
-        @keyframes gradient-dance {
-            0%, 100% { background-position: 0% 50%; }
-            25% { background-position: 100% 50%; }
-            50% { background-position: 100% 100%; }
-            75% { background-position: 0% 100%; }
-        }
-
-        .jav-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 24px;
-            animation: pulse-glow 3s ease-in-out infinite;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .jav-avatar:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { 
-                box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-                transform: scale(1);
-            }
-            50% { 
-                box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
-                transform: scale(1.05);
-            }
-        }
-
-        .creative-timeline {
-            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border-left: 3px solid #667eea;
-        }
-
-        .memory-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            transform-origin: center;
-        }
-
-        .memory-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .floating-action {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 50;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .inspiration-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.4s ease;
-        }
-
-        .inspiration-card:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-            transform: translateY(-2px);
-            border-color: rgba(102, 126, 234, 0.4);
-        }
-
-        .coach-mark {
-            animation: bounce-gentle 2s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-        }
-
-        @keyframes bounce-gentle {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .welcome-animation {
-            animation: slide-in-up 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slide-in-up {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0px) scale(1);
-            }
-        }
-
-        .message-card {
-            width: 100%;
-            word-wrap: break-word;
-            animation: slide-in-smooth 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            margin: 16px 0;
+        .workspace-canvas {
+            background: linear-gradient(135deg, #0a0a0f 0%, #12121f 50%, #0f0f18 100%);
+            min-height: 100vh;
             position: relative;
         }
 
-        @keyframes slide-in-smooth {
-            0% {
-                opacity: 0;
-                transform: translateY(20px) scale(0.98);
+        .floating-jav {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+        }
+
+        .floating-jav.active {
+            background: linear-gradient(45deg, #7c3aed, #3b82f6);
+            box-shadow: 0 0 60px rgba(124, 58, 237, 0.6);
+            animation: gentle-pulse 2s ease-in-out infinite;
+        }
+
+        .floating-jav:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.5);
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 60px rgba(124, 58, 237, 0.6);
             }
-            100% {
+            50% { 
+                box-shadow: 0 0 80px rgba(124, 58, 237, 0.8);
+            }
+        }
+
+        .creative-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 500px;
+            height: 100vh;
+            background: rgba(12, 12, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateX(100%);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 90;
+            overflow: hidden;
+        }
+
+        .creative-panel.expanded {
+            transform: translateX(0);
+        }
+
+        .creative-panel.fullwidth {
+            width: 100vw;
+            left: 0;
+            right: 0;
+        }
+
+        .workspace-focus {
+            padding: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .focus-content {
+            max-width: 800px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .focus-content.active {
+            opacity: 1;
+        }
+
+        .subtle-glow {
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+
+        .subtle-glow.active {
+            opacity: 1;
+            animation: soft-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes soft-glow {
+            0%, 100% { 
+                text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            }
+            50% { 
+                text-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+            }
+        }
+
+        .creative-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            font-size: 16px;
+            line-height: 1.6;
+            width: 100%;
+            min-height: 120px;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .creative-input:focus {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+        }
+
+        .creative-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .message-flow {
+            padding: 30px;
+            overflow-y: auto;
+            height: calc(100vh - 200px);
+        }
+
+        .message {
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fade-in-up 0.6s ease forwards;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateY(0);
             }
         }
 
         .user-message {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border-left: 3px solid #667eea;
-            padding: 20px 24px;
-            border-radius: 0 12px 12px 0;
-            margin-left: 60px;
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 3px solid #6366f1;
+            padding: 20px;
+            border-radius: 0 16px 16px 0;
+            margin-left: 40px;
         }
 
         .jav-message {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 24px;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 16px;
-            position: relative;
+            padding: 20px;
             margin-right: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .jav-message::before {
-            content: '';
+        .contextual-suggestion {
             position: absolute;
-            left: -24px;
-            top: 20px;
-            width: 0;
-            height: 0;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            border-right: 12px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .presence-indicator {
-            position: absolute;
-            left: -80px;
-            top: 20px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .presence-listening {
-            animation: pulse-listening 2s ease-in-out infinite;
-        }
-
-        .presence-thinking {
-            animation: pulse-thinking 1.5s ease-in-out infinite;
-        }
-
-        .presence-responding {
-            animation: pulse-responding 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse-listening {
-            0%, 100% { 
-                transform: scale(1);
-                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-            }
-            50% { 
-                transform: scale(1.05);
-                box-shadow: 0 6px 30px rgba(102, 126, 234, 0.5);
-            }
-        }
-
-        @keyframes pulse-thinking {
-            0%, 100% { 
-                transform: scale(1) rotate(0deg);
-                box-shadow: 0 4px 20px rgba(118, 75, 162, 0.3);
-            }
-            25% { 
-                transform: scale(1.08) rotate(1deg);
-                box-shadow: 0 6px 35px rgba(118, 75, 162, 0.6);
-            }
-            75% { 
-                transform: scale(1.08) rotate(-1deg);
-                box-shadow: 0 6px 35px rgba(118, 75, 162, 0.6);
-            }
-        }
-
-        @keyframes pulse-responding {
-            0%, 100% { 
-                transform: scale(1);
-                box-shadow: 0 4px 20px rgba(240, 147, 251, 0.3);
-            }
-            50% { 
-                transform: scale(1.1);
-                box-shadow: 0 8px 40px rgba(240, 147, 251, 0.6);
-            }
-        }
-
-        .message-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(12, 12, 25, 0.9);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.5s ease;
+            z-index: 80;
         }
 
-        .jav-message:hover .message-actions {
+        .contextual-suggestion.show {
             opacity: 1;
         }
 
-        .action-button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .action-button:hover {
-            background: rgba(102, 126, 234, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .next-steps {
-            margin-top: 20px;
-            padding: 16px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .next-steps h4 {
-            color: #667eea;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .next-steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 8px;
-        }
-
-        .next-step-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
-        }
-
-        .next-step-card:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: rgba(102, 126, 234, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .ambient-suggestion {
+        .memory-indicator {
             position: fixed;
-            top: 120px;
-            right: 30px;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            max-width: 300px;
-            z-index: 45;
-            animation: ambient-appear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes ambient-appear {
-            0% {
-                opacity: 0;
-                transform: translateX(100px) scale(0.8);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 24px;
+            top: 40px;
+            left: 40px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            margin-right: 40px;
-            position: relative;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #667eea;
-            border-radius: 50%;
-            animation: typing-bounce 1.4s ease-in-out infinite;
-        }
-
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing-bounce {
-            0%, 60%, 100% {
-                transform: translateY(0);
-            }
-            30% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .creative-canvas {
-            padding: 32px;
-            background: radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
-        }
-
-        .input-zone {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 24px;
-            margin: 24px 0;
-        }
-
-        .studio-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: white;
-            font-size: 16px;
-            line-height: 1.6;
-            min-height: 60px;
-            resize: none;
-            font-family: inherit;
-        }
-
-        .studio-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .input-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .toolbar-left {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .tool-icon {
-            width: 36px;
-            height: 36px;
-            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
+            padding: 8px 16px;
+            font-size: 12px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+            z-index: 70;
         }
 
-        .tool-icon:hover {
-            background: rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
+        .memory-indicator:hover {
+            opacity: 1;
         }
 
         .send-button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
             border: none;
             border-radius: 12px;
             padding: 12px 24px;
             color: white;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -456,8 +237,8 @@
         }
 
         .send-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
         }
 
         .send-button:disabled {
@@ -465,1094 +246,466 @@
             cursor: not-allowed;
         }
 
-        .hero-section {
-            background: radial-gradient(circle at center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-            min-height: 400px;
+        .panel-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
         }
 
-        .onboarding-overlay {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-
-        .step-indicator {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+        .control-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
-            margin-right: 15px;
-        }
-
-        .contextual-hint {
-            position: absolute;
-            z-index: 40;
-            animation: fade-in-bounce 0.6s ease-out;
-        }
-
-        @keyframes fade-in-bounce {
-            0% {
-                opacity: 0;
-                transform: translateY(-10px) scale(0.9);
-            }
-            60% {
-                transform: translateY(5px) scale(1.05);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .suggestion-pill {
-            background: linear-gradient(45deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            font-size: 14px;
             transition: all 0.3s ease;
-            cursor: pointer;
         }
 
-        .suggestion-pill:hover {
-            background: linear-gradient(45deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4));
-            transform: translateY(-1px);
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            margin-right: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #6366f1;
+            border-radius: 50%;
+            animation: typing-bounce 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        .workspace-hint {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .workspace-hint:hover {
+            opacity: 1;
+        }
+
+        .subtle-border {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .onboarding-card {
+            background: rgba(12, 12, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .action-glow {
+            animation: action-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes action-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+            }
         }
     </style>
 </head>
-<body x-data="javStudio()" x-init="init()" class="min-h-screen text-white">
-    
+<body x-data="javWorkspace()" x-init="init()" class="text-white">
+
     <!-- Onboarding Overlay -->
     <div x-show="showOnboarding" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         class="fixed inset-0 onboarding-overlay z-50 flex items-center justify-center">
-        
-        <div class="glass-panel rounded-2xl p-8 max-w-lg mx-4 welcome-animation">
-            <div class="text-center">
-                <div class="jav-avatar mx-auto mb-6" @click="javSpeaks()">
-                    J
-                </div>
-                
-                <div x-show="onboardingStep === 1">
-                    <h2 class="text-2xl font-bold mb-4">Hey there! 👋 I'm Jav!</h2>
-                    <p class="text-gray-300 mb-6">I'm your creative AI partner. Together, we'll turn ideas into reality through memory-driven collaboration!</p>
-                    <button @click="nextOnboardingStep()" 
-                            class="magic-gradient px-6 py-3 rounded-lg text-white font-medium">
-                        Ready to build together! ✨
-                    </button>
-                </div>
+         class="onboarding-overlay">
 
-                <div x-show="onboardingStep === 2">
-                    <h3 class="text-xl font-bold mb-4">Our Creative Loop 🔄</h3>
-                    <div class="space-y-3 text-left mb-6">
-                        <div class="flex items-center">
-                            <div class="step-indicator">1</div>
-                            <span>💭 Share ideas & brainstorm together</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="step-indicator">2</div>
-                            <span>🧠 I remember everything we create</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="step-indicator">3</div>
-                            <span>⚡ Turn conversations into code</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="step-indicator">4</div>
-                            <span>🚀 Build & iterate seamlessly</span>
-                        </div>
-                    </div>
-                    <button @click="nextOnboardingStep()" 
-                            class="magic-gradient px-6 py-3 rounded-lg text-white font-medium">
-                        Show me how! 🎯
-                    </button>
-                </div>
-
-                <div x-show="onboardingStep === 3">
-                    <h3 class="text-xl font-bold mb-4">Let's Create Your First Memory! 🌟</h3>
-                    <p class="text-gray-300 mb-6">Try typing an idea in the chat below. I'll help you brainstorm and turn it into something amazing!</p>
-                    <div class="space-y-3">
-                        <button @click="startFirstMission('web app')" 
-                                class="w-full suggestion-pill px-4 py-2 rounded-lg text-left">
-                            💡 "Help me build a web app"
-                        </button>
-                        <button @click="startFirstMission('analyze code')" 
-                                class="w-full suggestion-pill px-4 py-2 rounded-lg text-left">
-                            🔍 "Review my code and suggest improvements"
-                        </button>
-                        <button @click="startFirstMission('creative project')" 
-                                class="w-full suggestion-pill px-4 py-2 rounded-lg text-left">
-                            🎨 "I have a creative project idea"
-                        </button>
-                    </div>
-                    <button @click="completeOnboarding()" 
-                            class="mt-4 text-gray-400 hover:text-white text-sm">
-                        Skip for now →
-                    </button>
-                </div>
+        <div class="onboarding-card">
+            <div class="floating-jav mx-auto mb-6 action-glow" style="position: static;">
+                J
             </div>
+            <h2 class="text-2xl font-light mb-4">Welcome to your creative workspace</h2>
+            <p class="text-gray-300 mb-8 leading-relaxed">
+                I'm Jav, your floating creative assistant. I'll help you build, ideate, and solve problems without getting in your way.
+            </p>
+            <button @click="completeOnboarding()" 
+                    class="send-button mx-auto">
+                Let's create together
+            </button>
         </div>
     </div>
 
-    <!-- Header with Jav Avatar -->
-    <header class="glass-panel border-b border-white/20 p-4 relative">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div class="jav-avatar" 
-                     @click="javSpeaks()" 
-                     :class="{ 'animate-bounce': javIsThinking }">
-                    J
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold">Jav Studio</h1>
-                    <p class="text-sm text-gray-300" x-text="javMood"></p>
-                </div>
-            </div>
+    <!-- Main Workspace Canvas -->
+    <div class="workspace-canvas">
 
-            <div class="flex items-center space-x-4">
-                <!-- System Status -->
-                <div class="flex items-center space-x-2 text-sm">
-                    <div class="w-2 h-2 rounded-full" 
-                         :class="{ 'bg-red-500': hasErrors, 'bg-yellow-500': hasWarnings, 'bg-green-500': !hasErrors && !hasWarnings }">
-                    </div>
-                    <span x-text="systemHealth"></span>
-                </div>
+        <!-- Memory Indicator -->
+        <div class="memory-indicator">
+            <span x-text="totalMemories + ' memories'"></span>
+        </div>
 
-                <!-- Memory Count -->
-                <div class="glass-panel px-3 py-1 rounded-full text-sm">
-                    <span x-text="'🧠 ' + totalMemories + ' memories'"></span>
-                </div>
-
-                <!-- Inspiration Button -->
-                <button @click="showInspiration = !showInspiration" 
-                        class="glass-panel px-3 py-1 rounded-full text-sm hover:bg-white/10 transition-all">
-                    ✨ Inspire Me
+        <!-- Contextual Suggestion -->
+        <div x-show="showContextualSuggestion" 
+             :class="{ 'show': showContextualSuggestion }"
+             class="contextual-suggestion">
+            <div class="text-lg mb-3" x-text="contextualMessage"></div>
+            <div class="space-y-2">
+                <button @click="acceptSuggestion()" class="send-button text-sm w-full">
+                    Try it
+                </button>
+                <button @click="dismissSuggestion()" class="text-gray-400 text-sm hover:text-white">
+                    Not now
                 </button>
             </div>
         </div>
 
-        <!-- Contextual Jav Speech Bubble -->
-        <div x-show="javSpeechBubble" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="absolute top-full left-20 mt-2 contextual-hint">
-            <div class="glass-panel rounded-lg p-3 max-w-xs chat-bubble">
-                <p x-text="javCurrentMessage" class="text-sm"></p>
+        <!-- Workspace Focus Area -->
+        <div class="workspace-focus">
+            <div class="focus-content" :class="{ 'active': !panelOpen }">
+                <h1 class="text-6xl font-extralight mb-8 subtle-glow" :class="{ 'active': !panelOpen }">
+                    Ready to create
+                </h1>
+                <p class="text-xl text-gray-400 mb-12 font-light">
+                    Your calm, distraction-free workspace for deep creative work
+                </p>
+                <div class="space-y-4">
+                    <button @click="openCreativePanel()" 
+                            class="send-button mx-auto text-lg px-8 py-4">
+                        Start creating
+                    </button>
+                    <div class="text-sm text-gray-500">
+                        or press <kbd class="px-2 py-1 bg-white/10 rounded">⌘J</kbd> anytime
+                    </div>
+                </div>
             </div>
         </div>
-    </header>
 
-    <div class="flex h-screen">
-        <!-- Enhanced Sidebar with Creative Timeline -->
-        <aside class="w-80 glass-panel border-r border-white/20 flex flex-col">
-            <div class="p-4 border-b border-white/20">
-                <h2 class="font-bold text-lg mb-2">🧠 Creative Timeline</h2>
-                <p class="text-sm text-gray-300" x-text="studioStatus"></p>
-            </div>
-
-            <!-- Memory Timeline -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-3 creative-timeline">
-                <template x-for="item in studioItems" :key="item.id">
-                    <div class="memory-card glass-panel rounded-lg p-3"
-                         @click="focusMemory(item)">
-                        <div class="flex items-start space-x-3">
-                            <div class="text-xl" x-text="item.icon"></div>
-                            <div class="flex-1 min-w-0">
-                                <div class="font-medium text-sm" x-text="item.title"></div>
-                                <div class="text-xs text-gray-400 truncate" x-text="item.preview"></div>
-                                <div class="text-xs text-blue-400 mt-1" x-text="item.timeAgo"></div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-
-                <!-- Empty State with Inspiration -->
-                <div x-show="studioItems.length === 0" class="text-center py-8">
-                    <div class="text-4xl mb-4">🌱</div>
-                    <p class="text-gray-400 text-sm mb-4">Your creative journey starts here!</p>
-                    <button @click="startCreativeSession()" 
-                            class="suggestion-pill px-4 py-2 rounded-lg text-sm">
-                        Plant your first idea 💡
-                    </button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Creative Workspace -->
-        <main class="flex-1 flex flex-col">
-            <!-- Hero Section / Conversation Canvas -->
-            <div class="flex-1 hero-section relative overflow-hidden">
-                <!-- Inspiration Panel -->
-                <div x-show="showInspiration" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-x-full"
-                     x-transition:enter-end="opacity-100 translate-x-0"
-                     class="absolute top-0 right-0 w-80 h-full glass-panel border-l border-white/20 p-6 z-30">
-                    
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-lg">✨ Creative Inspiration</h3>
-                        <button @click="showInspiration = false" class="text-gray-400 hover:text-white">✕</button>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
-                             @click="tryExample('build-flask-app')">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <span class="text-2xl">🌐</span>
-                                <span class="font-medium">Build a Flask App</span>
-                            </div>
-                            <p class="text-xs text-gray-400">Create a web application with database integration</p>
-                        </div>
-
-                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
-                             @click="tryExample('ai-code-review')">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <span class="text-2xl">🔍</span>
-                                <span class="font-medium">AI Code Review</span>
-                            </div>
-                            <p class="text-xs text-gray-400">Get intelligent feedback on your code quality</p>
-                        </div>
-
-                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
-                             @click="tryExample('data-analysis')">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <span class="text-2xl">📊</span>
-                                <span class="font-medium">Data Analysis</span>
-                            </div>
-                            <p class="text-xs text-gray-400">Analyze datasets and create visualizations</p>
-                        </div>
-
-                        <div class="inspiration-card rounded-lg p-4 cursor-pointer" 
-                             @click="tryExample('api-design')">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <span class="text-2xl">⚡</span>
-                                <span class="font-medium">API Design</span>
-                            </div>
-                            <p class="text-xs text-gray-400">Design and implement RESTful APIs</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 p-4 glass-panel rounded-lg">
-                        <h4 class="font-medium mb-2">💡 Pro Tip</h4>
-                        <p class="text-xs text-gray-400">The more you interact with me, the better I understand your style and preferences!</p>
-                    </div>
-                </div>
-
-                <!-- Main Conversation Area -->
-                <div class="p-6 overflow-y-auto flex-1" x-ref="conversationContainer" 
-                     :class="{ 'mr-80': showInspiration }">
-                    
-                    <!-- Welcome State -->
-                    <div x-show="conversationHistory.length === 0" class="text-center py-20">
-                        <div class="welcome-animation">
-                            <div class="jav-avatar mx-auto mb-8" style="width: 120px; height: 120px; font-size: 48px;">
-                                J
-                            </div>
-                            <h2 class="text-4xl font-bold mb-4">Ready to Create Together?</h2>
-                            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                                I'm your memory-driven AI partner. Every conversation becomes part of our shared creative journey.
-                            </p>
-                            <div class="flex justify-center space-x-4 mb-8">
-                                <button @click="startCreativeSession()" 
-                                        class="magic-gradient px-8 py-4 rounded-xl text-white font-bold text-lg shadow-2xl transform hover:scale-105 transition-all">
-                                    🚀 Begin Building
-                                </button>
-                                <button @click="showInspiration = true" 
-                                        class="glass-panel px-6 py-4 rounded-xl hover:bg-white/10 transition-all">
-                                    ✨ Get Inspired
-                                </button>
-                            </div>
-                            
-                            <!-- Contextual Suggestions -->
-                            <div class="flex justify-center space-x-3 flex-wrap max-w-4xl mx-auto">
-                                <button @click="quickStart('project idea')" 
-                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
-                                    💡 I have a project idea
-                                </button>
-                                <button @click="quickStart('review code')" 
-                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
-                                    🔍 Review my code
-                                </button>
-                                <button @click="quickStart('learn something')" 
-                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
-                                    📚 I want to learn something
-                                </button>
-                                <button @click="quickStart('debug issue')" 
-                                        class="suggestion-pill px-4 py-2 rounded-lg text-sm mb-2">
-                                    🐛 Help debug an issue
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Conversation History -->
-                    <div x-show="conversationHistory.length > 0" class="creative-canvas">
-                        <template x-for="message in conversationHistory" :key="message.id">
-                            <div class="message-card" 
-                                 :class="message.role === 'user' ? 'user-message' : 'jav-message'">
-                                
-                                <!-- Jav Presence Indicator (only for Jav messages) -->
-                                <div x-show="message.role === 'assistant'" 
-                                     class="presence-indicator"
-                                     :class="javIsThinking ? 'presence-thinking' : 'presence-responding'">
-                                    J
-                                </div>
-
-                                <!-- Message Header -->
-                                <div class="flex justify-between items-start mb-3">
-                                    <div class="flex items-center gap-3">
-                                        <span x-show="message.role === 'user'" class="text-sm font-medium text-blue-300">
-                                            You
-                                        </span>
-                                        <span x-show="message.role === 'assistant'" class="text-sm font-medium text-purple-300">
-                                            Jav
-                                        </span>
-                                        <span class="text-xs text-gray-400" x-text="message.timestamp"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Message Content -->
-                                <div class="text-gray-100 text-base leading-relaxed" x-html="message.content"></div>
-
-                                <!-- Implementation Cards -->
-                                <template x-for="impl in message.implementations || []" :key="impl.id">
-                                    <div class="mt-6 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/30 rounded-xl">
-                                        <div class="flex items-start justify-between mb-3">
-                                            <div>
-                                                <h4 class="font-semibold text-blue-200 mb-1" x-text="impl.title"></h4>
-                                                <p class="text-sm text-gray-300" x-text="impl.description"></p>
-                                            </div>
-                                            <span class="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full">
-                                                Ready
-                                            </span>
-                                        </div>
-                                        <div class="flex gap-3">
-                                            <button @click="implementCode(impl)" 
-                                                    class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg text-sm font-medium transition-all hover:transform hover:scale-105">
-                                                ⚡ Implement
-                                            </button>
-                                            <button @click="previewCode(impl)" 
-                                                    class="px-4 py-2 bg-gray-500/20 hover:bg-gray-500/30 text-gray-300 rounded-lg text-sm transition-all">
-                                                👁️ Preview
-                                            </button>
-                                            <button @click="editImplementation(impl)" 
-                                                    class="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm transition-all">
-                                                ✏️ Edit
-                                            </button>
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <!-- Message Actions (Jav messages only) -->
-                                <div x-show="message.role === 'assistant'" class="message-actions">
-                                    <button class="action-button">💡 Expand</button>
-                                    <button class="action-button">🔄 Iterate</button>
-                                    <button class="action-button">📋 Copy</button>
-                                    <button class="action-button">💾 Save</button>
-                                </div>
-
-                                <!-- Next Steps (last Jav message only) -->
-                                <div x-show="message.role === 'assistant' && $index === conversationHistory.length - 1" 
-                                     class="next-steps">
-                                    <h4>What's next?</h4>
-                                    <div class="next-steps-grid">
-                                        <div @click="quickStart('refine')" class="next-step-card">
-                                            <div class="text-sm font-medium">🎨 Refine this</div>
-                                            <div class="text-xs text-gray-400 mt-1">Improve and iterate</div>
-                                        </div>
-                                        <div @click="quickStart('expand')" class="next-step-card">
-                                            <div class="text-sm font-medium">🚀 Add feature</div>
-                                            <div class="text-xs text-gray-400 mt-1">Build something new</div>
-                                        </div>
-                                        <div @click="quickStart('alternative')" class="next-step-card">
-                                            <div class="text-sm font-medium">🔄 Try different</div>
-                                            <div class="text-xs text-gray-400 mt-1">Explore alternatives</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-
-                    <!-- Jav Thinking Indicator -->
-                    <div x-show="javTyping" class="creative-canvas">
-                        <div class="typing-indicator">
-                            <div class="presence-indicator presence-thinking">
-                                J
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm text-gray-300 mb-2">Jav is crafting a response...</div>
-                                <div class="typing-dots">
-                                    <div class="typing-dot"></div>
-                                    <div class="typing-dot"></div>
-                                    <div class="typing-dot"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Studio Input Zone -->
-            <div class="input-zone">
-                <!-- Active Implementation Panel -->
-                <div x-show="activeImplementation" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-4"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="mb-6 p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/30 rounded-xl">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                                🚀
-                            </div>
-                            <h3 class="font-semibold text-blue-200">Ready to Implement</h3>
-                        </div>
-                        <button @click="activeImplementation = null" 
-                                class="text-gray-400 hover:text-white transition-colors">
-                            ✕
-                        </button>
-                    </div>
-                    <div class="text-gray-300 mb-4" x-text="activeImplementation?.description"></div>
-                    <div class="flex gap-3">
-                        <button @click="applyImplementation()" 
-                                class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl text-white font-medium transition-all hover:transform hover:scale-105">
-                            ⚡ Apply Changes
-                        </button>
-                        <button @click="previewImplementation()" 
-                                class="px-6 py-3 bg-gray-500/20 hover:bg-gray-500/30 text-gray-300 rounded-xl transition-all">
-                            👁️ Preview
-                        </button>
-                        <button @click="editImplementation()" 
-                                class="px-6 py-3 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-xl transition-all">
-                            ✏️ Edit
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Contextual Suggestions Row -->
-                <div x-show="contextualSuggestions.length > 0" class="mb-6">
-                    <div class="text-sm text-gray-400 mb-3">✨ Quick actions:</div>
-                    <div class="flex gap-3 overflow-x-auto pb-2">
-                        <template x-for="suggestion in contextualSuggestions" :key="suggestion.id">
-                            <button @click="applySuggestion(suggestion)" 
-                                    class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm whitespace-nowrap transition-all hover:transform hover:scale-105">
-                                <span x-text="suggestion.icon"></span>
-                                <span x-text="suggestion.text"></span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Main Studio Input -->
-                <div class="relative">
-                    <textarea x-model="chatMessage" 
-                              :disabled="javTyping"
-                              @keydown.enter.prevent="handleEnter($event)"
-                              @input="handleInput()"
-                              @focus="onInputFocus()"
-                              placeholder="What would you like to create together? Describe your ideas, ask questions, or share what you're working on..."
-                              class="studio-input"
-                              :class="javTyping ? 'opacity-50' : ''"
-                              rows="3"></textarea>
-                    
-                    <!-- Input Toolbar -->
-                    <div class="input-toolbar">
-                        <div class="toolbar-left">
-                            <div class="tool-icon" title="Attach file">
-                                📎
-                            </div>
-                            <div class="tool-icon" title="Voice input">
-                                🎤
-                            </div>
-                            <div class="tool-icon" title="Code snippet">
-                                💻
-                            </div>
-                            <div class="tool-icon" title="Draw/sketch">
-                                ✏️
-                            </div>
-                            <div class="text-xs text-gray-400">
-                                <span x-text="chatMessage.length"></span>/500
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <div class="text-xs text-gray-400">
-                                Press ⌘+Enter to send
-                            </div>
-                            <button @click="sendMessage()" 
-                                    :disabled="!chatMessage.trim() || javTyping"
-                                    class="send-button">
-                                <span x-show="!javTyping">Send</span>
-                                <span x-show="javTyping">Sending...</span>
-                                <span x-show="!javTyping">✨</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <!-- Workspace Hint -->
+        <div x-show="!panelOpen && conversationHistory.length === 0" class="workspace-hint">
+            Click Jav (bottom right) or press ⌘J to begin
+        </div>
     </div>
 
-    <!-- Floating Action Button -->
-    <div class="floating-action" x-show="conversationHistory.length > 0">
-        <button @click="scrollToBottom()" 
-                class="jav-avatar shadow-2xl">
-            ↓
-        </button>
+    <!-- Floating Jav Assistant -->
+    <div @click="toggleCreativePanel()" 
+         @keydown.cmd.j.window="toggleCreativePanel()"
+         class="floating-jav"
+         :class="{ 'active': panelOpen || javIsThinking }">
+        <span class="text-2xl font-bold text-white">J</span>
     </div>
 
-    <!-- Ambient Suggestion -->
-    <div x-show="showAmbientSuggestion" 
-         x-transition:enter="transition ease-out duration-500"
-         x-transition:enter-start="opacity-0 transform translate-x-full"
-         x-transition:enter-end="opacity-100 transform translate-x-0"
-         class="ambient-suggestion">
-        <div class="flex items-start gap-3">
-            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-sm font-bold">
-                J
+    <!-- Creative Panel -->
+    <div class="creative-panel" 
+         :class="{ 'expanded': panelOpen, 'fullwidth': panelFullWidth }">
+
+        <!-- Panel Controls -->
+        <div class="panel-controls">
+            <button @click="toggleFullWidth()" class="control-button" title="Expand/Contract">
+                <span x-text="panelFullWidth ? '◧' : '⛶'"></span>
+            </button>
+            <button @click="closeCreativePanel()" class="control-button" title="Close">
+                ✕
+            </button>
+        </div>
+
+        <!-- Message Flow -->
+        <div class="message-flow" x-ref="messageFlow">
+            <!-- Welcome State -->
+            <div x-show="conversationHistory.length === 0" class="text-center py-20">
+                <div class="floating-jav mx-auto mb-8 action-glow" style="position: static;">
+                    J
+                </div>
+                <h3 class="text-2xl font-light mb-4">What shall we build?</h3>
+                <p class="text-gray-400 mb-8">
+                    Describe your ideas, share what you're working on, or ask for creative guidance.
+                </p>
             </div>
-            <div class="flex-1">
-                <div class="text-sm font-medium text-blue-300 mb-1">Jav suggests</div>
-                <div class="text-sm text-gray-300" x-text="ambientSuggestionText"></div>
-                <div class="flex gap-2 mt-3">
-                    <button @click="acceptAmbientSuggestion()" 
-                            class="px-3 py-1 bg-blue-500/20 text-blue-300 rounded text-xs hover:bg-blue-500/30 transition-all">
-                        Try it
-                    </button>
-                    <button @click="dismissAmbientSuggestion()" 
-                            class="px-3 py-1 bg-gray-500/20 text-gray-400 rounded text-xs hover:bg-gray-500/30 transition-all">
-                        Dismiss
+
+            <!-- Conversation History -->
+            <template x-for="message in conversationHistory" :key="message.id">
+                <div class="message" 
+                     :class="message.role === 'user' ? 'user-message' : 'jav-message'">
+                    <div class="text-gray-100 leading-relaxed" x-html="message.content"></div>
+                    <div class="text-xs text-gray-500 mt-3" x-text="message.timestamp"></div>
+                </div>
+            </template>
+
+            <!-- Typing Indicator -->
+            <div x-show="javIsThinking" class="typing-indicator">
+                <div class="text-sm text-gray-300">Jav is thinking...</div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-6 border-t subtle-border">
+            <div class="space-y-4">
+                <textarea x-model="chatMessage" 
+                          :disabled="javIsThinking"
+                          @keydown.enter.prevent="handleEnter($event)"
+                          placeholder="What would you like to create together?"
+                          class="creative-input"
+                          rows="3"></textarea>
+
+                <div class="flex justify-between items-center">
+                    <div class="text-xs text-gray-500">
+                        ⌘+Enter to send
+                    </div>
+                    <button @click="sendMessage()" 
+                            :disabled="!chatMessage.trim() || javIsThinking"
+                            class="send-button">
+                        <span x-show="!javIsThinking">Send</span>
+                        <span x-show="javIsThinking">Sending...</span>
                     </button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Coach Mark for First-Time Users -->
-    <div x-show="showCoachMark" 
-         class="fixed bottom-32 right-32 coach-mark glass-panel rounded-lg p-4 z-40">
-        <div class="flex items-center gap-3 mb-2">
-            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-sm font-bold">
-                J
-            </div>
-            <div class="text-sm font-medium">Hey there!</div>
-        </div>
-        <div class="text-sm text-gray-300 mb-3">
-            This is your creative studio. Tell me what you'd like to build!
-        </div>
-        <button @click="showCoachMark = false" class="text-xs text-blue-400 hover:text-blue-300">Got it ✨</button>
     </div>
 
     <script>
-        function javStudio() {
+        function javWorkspace() {
             return {
                 // Core State
                 totalMemories: 0,
-                systemHealth: 'Checking...',
-                hasErrors: false,
-                hasWarnings: false,
-                studioStatus: "Initializing creative workspace...",
-                studioItems: [],
-
-                // Jav Personality
-                javMood: "Ready to create something amazing together! ✨",
-                javIsThinking: false,
-                javSpeechBubble: false,
-                javCurrentMessage: "",
-                javMessages: [
-                    "What shall we build today? 🚀",
-                    "I'm learning your style with every interaction! 🧠",
-                    "Ready for another creative breakthrough? ✨",
-                    "Your ideas + my memory = pure magic! 💫",
-                    "Let's turn that spark into something real! 🔥"
-                ],
-
-                // Onboarding
                 showOnboarding: false,
-                onboardingStep: 1,
-                isFirstVisit: true,
-
-                // UI State
-                showInspiration: false,
-                showCoachMark: false,
-                showAmbientSuggestion: false,
-                ambientSuggestionText: '',
-                ambientSuggestionAction: null,
-                contextualSuggestions: [],
-                javPresenceState: 'listening', // listening, thinking, responding
+                panelOpen: false,
+                panelFullWidth: false,
 
                 // Conversation
                 conversationHistory: [],
                 chatMessage: '',
-                javTyping: false,
+                javIsThinking: false,
 
-                // Implementation
-                activeImplementation: null,
-                implementationHistory: [],
+                // Contextual Guidance
+                showContextualSuggestion: false,
+                contextualMessage: '',
+                contextualAction: null,
 
                 async init() {
-                    console.log('🚀 Initializing Jav Studio...');
+                    console.log('🚀 Initializing Jav Workspace...');
 
                     // Check if user is new
-                    this.isFirstVisit = !localStorage.getItem('jav-studio-visited');
-                    
-                    if (this.isFirstVisit) {
+                    const isFirstVisit = !localStorage.getItem('jav-workspace-visited');
+
+                    if (isFirstVisit) {
                         setTimeout(() => {
                             this.showOnboarding = true;
                         }, 1000);
                     }
 
-                    // Load initial data
-                    await this.loadMemoryBrain();
-                    await this.checkSystemHealth();
-                    await this.setupContextualSuggestions();
+                    // Load memories
+                    await this.loadMemories();
 
-                    // Set up periodic updates
-                    this.setupPeriodicUpdates();
+                    // Setup keyboard shortcuts
+                    this.setupKeyboardShortcuts();
 
-                    // Register project
-                    try {
-                        await this.registerProject();
-                    } catch (error) {
-                        console.error('Failed to register project:', error);
-                    }
-
-                    this.studioStatus = "Creative workspace ready! ✨";
-                    
-                    // Show welcome message for returning users
-                    if (!this.isFirstVisit && this.conversationHistory.length === 0) {
+                    // Show contextual suggestions for new users
+                    if (!isFirstVisit && this.conversationHistory.length === 0) {
                         setTimeout(() => {
-                            this.javSpeaks();
-                        }, 2000);
+                            this.showContextualHint();
+                        }, 3000);
                     }
                 },
 
-                // Onboarding Flow
-                nextOnboardingStep() {
-                    this.onboardingStep++;
-                },
-
-                startFirstMission(type) {
-                    const missions = {
-                        'web app': "I want to build a web application. Can you help me brainstorm the features and get started?",
-                        'analyze code': "Can you review my code and suggest improvements? I'd love to learn best practices.",
-                        'creative project': "I have a creative project in mind. Let's brainstorm and turn it into reality!"
-                    };
-                    
-                    this.chatMessage = missions[type];
-                    this.completeOnboarding();
-                    setTimeout(() => {
-                        this.sendMessage();
-                    }, 500);
+                setupKeyboardShortcuts() {
+                    document.addEventListener('keydown', (e) => {
+                        if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+                            e.preventDefault();
+                            this.toggleCreativePanel();
+                        }
+                        if (e.key === 'Escape') {
+                            this.closeCreativePanel();
+                        }
+                    });
                 },
 
                 completeOnboarding() {
                     this.showOnboarding = false;
-                    localStorage.setItem('jav-studio-visited', 'true');
-                    this.isFirstVisit = false;
-                    
-                    // Show coach mark for input
+                    localStorage.setItem('jav-workspace-visited', 'true');
                     setTimeout(() => {
-                        this.showCoachMark = true;
-                        setTimeout(() => {
-                            this.showCoachMark = false;
-                        }, 5000);
-                    }, 1000);
+                        this.openCreativePanel();
+                    }, 500);
                 },
 
-                // Jav Personality Methods
-                javSpeaks() {
-                    const randomMessage = this.javMessages[Math.floor(Math.random() * this.javMessages.length)];
-                    this.javCurrentMessage = randomMessage;
-                    this.javSpeechBubble = true;
-                    
-                    setTimeout(() => {
-                        this.javSpeechBubble = false;
-                    }, 3000);
+                openCreativePanel() {
+                    this.panelOpen = true;
                 },
 
-                // Quick Start Methods
-                quickStart(intent) {
-                    const quickStartMessages = {
-                        'project idea': "I have a project idea I'd like to explore. Can you help me brainstorm and plan it out?",
-                        'review code': "Can you review my current code and suggest improvements or optimizations?",
-                        'learn something': "I want to learn something new in programming. What would you recommend?",
-                        'debug issue': "I'm running into an issue with my code. Can you help me debug it?"
-                    };
-                    
-                    this.chatMessage = quickStartMessages[intent];
-                    setTimeout(() => {
-                        this.sendMessage();
-                    }, 100);
+                closeCreativePanel() {
+                    this.panelOpen = false;
+                    this.panelFullWidth = false;
                 },
 
-                startCreativeSession() {
-                    this.conversationHistory.push({
-                        id: Date.now(),
-                        role: 'assistant',
-                        content: '🌟 **Welcome to your creative workspace!** I\'m Jav, your memory-driven AI partner.\n\nI remember everything we build together, so we can compound our creativity session after session. Every conversation becomes part of our shared journey!\n\n✨ **What would you like to create today?**',
-                        timestamp: this.formatTimestamp(new Date().toISOString())
-                    });
-
-                    this.scrollToBottom();
-                    this.setupContextualSuggestions();
-                },
-
-                // Inspiration Examples
-                tryExample(type) {
-                    const examples = {
-                        'build-flask-app': "Help me build a Flask web application with user authentication and a dashboard.",
-                        'ai-code-review': "Can you review my Python code and suggest improvements for performance and readability?",
-                        'data-analysis': "I have a dataset I'd like to analyze. Can you help me create visualizations and insights?",
-                        'api-design': "Help me design a RESTful API for a task management application."
-                    };
-                    
-                    this.chatMessage = examples[type];
-                    this.showInspiration = false;
-                    setTimeout(() => {
-                        this.sendMessage();
-                    }, 300);
-                },
-
-                // Enhanced Input Handling
-                onInputFocus() {
-                    this.setupContextualSuggestions();
-                },
-
-                setupContextualSuggestions() {
-                    // Dynamic suggestions based on context
-                    if (this.conversationHistory.length === 0) {
-                        this.contextualSuggestions = [
-                            { id: 1, icon: "💡", text: "Brainstorm ideas" },
-                            { id: 2, icon: "🔍", text: "Review code" },
-                            { id: 3, icon: "🚀", text: "Build something" },
-                            { id: 4, icon: "📚", text: "Learn together" }
-                        ];
-                    } else {
-                        this.contextualSuggestions = [
-                            { id: 5, icon: "✨", text: "Improve this" },
-                            { id: 6, icon: "🔄", text: "Try alternative" },
-                            { id: 7, icon: "🎯", text: "Add feature" },
-                            { id: 8, icon: "🔧", text: "Debug issue" }
-                        ];
+                toggleCreativePanel() {
+                    this.panelOpen = !this.panelOpen;
+                    if (!this.panelOpen) {
+                        this.panelFullWidth = false;
                     }
                 },
 
-                applySuggestion(suggestion) {
-                    const suggestionTexts = {
-                        1: "I'd like to brainstorm some project ideas. What's possible?",
-                        2: "Can you review my code and suggest improvements?",
-                        3: "Help me build something cool! I'm open to ideas.",
-                        4: "I want to learn something new. What do you recommend?",
-                        5: "How can we improve what we just built?",
-                        6: "Is there a different approach we could try?",
-                        7: "What new features could we add to this?",
-                        8: "I'm running into an issue. Can you help debug it?"
-                    };
-                    
-                    this.chatMessage = suggestionTexts[suggestion.id];
-                    setTimeout(() => {
-                        this.sendMessage();
-                    }, 100);
+                toggleFullWidth() {
+                    this.panelFullWidth = !this.panelFullWidth;
                 },
 
-                // Enhanced Message Sending with Studio Flow
+                showContextualHint() {
+                    const hints = [
+                        "Ready to start your next creative project?",
+                        "I can help you brainstorm, code, or solve problems",
+                        "What's on your creative mind today?"
+                    ];
+
+                    this.contextualMessage = hints[Math.floor(Math.random() * hints.length)];
+                    this.showContextualSuggestion = true;
+
+                    // Auto-dismiss after 8 seconds
+                    setTimeout(() => {
+                        this.showContextualSuggestion = false;
+                    }, 8000);
+                },
+
+                acceptSuggestion() {
+                    this.showContextualSuggestion = false;
+                    this.openCreativePanel();
+                },
+
+                dismissSuggestion() {
+                    this.showContextualSuggestion = false;
+                },
+
                 async sendMessage() {
-                    if (!this.chatMessage.trim() || this.javTyping) return;
+                    if (!this.chatMessage.trim() || this.javIsThinking) return;
 
                     const userMessage = this.chatMessage.trim();
                     this.chatMessage = '';
 
-                    // Update presence state
-                    this.javPresenceState = 'listening';
-
-                    // Add user message with studio styling
+                    // Add user message
                     this.conversationHistory.push({
                         id: Date.now(),
                         role: 'user',
                         content: userMessage,
-                        timestamp: this.formatTimestamp(new Date().toISOString())
+                        timestamp: this.formatTimestamp()
                     });
 
                     this.scrollToBottom();
-                    
-                    // Smooth transition to thinking state
-                    setTimeout(() => {
-                        this.javPresenceState = 'thinking';
-                        this.javTyping = true;
-                        this.javIsThinking = true;
-                        this.javMood = "Crafting the perfect response... ✨";
-                    }, 300);
+
+                    // Start thinking
+                    this.javIsThinking = true;
 
                     try {
                         const response = await fetch('/jav/chat', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 message: userMessage,
-                                context: 'creative_studio'
+                                context: 'minimalist_workspace'
                             })
                         });
 
                         const result = await response.json();
-
-                        // Transition to responding state
-                        this.javPresenceState = 'responding';
 
                         if (result.status === 'success') {
                             this.conversationHistory.push({
                                 id: Date.now() + 1,
                                 role: 'assistant',
                                 content: result.response?.message || result.message,
-                                timestamp: this.formatTimestamp(new Date().toISOString()),
-                                implementations: result.response?.implementations || []
+                                timestamp: this.formatTimestamp()
                             });
-
-                            // Check for implementations
-                            if (result.response?.implementations?.length > 0) {
-                                this.activeImplementation = result.response.implementations[0];
-                            }
-
-                            // Show ambient suggestion after response
-                            this.scheduleAmbientSuggestion();
-
-                            this.javMood = "Ready for our next creative breakthrough! 🚀";
                         } else {
-                            throw new Error(result.error || 'Unknown error');
+                            throw new Error(result.error || 'Something went wrong');
                         }
                     } catch (error) {
                         console.error('Chat error:', error);
                         this.conversationHistory.push({
                             id: Date.now() + 1,
                             role: 'assistant',
-                            content: `I encountered an issue: ${error.message}. Let's try a different approach! 💫`,
-                            timestamp: this.formatTimestamp(new Date().toISOString())
+                            content: `Let's try a different approach together. ${error.message}`,
+                            timestamp: this.formatTimestamp()
                         });
-                        this.javMood = "No worries - we'll figure this out together! 💪";
-                        
-                        // Show recovery suggestions
-                        this.showRecoverySuggestion(error.message);
                     } finally {
-                        this.javTyping = false;
                         this.javIsThinking = false;
-                        this.javPresenceState = 'listening';
                         this.scrollToBottom();
-                        await this.loadMemoryBrain();
-                        this.setupContextualSuggestions();
+                        await this.loadMemories();
                     }
                 },
 
-                // Ambient Suggestions
-                scheduleAmbientSuggestion() {
-                    const suggestions = [
-                        "Want to add some styling to make this look amazing?",
-                        "Should we add some interactive features?",
-                        "Ready to test this implementation?",
-                        "How about we explore some alternatives?",
-                        "Want to save this as a template for later?"
-                    ];
-
-                    setTimeout(() => {
-                        this.ambientSuggestionText = suggestions[Math.floor(Math.random() * suggestions.length)];
-                        this.showAmbientSuggestion = true;
-
-                        // Auto-dismiss after 10 seconds
-                        setTimeout(() => {
-                            this.showAmbientSuggestion = false;
-                        }, 10000);
-                    }, 3000);
-                },
-
-                acceptAmbientSuggestion() {
-                    this.chatMessage = this.ambientSuggestionText;
-                    this.showAmbientSuggestion = false;
-                    setTimeout(() => {
-                        this.sendMessage();
-                    }, 500);
-                },
-
-                dismissAmbientSuggestion() {
-                    this.showAmbientSuggestion = false;
-                },
-
-                showRecoverySuggestion(errorMessage) {
-                    if (errorMessage.includes('command') || errorMessage.includes('process')) {
-                        this.ambientSuggestionText = "No worries! Try describing what you want to build instead.";
-                    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-                        this.ambientSuggestionText = "Let's work on something that doesn't need the network for now.";
-                    } else {
-                        this.ambientSuggestionText = "That's okay! Want to brainstorm a different approach?";
-                    }
-                    
-                    this.showAmbientSuggestion = true;
-                },
-
-                // Implementation Methods
-                implementCode(impl) {
-                    this.activeImplementation = impl;
-                },
-
-                previewCode(impl) {
-                    console.log('Previewing implementation:', impl);
-                    // Show code preview modal
-                },
-
-                async applyImplementation() {
-                    if (!this.activeImplementation) return;
-
-                    console.log('Applying implementation:', this.activeImplementation);
-
-                    this.implementationHistory.unshift({
-                        ...this.activeImplementation,
-                        appliedAt: new Date().toISOString()
-                    });
-
-                    this.activeImplementation = null;
-
-                    this.conversationHistory.push({
-                        id: Date.now(),
-                        role: 'assistant',
-                        content: '✅ **Implementation applied!** The changes have been integrated and saved to memory. Ready for the next iteration! 🚀',
-                        timestamp: this.formatTimestamp(new Date().toISOString())
-                    });
-
-                    this.scrollToBottom();
-                },
-
-                // System Methods
-                async loadMemoryBrain() {
-                    try {
-                        const response = await fetch('/memory?limit=20');
-                        const data = await response.json();
-
-                        this.totalMemories = data.memories?.length || 0;
-
-                        this.studioItems = (data.memories || []).map(memory => ({
-                            id: memory.timestamp || Date.now(),
-                            title: memory.topic || 'Untitled Memory',
-                            preview: memory.input?.substring(0, 80) + '...' || 'No preview',
-                            icon: this.getMemoryIcon(memory.type),
-                            timeAgo: this.getTimeAgo(memory.timestamp),
-                            type: memory.type,
-                            memory: memory
-                        }));
-
-                        this.studioStatus = `Living brain with ${this.totalMemories} memories active ✨`;
-                    } catch (error) {
-                        console.error('Failed to load memory brain:', error);
-                        this.studioStatus = 'Memory brain offline - working in isolation mode';
-                    }
-                },
-
-                async checkSystemHealth() {
-                    try {
-                        const response = await fetch('/health');
-                        const health = await response.json();
-
-                        this.systemHealth = health.status || 'unknown';
-                        this.hasErrors = health.status === 'unhealthy' || health.status === 'error';
-                        this.hasWarnings = health.status === 'degraded';
-                    } catch (error) {
-                        console.error('Health check failed:', error);
-                        this.systemHealth = 'offline';
-                        this.hasErrors = true;
-                    }
-                },
-
-                async registerProject() {
-                    try {
-                        const response = await fetch('/jav/register', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                project_name: 'creative-studio-project',
-                                project_type: 'interactive_workspace'
-                            })
-                        });
-
-                        const result = await response.json();
-                        console.log('Project registered:', result);
-                    } catch (error) {
-                        console.error('Failed to register project:', error);
-                    }
-                },
-
-                setupPeriodicUpdates() {
-                    setInterval(() => {
-                        this.checkSystemHealth();
-                        this.loadMemoryBrain();
-                    }, 30000);
-                },
-
-                // Utility Methods
                 handleEnter(event) {
                     if (event.ctrlKey || event.metaKey) {
                         this.sendMessage();
                     }
                 },
 
-                handleInput() {
-                    if (this.chatMessage.length > 500) {
-                        this.chatMessage = this.chatMessage.substring(0, 500);
+                async loadMemories() {
+                    try {
+                        const response = await fetch('/memory?limit=20');
+                        const data = await response.json();
+                        this.totalMemories = data.memories?.length || 0;
+                    } catch (error) {
+                        console.error('Failed to load memories:', error);
                     }
                 },
 
-                focusMemory(item) {
-                    this.conversationHistory.push({
-                        id: Date.now(),
-                        role: 'assistant',
-                        content: `📚 **Reviewing memory: "${item.title}"**\n\nOriginal context: ${item.memory.input}\n\nThis memory from ${item.timeAgo} might inform our current work. How does this relate to what we're building now?`,
-                        timestamp: this.formatTimestamp(new Date().toISOString())
-                    });
-
-                    this.scrollToBottom();
-                },
-
-                getMemoryIcon(type) {
-                    const icons = {
-                        'SystemUpdate': '⚙️',
-                        'Feature': '✨',
-                        'BugFix': '🐛',
-                        'Interaction': '💬',
-                        'UserInteraction': '👤',
-                        'user_input': '💭',
-                        'ai_response': '🤖',
-                        'conversation': '💬'
-                    };
-                    return icons[type] || '📝';
-                },
-
-                getTimeAgo(timestamp) {
-                    if (!timestamp) return 'Unknown';
-                    const now = new Date();
-                    const time = new Date(timestamp);
-                    const diff = now - time;
-                    const minutes = Math.floor(diff / 60000);
-                    const hours = Math.floor(diff / 3600000);
-                    const days = Math.floor(diff / 86400000);
-
-                    if (days > 0) return `${days}d ago`;
-                    if (hours > 0) return `${hours}h ago`;
-                    if (minutes > 0) return `${minutes}m ago`;
-                    return 'Just now';
-                },
-
-                formatTimestamp(timestamp) {
-                    return new Date(timestamp).toLocaleString();
+                formatTimestamp() {
+                    return new Date().toLocaleTimeString();
                 },
 
                 scrollToBottom() {
                     this.$nextTick(() => {
-                        const container = this.$refs.conversationContainer;
+                        const container = this.$refs.messageFlow;
                         if (container) {
                             container.scrollTop = container.scrollHeight;
                         }
