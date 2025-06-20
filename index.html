@@ -20,6 +20,9 @@
             --jav-border: #475569;
             --jav-text: #F8FAFC;
             --jav-text-muted: #94A3B8;
+            --jav-success: #10B981;
+            --jav-warning: #F59E0B;
+            --jav-error: #EF4444;
         }
         
         body {
@@ -44,36 +47,171 @@
             overflow: hidden;
         }
         
-        .floating-panel {
-            position: absolute;
+        .jav-context-panel {
+            position: fixed;
+            right: 24px;
+            top: 24px;
+            width: 380px;
+            max-height: 70vh;
             background: var(--jav-surface);
             border: 1px solid var(--jav-border);
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            z-index: 100;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        .floating-panel.docked {
-            border-radius: 0;
-            box-shadow: none;
+        .jav-context-panel.minimized {
+            height: 60px;
+            max-height: 60px;
         }
         
-        .panel-header {
-            padding: 12px 16px;
+        .context-header {
+            padding: 16px 20px;
             border-bottom: 1px solid var(--jav-border);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            cursor: move;
-            user-select: none;
+            justify-content: between;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--jav-primary), var(--jav-accent));
+            color: white;
         }
         
-        .panel-content {
-            padding: 16px;
-            max-height: 400px;
+        .context-content {
+            max-height: calc(70vh - 60px);
             overflow-y: auto;
+            padding: 0;
+        }
+        
+        .suggestion-card {
+            margin: 12px;
+            padding: 16px;
+            background: var(--jav-panel);
+            border-radius: 12px;
+            border-left: 4px solid var(--jav-primary);
+            transition: all 0.2s ease;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        .suggestion-card:hover {
+            background: #475569;
+            transform: translateX(-2px);
+        }
+        
+        .suggestion-card.error {
+            border-left-color: var(--jav-error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .suggestion-card.warning {
+            border-left-color: var(--jav-warning);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .suggestion-card.success {
+            border-left-color: var(--jav-success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .suggestion-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .action-btn.primary {
+            background: var(--jav-primary);
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--jav-primary-dark);
+        }
+        
+        .action-btn.secondary {
+            background: var(--jav-panel);
+            color: var(--jav-text-muted);
+            border: 1px solid var(--jav-border);
+        }
+        
+        .action-btn.secondary:hover {
+            background: var(--jav-border);
+            color: var(--jav-text);
+        }
+        
+        .jav-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--jav-success);
+            animation: pulse 2s infinite;
+            margin-right: 8px;
+        }
+        
+        .jav-status-indicator.thinking {
+            background: var(--jav-warning);
+            animation: blink 1s infinite;
+        }
+        
+        .jav-status-indicator.error {
+            background: var(--jav-error);
+            animation: none;
+        }
+        
+        .activity-log {
+            padding: 16px 20px;
+            border-top: 1px solid var(--jav-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--jav-text-muted);
+        }
+        
+        .activity-item .icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+        }
+        
+        .mini-thread {
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid var(--jav-border);
+        }
+        
+        .thread-message {
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+            font-size: 13px;
+        }
+        
+        .thread-message.jav {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .thread-message.user {
+            background: rgba(16, 185, 129, 0.05);
         }
         
         .jav-avatar {
@@ -88,7 +226,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1000;
+            z-index: 999;
             transition: all 0.3s ease;
             box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
         }
@@ -113,7 +251,7 @@
             border: 1px solid var(--jav-border);
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            z-index: 998;
             transform: translateY(20px) scale(0.95);
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -121,43 +259,6 @@
         
         .jav-chat-panel.visible {
             transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-        
-        .context-popup {
-            position: absolute;
-            background: var(--jav-surface);
-            border: 1px solid var(--jav-primary);
-            border-radius: 8px;
-            padding: 12px 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            z-index: 500;
-            max-width: 300px;
-            font-size: 14px;
-        }
-        
-        .context-popup::before {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 20px;
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 8px solid var(--jav-primary);
-        }
-        
-        .panel-dock-zone {
-            position: absolute;
-            background: rgba(59, 130, 246, 0.2);
-            border: 2px dashed var(--jav-primary);
-            border-radius: 8px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        
-        .panel-dock-zone.active {
             opacity: 1;
         }
         
@@ -208,18 +309,6 @@
             z-index: 100;
         }
         
-        .inline-suggestion {
-            position: absolute;
-            background: linear-gradient(135deg, var(--jav-accent), #06D6A0);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-            z-index: 300;
-            animation: slideInRight 0.3s ease;
-        }
-        
         @keyframes slideInRight {
             from {
                 transform: translateX(20px);
@@ -236,19 +325,9 @@
             50% { opacity: 0.7; }
         }
         
-        .resizer {
-            position: absolute;
-            background: transparent;
-        }
-        
-        .resizer.horizontal {
-            height: 6px;
-            cursor: ns-resize;
-        }
-        
-        .resizer.vertical {
-            width: 6px;
-            cursor: ew-resize;
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
         }
         
         .fade-in {
@@ -260,19 +339,12 @@
             to { opacity: 1; }
         }
         
-        .slide-in-left {
-            animation: slideInLeft 0.3s ease;
-        }
-        
-        @keyframes slideInLeft {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        .personality-badge {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -282,149 +354,98 @@
         <!-- Main Canvas - Code Editor -->
         <div class="main-canvas" @click="hideContextMenus()">
             <div id="monaco-editor" class="w-full h-full"></div>
-            
-            <!-- Context Popups -->
-            <template x-for="popup in contextPopups">
-                <div class="context-popup" 
-                     :style="`left: ${popup.x}px; top: ${popup.y}px;`"
-                     x-show="popup.visible"
-                     x-transition>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-blue-300">💡 Jav suggests</span>
-                        <button @click="dismissPopup(popup.id)" class="text-xs text-gray-400 hover:text-white">×</button>
-                    </div>
-                    <div class="text-sm mb-3" x-text="popup.message"></div>
-                    <div class="flex gap-2">
-                        <button @click="applyPopupSuggestion(popup)" 
-                                class="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded">Apply</button>
-                        <button @click="askJavAbout(popup.topic)" 
-                                class="text-xs bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded">Ask Jav</button>
-                    </div>
-                </div>
-            </template>
-            
-            <!-- Inline Suggestions -->
-            <template x-for="suggestion in inlineSuggestions">
-                <div class="inline-suggestion" 
-                     :style="`right: ${suggestion.x}px; top: ${suggestion.y}px;`"
-                     x-show="suggestion.visible"
-                     x-transition>
-                    <span x-text="suggestion.text"></span>
-                    <button @click="dismissSuggestion(suggestion.id)" class="ml-2 text-xs">×</button>
-                </div>
-            </template>
         </div>
         
-        <!-- Floating Panels -->
-        <!-- Memory Panel -->
-        <div x-show="panels.memory.visible" 
-             class="floating-panel"
-             :class="{ 'docked': panels.memory.docked }"
-             :style="getPanelStyle('memory')"
+        <!-- Jav Context Panel - The Heart of the Copilot -->
+        <div class="jav-context-panel" 
+             :class="{ 'minimized': contextMinimized }"
+             x-show="contextPanelVisible"
              x-transition>
-            <div class="panel-header" @mousedown="startDrag('memory', $event)">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-brain text-blue-400"></i>
-                    <span class="font-medium">Memory</span>
+            
+            <!-- Context Header -->
+            <div class="context-header" @click="toggleContextPanel()">
+                <div class="flex items-center">
+                    <div class="jav-status-indicator" 
+                         :class="{ 'thinking': javThinking, 'error': hasErrors }"></div>
+                    <div>
+                        <div class="font-medium">Jav Context</div>
+                        <div class="text-xs opacity-80" x-text="contextStatus"></div>
+                    </div>
+                    <div class="personality-badge" x-text="personalityMode"></div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button @click="togglePanelDock('memory')" class="text-xs hover:text-blue-400">
-                        <i :class="panels.memory.docked ? 'fas fa-external-link-alt' : 'fas fa-thumb-tack'"></i>
-                    </button>
-                    <button @click="togglePanel('memory')" class="text-xs hover:text-red-400">×</button>
+                    <span class="text-xs" x-text="activeSuggestions + ' active'"></span>
+                    <i class="fas fa-chevron-down transition-transform" 
+                       :class="{ 'rotate-180': !contextMinimized }"></i>
                 </div>
             </div>
-            <div class="panel-content">
-                <div class="space-y-2">
-                    <template x-for="memory in recentMemories.slice(0, 5)">
-                        <div class="p-3 bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-700" 
-                             @click="openMemoryDetails(memory)">
-                            <div class="flex items-start gap-2">
-                                <div class="w-2 h-2 rounded-full mt-2" 
-                                     :class="memory.success ? 'bg-green-400' : 'bg-red-400'"></div>
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium" x-text="memory.topic"></div>
-                                    <div class="text-xs text-gray-400" x-text="memory.type"></div>
+            
+            <!-- Context Content -->
+            <div class="context-content" x-show="!contextMinimized">
+                
+                <!-- Contextual Suggestions -->
+                <div x-show="suggestions.length > 0">
+                    <template x-for="suggestion in suggestions" :key="suggestion.id">
+                        <div class="suggestion-card" 
+                             :class="suggestion.type"
+                             x-transition:enter="fade-in">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <i :class="suggestion.icon" class="text-sm"></i>
+                                    <span class="font-medium text-sm" x-text="suggestion.title"></span>
                                 </div>
+                                <span class="text-xs text-gray-400" x-text="timeAgo(suggestion.timestamp)"></span>
+                            </div>
+                            <div class="text-sm text-gray-300 mb-3" x-text="suggestion.message"></div>
+                            <div class="suggestion-actions">
+                                <template x-for="action in suggestion.actions" :key="action.id">
+                                    <button class="action-btn" 
+                                            :class="action.type"
+                                            @click="executeAction(action, suggestion)"
+                                            x-text="action.label"></button>
+                                </template>
                             </div>
                         </div>
                     </template>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Project Panel -->
-        <div x-show="panels.project.visible" 
-             class="floating-panel"
-             :class="{ 'docked': panels.project.docked }"
-             :style="getPanelStyle('project')"
-             x-transition>
-            <div class="panel-header" @mousedown="startDrag('project', $event)">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-folder text-yellow-400"></i>
-                    <span class="font-medium">Project</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button @click="togglePanelDock('project')" class="text-xs hover:text-blue-400">
-                        <i :class="panels.project.docked ? 'fas fa-external-link-alt' : 'fas fa-thumb-tack'"></i>
-                    </button>
-                    <button @click="togglePanel('project')" class="text-xs hover:text-red-400">×</button>
-                </div>
-            </div>
-            <div class="panel-content">
-                <div class="space-y-1">
-                    <template x-for="file in projectFiles">
-                        <div class="p-2 rounded hover:bg-gray-700 cursor-pointer flex items-center justify-between group"
-                             @click="openFile(file)"
-                             @contextmenu.prevent="showFileContextMenu(file, $event)">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-file-code text-xs text-gray-400"></i>
-                                <span class="text-sm" x-text="file"></span>
+                
+                <!-- What's Jav Doing Section -->
+                <div class="activity-log" x-show="currentActivity.length > 0">
+                    <div class="text-sm font-medium mb-3 flex items-center">
+                        <i class="fas fa-cog animate-spin mr-2"></i>
+                        What's Jav Doing?
+                    </div>
+                    <template x-for="activity in currentActivity" :key="activity.id">
+                        <div class="activity-item">
+                            <div class="icon" :style="`background: ${activity.color}`">
+                                <i :class="activity.icon" class="text-white"></i>
                             </div>
-                            <button @click.stop="askJavAboutFile(file)" 
-                                    class="text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                Ask Jav
-                            </button>
+                            <span x-text="activity.description"></span>
+                            <div class="ml-auto text-xs" x-text="activity.status"></div>
                         </div>
                     </template>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Health Panel -->
-        <div x-show="panels.health.visible" 
-             class="floating-panel"
-             :class="{ 'docked': panels.health.docked }"
-             :style="getPanelStyle('health')"
-             x-transition>
-            <div class="panel-header" @mousedown="startDrag('health', $event)">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-heart-pulse text-green-400"></i>
-                    <span class="font-medium">Health</span>
+                
+                <!-- Mini Thread / Recent Exchanges -->
+                <div class="mini-thread" x-show="recentExchanges.length > 0">
+                    <template x-for="exchange in recentExchanges.slice(-3)" :key="exchange.id">
+                        <div class="thread-message" :class="exchange.type">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs font-medium" 
+                                      x-text="exchange.type === 'jav' ? 'Jav' : 'You'"></span>
+                                <span class="text-xs text-gray-400" x-text="timeAgo(exchange.timestamp)"></span>
+                            </div>
+                            <div class="text-sm" x-text="exchange.message"></div>
+                        </div>
+                    </template>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button @click="refreshHealth()" class="text-xs hover:text-green-400">
-                        <i class="fas fa-refresh"></i>
-                    </button>
-                    <button @click="togglePanel('health')" class="text-xs hover:text-red-400">×</button>
-                </div>
-            </div>
-            <div class="panel-content">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm">System Status</span>
-                        <span class="text-sm font-medium" 
-                              :class="systemHealth === 'healthy' ? 'text-green-400' : 'text-red-400'"
-                              x-text="systemHealth"></span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm">Jav Status</span>
-                        <span class="text-sm font-medium text-blue-400" x-text="javStatus"></span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm">Memory Entries</span>
-                        <span class="text-sm font-medium" x-text="totalMemories"></span>
-                    </div>
+                
+                <!-- Empty State -->
+                <div x-show="suggestions.length === 0 && currentActivity.length === 0" 
+                     class="p-8 text-center text-gray-400">
+                    <i class="fas fa-robot text-3xl mb-4 opacity-50"></i>
+                    <div class="text-sm">I'm watching your back! 👀</div>
+                    <div class="text-xs mt-1">Ready to help when you need me.</div>
                 </div>
             </div>
         </div>
@@ -433,7 +454,7 @@
         <div class="jav-avatar" 
              :class="{ 'active': javActive }"
              @click="toggleJavChat()"
-             title="Click to summon Jav">
+             title="Click to chat with Jav">
             <i class="fas fa-robot text-xl text-white"></i>
         </div>
         
@@ -442,10 +463,11 @@
              :class="{ 'visible': javChatVisible }"
              x-show="javChatVisible"
              x-transition>
-            <div class="panel-header">
+            <div class="context-header">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-robot text-blue-400"></i>
-                    <span class="font-medium">Jav Co-Builder</span>
+                    <span class="font-medium">Chat with Jav</span>
+                    <div class="personality-badge" x-text="personalityMode"></div>
                 </div>
                 <button @click="toggleJavChat()" class="text-xs hover:text-red-400">×</button>
             </div>
@@ -453,7 +475,8 @@
                 <div class="flex-1 overflow-y-auto p-4 space-y-3">
                     <template x-for="message in javMessages">
                         <div class="flex gap-3" :class="message.type === 'user' ? 'justify-end' : 'justify-start'">
-                            <div x-show="message.type === 'jav'" class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <div x-show="message.type === 'jav'" 
+                                 class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-robot text-white text-xs"></i>
                             </div>
                             <div class="max-w-xs p-3 rounded-xl text-sm"
@@ -468,7 +491,7 @@
                     <div class="flex gap-2">
                         <input x-model="javInput" 
                                @keydown.enter="sendToJav()"
-                               placeholder="Ask Jav anything..."
+                               placeholder="What's up?"
                                class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
                         <button @click="sendToJav()" 
                                 class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg">
@@ -481,22 +504,15 @@
         
         <!-- Toolbar -->
         <div class="toolbar">
-            <button @click="togglePanel('project')" 
+            <button @click="toggleContextPanel()" 
                     class="toolbar-button" 
-                    :class="{ 'active': panels.project.visible }"
-                    title="Toggle Project Panel (Ctrl+1)">
-                <i class="fas fa-folder"></i>
-            </button>
-            <button @click="togglePanel('memory')" 
-                    class="toolbar-button"
-                    :class="{ 'active': panels.memory.visible }"
-                    title="Toggle Memory Panel (Ctrl+2)">
+                    :class="{ 'active': contextPanelVisible }"
+                    title="Toggle Jav Context (Ctrl+J)">
                 <i class="fas fa-brain"></i>
             </button>
-            <button @click="togglePanel('health')" 
+            <button @click="runQuickAction('health')" 
                     class="toolbar-button"
-                    :class="{ 'active': panels.health.visible }"
-                    title="Toggle Health Panel (Ctrl+3)">
+                    title="Health Check (Ctrl+H)">
                 <i class="fas fa-heart-pulse"></i>
             </button>
             <button @click="runQuickAction('test')" 
@@ -504,10 +520,10 @@
                     title="Run Tests (Ctrl+T)">
                 <i class="fas fa-vial"></i>
             </button>
-            <button @click="runQuickAction('deploy')" 
+            <button @click="cyclePersonality()" 
                     class="toolbar-button"
-                    title="Deploy (Ctrl+D)">
-                <i class="fas fa-rocket"></i>
+                    title="Change Jav's Personality">
+                <i class="fas fa-theater-masks"></i>
             </button>
         </div>
         
@@ -520,17 +536,10 @@
                     <span x-text="javActive ? 'Jav Active' : 'Jav Idle'"></span>
                 </span>
                 <span x-text="activeFile || 'No file open'"></span>
+                <span x-text="'Context: ' + activeSuggestions + ' suggestions'"></span>
                 <span class="ml-auto" x-text="'Session: ' + sessionId.substring(0, 8)"></span>
             </div>
         </div>
-        
-        <!-- Dock Zones (shown during panel drag) -->
-        <div x-show="isDragging" class="panel-dock-zone" 
-             style="top: 60px; left: 16px; width: 300px; height: 40px;"
-             @dragover.prevent @drop="dockPanel('left')"></div>
-        <div x-show="isDragging" class="panel-dock-zone"
-             style="top: 60px; right: 16px; width: 300px; height: 40px;"
-             @dragover.prevent @drop="dockPanel('right')"></div>
     </div>
 
     <script>
@@ -539,59 +548,37 @@
                 // Core State
                 sessionId: new Date().toISOString().replace(/[-:]/g, '').split('.')[0],
                 javActive: true,
+                javThinking: false,
+                hasErrors: false,
+                
+                // Context Panel State
+                contextPanelVisible: true,
+                contextMinimized: false,
+                contextStatus: 'All systems go! 🚀',
+                activeSuggestions: 0,
+                
+                // Personality System
+                personalityMode: 'Friendly',
+                personalities: ['Friendly', 'Professional', 'Casual', 'Motivational', 'Sarcastic'],
+                personalityIndex: 0,
+                
+                // Chat State
                 javChatVisible: false,
-                systemHealth: 'healthy',
-                totalMemories: 0,
-                
-                // UI State
-                isDragging: false,
-                dragPanel: null,
-                dragOffset: { x: 0, y: 0 },
-                
-                // Panels Configuration
-                panels: {
-                    memory: {
-                        visible: false,
-                        docked: false,
-                        x: 100,
-                        y: 100,
-                        width: 320,
-                        height: 400
-                    },
-                    project: {
-                        visible: true,
-                        docked: false,
-                        x: 50,
-                        y: 80,
-                        width: 280,
-                        height: 350
-                    },
-                    health: {
-                        visible: false,
-                        docked: false,
-                        x: 200,
-                        y: 150,
-                        width: 300,
-                        height: 250
-                    }
-                },
-                
-                // Data
-                activeFile: 'main.py',
-                projectFiles: ['main.py', 'jav_agent.py', 'jav_chat.py', 'index.html', 'README.md'],
-                recentMemories: [],
                 javMessages: [],
                 javInput: '',
                 
-                // Context Awareness
-                contextPopups: [],
-                inlineSuggestions: [],
+                // Contextual Intelligence
+                suggestions: [],
+                currentActivity: [],
+                recentExchanges: [],
                 
-                // Monaco Editor
+                // Editor State
                 editor: null,
+                activeFile: 'main.py',
+                lastCodeChange: null,
                 
                 async init() {
-                    console.log('🚀 Initializing Jav Co-Builder Workspace...');
+                    console.log('🚀 Initializing Jav Builder...');
                     
                     // Initialize Monaco Editor
                     this.initializeEditor();
@@ -602,20 +589,29 @@
                     // Setup keyboard shortcuts
                     this.setupKeyboardShortcuts();
                     
-                    // Start Jav awareness
-                    this.startJavAwareness();
+                    // Start Jav intelligence
+                    this.startJavIntelligence();
                     
                     // Welcome message
-                    this.addJavMessage("Hey! I'm Jav, your AI co-builder. I'm always here, watching your back and ready to help. Right-click anywhere for quick actions or just click my avatar to chat!");
+                    this.addContextSuggestion({
+                        type: 'success',
+                        icon: 'fas fa-rocket',
+                        title: 'Welcome back!',
+                        message: 'I\'m ready to help you build amazing things. What are we working on today?',
+                        actions: [
+                            { id: 'start-coding', label: 'Start Coding', type: 'primary' },
+                            { id: 'show-health', label: 'Health Check', type: 'secondary' }
+                        ]
+                    });
                     
-                    console.log('✅ Jav Co-Builder ready');
+                    console.log('✅ System data loaded successfully');
                 },
                 
                 initializeEditor() {
                     require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
                     require(['vs/editor/editor.main'], () => {
                         this.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                            value: '# Jav Co-Builder Workspace\n# Your AI partner is always watching and ready to help\n\nprint("Building together with Jav!")\n\n# Try right-clicking for context actions\n# Or edit this code to see Jav\'s suggestions',
+                            value: '# Welcome to Jav Co-Builder\n# Your AI copilot is actively watching and ready to help\n\nprint("Building with Jav!")\n\n# Try making changes to see contextual suggestions\n# Jav learns your patterns and suggests improvements',
                             language: 'python',
                             theme: 'vs-dark',
                             automaticLayout: true,
@@ -624,48 +620,82 @@
                             lineNumbers: 'on',
                             roundedSelection: false,
                             scrollBeyondLastLine: false,
-                            readOnly: false,
-                            contextmenu: false  // We'll handle this ourselves
+                            readOnly: false
                         });
                         
-                        // Context-aware suggestions
+                        // Real-time code analysis
                         this.editor.onDidChangeModelContent(() => {
-                            this.analyzeCodeChanges();
-                        });
-                        
-                        // Custom context menu
-                        this.editor.onContextMenu((e) => {
-                            this.showEditorContextMenu(e);
+                            this.analyzeCodeIntelligently();
                         });
                         
                         // Cursor position awareness
                         this.editor.onDidChangeCursorPosition((e) => {
-                            this.updateJavContext(e);
+                            this.updateContextAwareness(e);
+                        });
+                        
+                        // Error detection
+                        this.editor.onDidChangeMarkers(() => {
+                            this.handleEditorErrors();
                         });
                     });
                 },
                 
                 async loadSystemData() {
                     try {
-                        // Load health
-                        const healthResponse = await fetch('/health');
-                        const healthData = await healthResponse.json();
-                        this.systemHealth = healthData.status;
+                        // Load health and memory stats
+                        const [healthResponse, statsResponse] = await Promise.all([
+                            fetch('/health'),
+                            fetch('/stats')
+                        ]);
                         
-                        // Load memory stats
-                        const statsResponse = await fetch('/stats');
-                        const statsData = await statsResponse.json();
-                        this.totalMemories = statsData.total_memories;
+                        if (healthResponse.ok) {
+                            const healthData = await healthResponse.json();
+                            if (healthData.status !== 'healthy') {
+                                this.addContextSuggestion({
+                                    type: 'error',
+                                    icon: 'fas fa-exclamation-triangle',
+                                    title: 'System Health Issue',
+                                    message: `Health check reports: ${healthData.status}. Should I investigate?`,
+                                    actions: [
+                                        { id: 'fix-health', label: 'Auto-Fix', type: 'primary' },
+                                        { id: 'explain-health', label: 'Explain', type: 'secondary' },
+                                        { id: 'dismiss-health', label: 'Dismiss', type: 'secondary' }
+                                    ]
+                                });
+                                this.hasErrors = true;
+                            }
+                        }
                         
-                        // Load recent memories
-                        const memoryResponse = await fetch('/memory?limit=10');
-                        const memoryData = await memoryResponse.json();
-                        this.recentMemories = memoryData.memories || [];
+                        if (statsResponse.ok) {
+                            const statsData = await statsResponse.json();
+                            const successRate = parseFloat(statsData.success_rate);
+                            
+                            if (successRate < 80) {
+                                this.addContextSuggestion({
+                                    type: 'warning',
+                                    icon: 'fas fa-chart-line',
+                                    title: 'Success Rate Low',
+                                    message: `Your success rate is ${statsData.success_rate}. Want me to analyze recent failures?`,
+                                    actions: [
+                                        { id: 'analyze-failures', label: 'Analyze', type: 'primary' },
+                                        { id: 'dismiss-rate', label: 'Later', type: 'secondary' }
+                                    ]
+                                });
+                            }
+                        }
                         
-                        console.log('✅ System data loaded');
                     } catch (error) {
                         console.error('Failed to load system data:', error);
-                        this.addJavMessage('⚠️ Some system data unavailable, but I\'m still here to help!');
+                        this.addContextSuggestion({
+                            type: 'error',
+                            icon: 'fas fa-wifi',
+                            title: 'Connection Issue',
+                            message: 'Can\'t reach the backend. Should I try to reconnect?',
+                            actions: [
+                                { id: 'retry-connection', label: 'Retry', type: 'primary' },
+                                { id: 'work-offline', label: 'Work Offline', type: 'secondary' }
+                            ]
+                        });
                     }
                 },
                 
@@ -673,90 +703,307 @@
                     document.addEventListener('keydown', (e) => {
                         if (e.ctrlKey || e.metaKey) {
                             switch(e.code) {
-                                case 'Digit1':
-                                    e.preventDefault();
-                                    this.togglePanel('project');
-                                    break;
-                                case 'Digit2':
-                                    e.preventDefault();
-                                    this.togglePanel('memory');
-                                    break;
-                                case 'Digit3':
-                                    e.preventDefault();
-                                    this.togglePanel('health');
-                                    break;
                                 case 'KeyJ':
                                     e.preventDefault();
-                                    this.toggleJavChat();
+                                    this.toggleContextPanel();
+                                    break;
+                                case 'KeyH':
+                                    e.preventDefault();
+                                    this.runQuickAction('health');
                                     break;
                                 case 'KeyT':
                                     e.preventDefault();
                                     this.runQuickAction('test');
-                                    break;
-                                case 'KeyD':
-                                    e.preventDefault();
-                                    this.runQuickAction('deploy');
                                     break;
                             }
                         }
                     });
                 },
                 
-                startJavAwareness() {
+                startJavIntelligence() {
                     // Periodic context analysis
                     setInterval(() => {
-                        this.analyzeWorkspaceContext();
-                    }, 10000); // Every 10 seconds
+                        this.generateContextualSuggestions();
+                    }, 15000); // Every 15 seconds
                     
-                    // File change detection
-                    this.watchForChanges();
+                    // Activity monitoring
+                    setInterval(() => {
+                        this.updateCurrentActivity();
+                    }, 3000); // Every 3 seconds
+                    
+                    // Motivational nudges
+                    setInterval(() => {
+                        this.generateMotivationalNudges();
+                    }, 120000); // Every 2 minutes
                 },
                 
-                // Panel Management
-                togglePanel(panelName) {
-                    this.panels[panelName].visible = !this.panels[panelName].visible;
-                    if (this.panels[panelName].visible) {
-                        this.addJavMessage(`📂 Opened ${panelName} panel. Need help with anything specific?`);
+                analyzeCodeIntelligently() {
+                    if (!this.editor) return;
+                    
+                    this.javThinking = true;
+                    this.lastCodeChange = Date.now();
+                    
+                    setTimeout(() => {
+                        const code = this.editor.getValue();
+                        
+                        // Smart contextual suggestions
+                        if (code.includes('def ') && !code.includes('"""')) {
+                            this.addContextSuggestion({
+                                type: 'suggestion',
+                                icon: 'fas fa-file-alt',
+                                title: 'Add Docstring?',
+                                message: 'I noticed you added a function. Want me to generate a docstring?',
+                                actions: [
+                                    { id: 'add-docstring', label: 'Add Docstring', type: 'primary' },
+                                    { id: 'remind-later', label: 'Remind Later', type: 'secondary' },
+                                    { id: 'dismiss-docstring', label: 'Skip', type: 'secondary' }
+                                ]
+                            });
+                        }
+                        
+                        if (code.includes('TODO') || code.includes('FIXME')) {
+                            this.addContextSuggestion({
+                                type: 'warning',
+                                icon: 'fas fa-sticky-note',
+                                title: 'TODO Detected',
+                                message: 'Found some TODOs. Should I help you tackle them or track them?',
+                                actions: [
+                                    { id: 'show-todos', label: 'Show All', type: 'primary' },
+                                    { id: 'track-todos', label: 'Track', type: 'secondary' }
+                                ]
+                            });
+                        }
+                        
+                        if (code.includes('import ') && code.split('\n').length > 10) {
+                            this.addContextSuggestion({
+                                type: 'suggestion',
+                                icon: 'fas fa-broom',
+                                title: 'Clean up imports?',
+                                message: 'Your file is growing. Want me to organize the imports?',
+                                actions: [
+                                    { id: 'organize-imports', label: 'Organize', type: 'primary' },
+                                    { id: 'later-imports', label: 'Later', type: 'secondary' }
+                                ]
+                            });
+                        }
+                        
+                        this.javThinking = false;
+                    }, 1000); // 1 second delay for intelligent analysis
+                },
+                
+                generateContextualSuggestions() {
+                    const now = Date.now();
+                    const timeSinceLastChange = now - (this.lastCodeChange || now);
+                    
+                    // Time-based suggestions
+                    if (timeSinceLastChange > 300000) { // 5 minutes idle
+                        this.addContextSuggestion({
+                            type: 'suggestion',
+                            icon: 'fas fa-coffee',
+                            title: 'Taking a break?',
+                            message: this.getPersonalizedMessage('idle'),
+                            actions: [
+                                { id: 'run-tests', label: 'Run Tests', type: 'primary' },
+                                { id: 'commit-work', label: 'Commit Progress', type: 'secondary' },
+                                { id: 'review-code', label: 'Code Review', type: 'secondary' }
+                            ]
+                        });
+                    }
+                    
+                    // Smart suggestions based on current context
+                    if (Math.random() < 0.3) { // 30% chance for proactive suggestions
+                        const smartSuggestions = [
+                            {
+                                type: 'suggestion',
+                                icon: 'fas fa-rocket',
+                                title: 'Ready to test?',
+                                message: 'Your code looks solid. Want to run some tests?',
+                                actions: [
+                                    { id: 'run-tests', label: 'Run Tests', type: 'primary' },
+                                    { id: 'write-tests', label: 'Write Tests', type: 'secondary' }
+                                ]
+                            },
+                            {
+                                type: 'suggestion',
+                                icon: 'fas fa-shield-alt',
+                                title: 'Error handling check',
+                                message: 'Should I scan for potential error cases?',
+                                actions: [
+                                    { id: 'scan-errors', label: 'Scan Now', type: 'primary' },
+                                    { id: 'add-try-catch', label: 'Add Error Handling', type: 'secondary' }
+                                ]
+                            }
+                        ];
+                        
+                        const suggestion = smartSuggestions[Math.floor(Math.random() * smartSuggestions.length)];
+                        this.addContextSuggestion(suggestion);
                     }
                 },
                 
-                getPanelStyle(panelName) {
-                    const panel = this.panels[panelName];
-                    if (panel.docked) {
-                        return `top: 60px; left: 0; width: ${panel.width}px; height: calc(100vh - 92px);`;
+                generateMotivationalNudges() {
+                    if (this.suggestions.length === 0) { // Only when not busy
+                        const motivationalMessages = {
+                            'Friendly': [
+                                '🌟 You\'re doing great! Keep up the awesome work!',
+                                '💪 I believe in you! What\'s our next move?',
+                                '🚀 Ready to build something amazing together?'
+                            ],
+                            'Professional': [
+                                '📋 System status optimal. Ready for next task.',
+                                '⚡ All systems operational. Awaiting instructions.',
+                                '🎯 Ready to execute your next objective.'
+                            ],
+                            'Casual': [
+                                '😎 Chillin\' and ready to code when you are!',
+                                '🤘 What\'s cooking? Ready to rock some code?',
+                                '✌️ Just vibing here, ready to help!'
+                            ],
+                            'Motivational': [
+                                '🔥 You\'re on fire today! Let\'s crush some more goals!',
+                                '⭐ Every line of code is progress. You\'ve got this!',
+                                '🏆 Champions code every day. Ready for the next challenge?'
+                            ],
+                            'Sarcastic': [
+                                '🙄 Well, this is exciting... kidding! What are we building?',
+                                '😏 I\'m just sitting here being incredibly helpful...',
+                                '🤖 Beep boop. Your friendly sarcastic AI awaits commands.'
+                            ]
+                        };
+                        
+                        const messages = motivationalMessages[this.personalityMode] || motivationalMessages['Friendly'];
+                        const message = messages[Math.floor(Math.random() * messages.length)];
+                        
+                        this.addContextSuggestion({
+                            type: 'success',
+                            icon: 'fas fa-heart',
+                            title: 'Jav Check-in',
+                            message: message,
+                            actions: [
+                                { id: 'thanks-jav', label: 'Thanks!', type: 'primary' },
+                                { id: 'show-stats', label: 'Show Stats', type: 'secondary' }
+                            ]
+                        });
                     }
-                    return `left: ${panel.x}px; top: ${panel.y}px; width: ${panel.width}px; height: ${panel.height}px;`;
                 },
                 
-                startDrag(panelName, event) {
-                    this.isDragging = true;
-                    this.dragPanel = panelName;
-                    this.dragOffset = {
-                        x: event.clientX - this.panels[panelName].x,
-                        y: event.clientY - this.panels[panelName].y
-                    };
-                    
-                    const handleMouseMove = (e) => {
-                        this.panels[panelName].x = e.clientX - this.dragOffset.x;
-                        this.panels[panelName].y = e.clientY - this.dragOffset.y;
-                    };
-                    
-                    const handleMouseUp = () => {
-                        this.isDragging = false;
-                        this.dragPanel = null;
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                    };
-                    
-                    document.addEventListener('mousemove', handleMouseMove);
-                    document.addEventListener('mouseup', handleMouseUp);
+                updateCurrentActivity() {
+                    // Simulate real-time activity monitoring
+                    this.currentActivity = [
+                        {
+                            id: 'health-monitor',
+                            icon: 'fas fa-heart-pulse',
+                            description: 'Monitoring system health',
+                            status: 'Active',
+                            color: '#10B981'
+                        },
+                        {
+                            id: 'code-analysis',
+                            icon: 'fas fa-search',
+                            description: 'Analyzing code patterns',
+                            status: this.javThinking ? 'Running' : 'Idle',
+                            color: this.javThinking ? '#F59E0B' : '#6B7280'
+                        },
+                        {
+                            id: 'memory-sync',
+                            icon: 'fas fa-sync',
+                            description: 'Syncing memory data',
+                            status: 'Standby',
+                            color: '#3B82F6'
+                        }
+                    ];
                 },
                 
-                togglePanelDock(panelName) {
-                    this.panels[panelName].docked = !this.panels[panelName].docked;
+                getPersonalizedMessage(context) {
+                    const personalizedMessages = {
+                        idle: {
+                            'Friendly': 'Hey! Need a gentle nudge to get back into the flow?',
+                            'Professional': 'Extended idle period detected. Recommend status review.',
+                            'Casual': 'Yo! Taking a break or should we get back to it?',
+                            'Motivational': 'Every break is a chance to come back stronger! Ready?',
+                            'Sarcastic': 'Oh, are we having a staring contest with the code?'
+                        }
+                    };
+                    
+                    return personalizedMessages[context]?.[this.personalityMode] || 
+                           personalizedMessages[context]?.['Friendly'] || 
+                           'How can I help?';
                 },
                 
-                // Jav Integration
+                addContextSuggestion(suggestion) {
+                    suggestion.id = Date.now() + Math.random();
+                    suggestion.timestamp = new Date();
+                    
+                    this.suggestions.unshift(suggestion);
+                    this.activeSuggestions = this.suggestions.length;
+                    
+                    // Keep only recent suggestions
+                    if (this.suggestions.length > 5) {
+                        this.suggestions = this.suggestions.slice(0, 5);
+                    }
+                    
+                    // Auto-dismiss after 30 seconds for non-critical suggestions
+                    if (suggestion.type === 'suggestion') {
+                        setTimeout(() => {
+                            this.dismissSuggestion(suggestion.id);
+                        }, 30000);
+                    }
+                },
+                
+                dismissSuggestion(suggestionId) {
+                    this.suggestions = this.suggestions.filter(s => s.id !== suggestionId);
+                    this.activeSuggestions = this.suggestions.length;
+                },
+                
+                async executeAction(action, suggestion) {
+                    this.addRecentExchange('user', `Executed: ${action.label}`);
+                    
+                    switch(action.id) {
+                        case 'run-tests':
+                            await this.runQuickAction('test');
+                            break;
+                        case 'fix-health':
+                            await this.runQuickAction('health');
+                            break;
+                        case 'add-docstring':
+                            this.addRecentExchange('jav', 'Added docstring template to your function!');
+                            break;
+                        case 'organize-imports':
+                            this.addRecentExchange('jav', 'Organized your imports - looking clean! ✨');
+                            break;
+                        case 'thanks-jav':
+                            this.addRecentExchange('jav', 'You\'re welcome! I love working with you! 💙');
+                            break;
+                        default:
+                            this.addRecentExchange('jav', `Executed ${action.label}`);
+                    }
+                    
+                    this.dismissSuggestion(suggestion.id);
+                },
+                
+                addRecentExchange(type, message) {
+                    this.recentExchanges.push({
+                        id: Date.now(),
+                        type: type,
+                        message: message,
+                        timestamp: new Date()
+                    });
+                    
+                    // Keep only recent 10 exchanges
+                    if (this.recentExchanges.length > 10) {
+                        this.recentExchanges = this.recentExchanges.slice(-10);
+                    }
+                },
+                
+                // UI Controls
+                toggleContextPanel() {
+                    if (this.contextPanelVisible) {
+                        this.contextMinimized = !this.contextMinimized;
+                    } else {
+                        this.contextPanelVisible = true;
+                        this.contextMinimized = false;
+                    }
+                },
+                
                 toggleJavChat() {
                     this.javChatVisible = !this.javChatVisible;
                     if (this.javChatVisible) {
@@ -768,13 +1015,35 @@
                     }
                 },
                 
+                cyclePersonality() {
+                    this.personalityIndex = (this.personalityIndex + 1) % this.personalities.length;
+                    this.personalityMode = this.personalities[this.personalityIndex];
+                    
+                    this.addContextSuggestion({
+                        type: 'success',
+                        icon: 'fas fa-theater-masks',
+                        title: 'Personality Changed',
+                        message: `I'm now in ${this.personalityMode} mode! How does this feel?`,
+                        actions: [
+                            { id: 'perfect-personality', label: 'Perfect!', type: 'primary' },
+                            { id: 'try-another', label: 'Try Another', type: 'secondary' }
+                        ]
+                    });
+                },
+                
                 async sendToJav() {
                     if (!this.javInput.trim()) return;
                     
                     const userMessage = this.javInput;
                     this.javInput = '';
                     
-                    this.addUserMessage(userMessage);
+                    this.javMessages.push({
+                        type: 'user',
+                        text: userMessage,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    this.addRecentExchange('user', userMessage);
                     
                     try {
                         const response = await fetch('/jav/chat', {
@@ -784,224 +1053,107 @@
                         });
                         
                         const data = await response.json();
+                        let javResponse = 'I got your message! How can I help?';
+                        
                         if (data.status === 'success') {
-                            this.addJavMessage(data.response.message || 'Got it! Let me help with that.');
-                        } else {
-                            this.addJavMessage('❌ ' + data.error);
+                            javResponse = data.response.message || javResponse;
                         }
+                        
+                        this.javMessages.push({
+                            type: 'jav',
+                            text: javResponse,
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        this.addRecentExchange('jav', javResponse);
+                        
                     } catch (error) {
-                        this.addJavMessage('❌ Connection issue: ' + error.message);
+                        const errorResponse = 'Sorry, I\'m having connection issues. But I\'m still here to help!';
+                        this.javMessages.push({
+                            type: 'jav',
+                            text: errorResponse,
+                            timestamp: new Date().toISOString()
+                        });
                     }
                 },
                 
-                addJavMessage(text) {
-                    this.javMessages.push({
-                        type: 'jav',
-                        text: text,
-                        timestamp: new Date().toISOString()
-                    });
-                    this.keepRecentMessages();
-                },
-                
-                addUserMessage(text) {
-                    this.javMessages.push({
-                        type: 'user',
-                        text: text,
-                        timestamp: new Date().toISOString()
-                    });
-                    this.keepRecentMessages();
-                },
-                
-                keepRecentMessages() {
-                    if (this.javMessages.length > 50) {
-                        this.javMessages = this.javMessages.slice(-50);
-                    }
-                },
-                
-                // Context Awareness
-                analyzeCodeChanges() {
-                    if (!this.editor) return;
-                    
-                    const code = this.editor.getValue();
-                    
-                    // Smart suggestions based on context
-                    if (code.includes('TODO') && !this.hasActiveSuggestion('todo')) {
-                        this.showInlineSuggestion('Found TODO - want me to track it?', 'todo');
-                    }
-                    
-                    if (code.includes('def ') && !code.includes('"""') && !this.hasActiveSuggestion('docstring')) {
-                        this.showContextPopup('Add docstring for better documentation?', 'docstring');
-                    }
-                },
-                
-                showContextPopup(message, topic) {
-                    const position = this.editor.getPosition();
-                    const coordinates = this.editor.getScrolledVisiblePosition(position);
-                    
-                    this.contextPopups.push({
-                        id: Date.now(),
-                        message: message,
-                        topic: topic,
-                        x: coordinates.left + 200,
-                        y: coordinates.top + 60,
-                        visible: true
-                    });
-                    
-                    // Auto-dismiss after 10 seconds
-                    setTimeout(() => {
-                        this.dismissPopup(this.contextPopups[this.contextPopups.length - 1]?.id);
-                    }, 10000);
-                },
-                
-                showInlineSuggestion(text, type) {
-                    this.inlineSuggestions.push({
-                        id: Date.now(),
-                        text: text,
-                        type: type,
-                        x: 24,
-                        y: 100,
-                        visible: true
-                    });
-                    
-                    setTimeout(() => {
-                        this.dismissSuggestion(this.inlineSuggestions[this.inlineSuggestions.length - 1]?.id);
-                    }, 8000);
-                },
-                
-                hasActiveSuggestion(type) {
-                    return this.inlineSuggestions.some(s => s.type === type && s.visible) ||
-                           this.contextPopups.some(p => p.topic === type && p.visible);
-                },
-                
-                dismissPopup(id) {
-                    const popup = this.contextPopups.find(p => p.id === id);
-                    if (popup) popup.visible = false;
-                },
-                
-                dismissSuggestion(id) {
-                    const suggestion = this.inlineSuggestions.find(s => s.id === id);
-                    if (suggestion) suggestion.visible = false;
-                },
-                
-                applyPopupSuggestion(popup) {
-                    this.addJavMessage(`✅ Applied suggestion: ${popup.message}`);
-                    this.dismissPopup(popup.id);
-                },
-                
-                askJavAbout(topic) {
-                    this.javInput = `Tell me about ${topic}`;
-                    this.toggleJavChat();
-                },
-                
-                // File Operations
-                openFile(filename) {
-                    this.activeFile = filename;
-                    this.addJavMessage(`📁 Opened ${filename}. I'm analyzing it for optimization opportunities.`);
-                    
-                    // Mock file content loading
-                    if (this.editor) {
-                        let content = `# ${filename}\n# Opened in Jav Co-Builder\n\n`;
-                        if (filename.endsWith('.py')) {
-                            content += `"""${filename} - Enhanced by Jav"""\n\nprint("Hello from ${filename}")\n`;
-                        }
-                        this.editor.setValue(content);
-                    }
-                },
-                
-                askJavAboutFile(filename) {
-                    this.javInput = `What can you tell me about ${filename}?`;
-                    this.toggleJavChat();
-                },
-                
-                showFileContextMenu(filename, event) {
-                    // Custom context menu implementation would go here
-                    this.askJavAboutFile(filename);
-                },
-                
-                showEditorContextMenu(event) {
-                    event.event.preventDefault();
-                    this.showContextPopup('Right-click detected! What would you like me to help with?', 'general');
-                },
-                
-                // Quick Actions
                 async runQuickAction(action) {
-                    this.addJavMessage(`🔧 Running ${action}...`);
+                    this.javThinking = true;
+                    this.addRecentExchange('user', `Running ${action}...`);
                     
                     switch(action) {
+                        case 'health':
+                            try {
+                                const response = await fetch('/health');
+                                const data = await response.json();
+                                const message = data.status === 'healthy' ? 
+                                    '✅ All systems healthy!' : 
+                                    `⚠️ Health check: ${data.status}`;
+                                this.addRecentExchange('jav', message);
+                            } catch (error) {
+                                this.addRecentExchange('jav', '❌ Health check failed');
+                            }
+                            break;
                         case 'test':
-                            this.showInlineSuggestion('Tests running...', 'test');
                             setTimeout(() => {
-                                this.addJavMessage('✅ All tests passed! Your code looks solid.');
+                                this.addRecentExchange('jav', '✅ Tests passed! Looking good.');
                             }, 2000);
                             break;
-                        case 'deploy':
-                            this.showInlineSuggestion('Deploying...', 'deploy');
-                            setTimeout(() => {
-                                this.addJavMessage('🚀 Deployment successful! Your app is live.');
-                            }, 3000);
-                            break;
                     }
+                    
+                    setTimeout(() => {
+                        this.javThinking = false;
+                    }, 2000);
                 },
                 
-                async refreshHealth() {
-                    try {
-                        const response = await fetch('/health');
-                        const data = await response.json();
-                        this.systemHealth = data.status;
-                        this.addJavMessage(`🏥 Health refreshed: ${data.status}`);
-                    } catch (error) {
-                        this.addJavMessage('❌ Health check failed');
-                    }
+                // Helper functions
+                timeAgo(timestamp) {
+                    const diff = Date.now() - new Date(timestamp).getTime();
+                    const minutes = Math.floor(diff / 60000);
+                    const seconds = Math.floor(diff / 1000);
+                    
+                    if (minutes > 0) return `${minutes}m ago`;
+                    return `${seconds}s ago`;
                 },
                 
-                // Workspace Context
-                analyzeWorkspaceContext() {
-                    // Periodic analysis of workspace state
-                    if (this.javActive && Math.random() < 0.3) { // 30% chance
-                        const suggestions = [
-                            'Everything looks good! Keep building.',
-                            'I noticed some TODO items - want me to track them?',
-                            'Your code structure is clean. Nice work!',
-                            'Consider adding some tests for this module.',
-                            'Want me to check for any optimization opportunities?'
-                        ];
-                        
-                        if (!this.javChatVisible) {
-                            this.showInlineSuggestion(suggestions[Math.floor(Math.random() * suggestions.length)], 'general');
-                        }
-                    }
-                },
-                
-                updateJavContext(event) {
-                    // Update Jav's awareness of cursor position and context
-                    this.javActive = true;
-                },
-                
-                watchForChanges() {
-                    // Monitor for file system changes
-                    setInterval(async () => {
-                        // In a real implementation, this would watch for actual file changes
-                        if (Math.random() < 0.1) { // 10% chance
-                            this.addJavMessage('📁 I detected some file changes. Everything looks good!');
-                        }
-                    }, 30000);
-                },
-                
-                hideContextMenus() {
-                    // Hide any visible context popups when clicking elsewhere
-                    this.contextPopups.forEach(popup => popup.visible = false);
-                },
-                
-                openMemoryDetails(memory) {
-                    this.addJavMessage(`🧠 Memory: ${memory.topic}. Want me to explain the context or help with related tasks?`);
-                },
-                
-                // Utility Functions
                 formatTime(timestamp) {
                     try {
                         return new Date(timestamp).toLocaleTimeString();
                     } catch {
                         return timestamp;
+                    }
+                },
+                
+                hideContextMenus() {
+                    // Implementation for hiding context menus
+                },
+                
+                updateContextAwareness(event) {
+                    // Update Jav's awareness of cursor position
+                    this.javActive = true;
+                },
+                
+                handleEditorErrors() {
+                    // Handle editor error markers
+                    const model = this.editor?.getModel();
+                    if (model) {
+                        const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+                        if (markers.length > 0) {
+                            this.hasErrors = true;
+                            this.addContextSuggestion({
+                                type: 'error',
+                                icon: 'fas fa-bug',
+                                title: 'Syntax Error Detected',
+                                message: `Found ${markers.length} syntax error(s). Want me to help fix them?`,
+                                actions: [
+                                    { id: 'fix-syntax', label: 'Auto-Fix', type: 'primary' },
+                                    { id: 'explain-error', label: 'Explain', type: 'secondary' },
+                                    { id: 'dismiss-error', label: 'Dismiss', type: 'secondary' }
+                                ]
+                            });
+                        } else {
+                            this.hasErrors = false;
+                        }
                     }
                 }
             }
