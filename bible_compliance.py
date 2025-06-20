@@ -480,7 +480,18 @@ class BibleCompliance:
         return audit_result
 
 # Create global compliance instance
-bible_compliance = None
+def init_bible_compliance(base_dir):
+    """Initialize bible compliance system"""
+    return BibleCompliance(base_dir)
+
+def requires_confirmation(func):
+    """Decorator for functions requiring confirmation"""
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+# Initialize with default directory
+bible_compliance = None None
 
 def init_bible_compliance(base_dir: str):
     """Initialize global bible compliance instance"""
