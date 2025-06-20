@@ -215,11 +215,13 @@ Respond with full awareness of the system state and memory context. You maintain
             }
             
             # Post to memory system
-            requests.post(
+            response = requests.post(
                 f"{self.memory_api_base}/memory",
                 json=memory_entry,
                 headers={"X-API-KEY": os.getenv('JAVLIN_API_KEY', 'default-key-change-me')}
             )
+            if response.status_code != 200:
+                self.logger.error(f"Failed to log memory: {response.status_code} - {response.text}")
             
         except Exception as e:
             self.logger.error(f"Failed to log interaction: {e}")

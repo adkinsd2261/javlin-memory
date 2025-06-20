@@ -74,6 +74,17 @@ def log_response(response):
     logger.info(f"RESPONSE: {response.status_code} for {request.method} {request.path} ({duration}ms)")
     return response
 
+@app.errorhandler(405)
+def handle_method_not_allowed(e):
+    """Handle method not allowed errors with better context"""
+    logger.warning(f"METHOD NOT ALLOWED: {request.method} {request.path} from {request.remote_addr}")
+    return jsonify({
+        "error": f"Method {request.method} not allowed for {request.path}",
+        "allowed_methods": e.valid_methods,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "status": "method_not_allowed"
+    }), 405
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     """Log and handle unexpected exceptions"""
@@ -81,12 +92,13 @@ def handle_exception(e):
     logger.error(f"UNHANDLED EXCEPTION: {error_msg}")
     logger.error(f"TRACEBACK: {traceback.format_exc()}")
     
-    # Record error for alerting
-    try:
-        from alerts import alert_manager
-        alert_manager.record_error(f"Unhandled exception: {error_msg}", "CRITICAL_ERROR")
-    except ImportError:
-        pass  # Alerting system not available
+    # Record error for alerting only for serious errors, not method errors
+    if not isinstance(e, Exception.__class__.__bases__[0]):
+        try:
+            from alerts import alert_manager
+            alert_manager.record_error(f"Unhandled exception: {error_msg}", "CRITICAL_ERROR")
+        except ImportError:
+            pass  # Alerting system not available
     
     return jsonify({
         "error": "Internal server error",
