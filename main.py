@@ -100,15 +100,15 @@ def handle_exception(e):
         error_msg = str(e)
         error_traceback = traceback.format_exc()
         timestamp = datetime.now(timezone.utc).isoformat()
-        
+
         # Log to multiple places for bulletproofing
         logger.error(f"CRITICAL EXCEPTION [{timestamp}]: {error_msg}")
         logger.error(f"FULL TRACEBACK: {error_traceback}")
-        
+
         # Also log to console for immediate visibility in Replit
         print(f"🚨 CRITICAL ERROR [{timestamp}]: {error_msg}")
         print(f"📍 TRACEBACK: {error_traceback}")
-        
+
         # Write to dedicated error log file
         try:
             with open('logs/errors.log', 'a') as f:
@@ -117,7 +117,7 @@ def handle_exception(e):
                 f.write("-" * 80 + "\n")
         except Exception as log_error:
             print(f"⚠️ Could not write to error log: {log_error}")
-        
+
         # Record error for alerting only for serious errors, not method errors
         if not isinstance(e, Exception.__class__.__bases__[0]):
             try:
@@ -125,14 +125,14 @@ def handle_exception(e):
                 alert_manager.record_error(f"Unhandled exception: {error_msg}", "CRITICAL_ERROR")
             except ImportError:
                 pass  # Alerting system not available
-        
+
         return jsonify({
             "error": "Internal server error",
             "timestamp": timestamp,
             "status": "error",
             "error_id": str(hash(error_msg))[:8]  # Unique error ID for tracking
         }), 500
-        
+
     except Exception as meta_error:
         # If error handling itself fails, fall back to basic response
         print(f"🔥 META ERROR: Error handler failed: {meta_error}")
@@ -167,7 +167,7 @@ def health_check():
     # Multiple fallback levels to ensure this endpoint NEVER fails
     try:
         start_time = time.time()
-        
+
         # Initialize health status
         health_data = {
             "status": "unknown",
@@ -176,7 +176,7 @@ def health_check():
             "version": "2.0.0",
             "bulletproof": True
         }
-        
+
         # Level 1: Test memory file access
         try:
             memory = load_memory()
@@ -186,30 +186,30 @@ def health_check():
             memory_accessible = False
             memory_count = 0
             health_data["memory_error"] = str(mem_error)
-        
+
         # Level 2: Test memory write capability
         try:
             test_write = os.access(MEMORY_FILE, os.W_OK) if os.path.exists(MEMORY_FILE) else False
         except Exception:
             test_write = False
-            
+
         # Level 3: Calculate response time
         try:
             response_time_ms = round((time.time() - start_time) * 1000, 2)
         except Exception:
             response_time_ms = 999  # Fallback value
-        
+
         # Level 4: Determine overall health with multiple checks
         healthy_checks = 0
         total_checks = 3
-        
+
         if memory_accessible:
             healthy_checks += 1
         if test_write:
             healthy_checks += 1
         if response_time_ms < 1000:
             healthy_checks += 1
-            
+
         # Calculate health status
         if healthy_checks == total_checks:
             status = "healthy"
@@ -217,7 +217,7 @@ def health_check():
             status = "degraded"
         else:
             status = "unhealthy"
-        
+
         # Build comprehensive health data
         health_data.update({
             "status": status,
@@ -234,22 +234,22 @@ def health_check():
                 "memory_file_size_bytes": os.path.getsize(MEMORY_FILE) if os.path.exists(MEMORY_FILE) else 0
             }
         })
-        
+
         # Log health check (with fallback)
         try:
             logger.info(f"HEALTH CHECK: {status} - {response_time_ms}ms ({healthy_checks}/{total_checks})")
         except Exception:
             print(f"Health: {status} - {response_time_ms}ms")
-        
+
         return jsonify(health_data), 200 if status == "healthy" else 503
-        
+
     except Exception as critical_error:
         # ULTIMATE FALLBACK - If everything fails, still return something
         try:
             logger.error(f"CRITICAL HEALTH CHECK FAILURE: {str(critical_error)}")
         except Exception:
             print(f"🔥 CRITICAL HEALTH FAILURE: {str(critical_error)}")
-            
+
         return jsonify({
             "status": "critical_failure",
             "error": str(critical_error),
@@ -388,7 +388,7 @@ def test_alerts():
     try:
         from alerts import alert_manager
         success = alert_manager.test_alert()
-        
+
         if success:
             return jsonify({
                 "status": "success",
@@ -401,7 +401,7 @@ def test_alerts():
                 "message": "Failed to send test alert",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }), 500
-            
+
     except ImportError:
         return jsonify({
             "status": "error",
@@ -417,18 +417,18 @@ def ai_query():
         data = request.get_json()
         if not data or 'input' not in data:
             return jsonify({"error": "No input provided"}), 400
-        
+
         from intelligent_agent import MemoryAwareAgent
         agent = MemoryAwareAgent(memory_api_base="http://0.0.0.0:5000")
-        
+
         result = agent.query_ai(data['input'])
-        
+
         return jsonify({
             "status": "success",
             "ai_response": result,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"AI query failed: {e}")
         return jsonify({
@@ -443,9 +443,9 @@ def ai_context():
     try:
         from intelligent_agent import MemoryAwareAgent
         agent = MemoryAwareAgent(memory_api_base="http://0.0.0.0:5000")
-        
+
         context = agent.load_persistent_context()
-        
+
         return jsonify({
             "status": "healthy",
             "ai_provider": agent.ai_provider,
@@ -454,7 +454,7 @@ def ai_context():
             "session_id": agent.session_id,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"AI context failed: {e}")
         return jsonify({
@@ -465,43 +465,52 @@ def ai_context():
 
 @app.route('/jav/chat', methods=['POST'])
 def jav_chat():
-    """Jav chat interface endpoint"""
+    """Handle Jav chat commands with frustration detection"""
     try:
         data = request.get_json()
-        if not data or 'message' not in data:
-            return jsonify({"error": "No message provided"}), 400
-        
-        # Import Jav components
-        from jav_agent import jav
+        command = data.get('command', '')
+        context = data.get('context', {})
+
+        if not command:
+            return jsonify({"error": "No command provided"}), 400
+
+        # Process command through Jav chat interface
         from jav_chat import JavChat
-        
-        # Initialize chat interface
-        chat = JavChat(jav)
-        
-        # Process the command
-        result = chat.process_command(data['message'])
-        
-        # Log the interaction
-        jav.log_to_memory(
-            topic=f"Jav Chat: {data['message'][:50]}",
-            type_="UserInteraction",
-            input_=data['message'],
-            output=str(result),
-            success=result.get('type') != 'error',
-            category="jav"
-        )
-        
+        jav_chat_handler = JavChat(jav)
+
+        result = jav_chat_handler.process_command(command, context)
+
         return jsonify({
             "status": "success",
-            "response": result,
+            "message": result.get("message", "Command processed"),
+            "type": result.get("type", "success"),
+            "interventions": result.get("interventions", []),
+            "suggestions": result.get("suggestions", []),
+            "details": result,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Jav chat error: {e}")
+
+        # Track error for frustration detection
+        try:
+            from jav_chat import JavChat
+            jav_chat_handler = JavChat(jav)
+            jav_chat_handler.frustration_detector.track_interaction(
+                "command", 
+                command, 
+                False, 
+                {"error": str(e), "context": "chat_endpoint_error"}
+            )
+        except:
+            pass  # Don't let tracking errors break the response
+
         return jsonify({
-            "status": "error",
+            "status": "error", 
+            "message": f"Error processing command: {str(e)}",
             "error": str(e),
+            "type": "error",
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
@@ -511,13 +520,13 @@ def jav_status():
     try:
         from jav_agent import jav
         from persistent_memory_engine import persistent_memory
-        
+
         # Get current state
         audit_result = jav.audit_current_state()
-        
+
         # Get persistent memory insights
         persistent_insights = persistent_memory.get_cross_project_insights()
-        
+
         return jsonify({
             "status": "active",
             "agent_version": "1.0.0",
@@ -531,7 +540,7 @@ def jav_status():
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Jav status error: {e}")
         return jsonify({
@@ -545,12 +554,12 @@ def jav_suggestions():
     """Get memory-driven suggestions with user context"""
     try:
         from jav_agent import jav
-        
+
         current_task = request.args.get('task', 'General development')
         context = request.get_json() if request.is_json else None
-        
+
         suggestions = jav.get_memory_driven_suggestions(current_task, context)
-        
+
         return jsonify({
             "suggestions": suggestions,
             "task": current_task,
@@ -560,7 +569,7 @@ def jav_suggestions():
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Suggestions error: {e}")
         return jsonify({
@@ -574,27 +583,27 @@ def handle_suggestion_response():
     """Handle user response to suggestions with learning"""
     try:
         from jav_agent import jav
-        
+
         data = request.get_json()
         if not data:
             return jsonify({"error": "Request data required"}), 400
-        
+
         suggestion_id = data.get('suggestion_id')
         response = data.get('response')  # apply, ignore, never_again, etc.
         outcome = data.get('outcome')    # success, failure, partial (optional)
-        
+
         if not suggestion_id or not response:
             return jsonify({"error": "suggestion_id and response required"}), 400
-        
+
         result = jav.process_user_response(suggestion_id, response, outcome)
-        
+
         return jsonify({
             "status": "success",
             "result": result,
             "message": f"Response '{response}' processed and learning updated",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Suggestion response error: {e}")
         return jsonify({
@@ -609,16 +618,16 @@ def get_suggestion_reasoning(suggestion_id: str):
     try:
         from jav_chat import JavChat
         from jav_agent import jav
-        
+
         chat = JavChat(jav)
         reasoning = chat.get_suggestion_reasoning(suggestion_id)
-        
+
         return jsonify({
             "reasoning": reasoning,
             "editable": True,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Suggestion reasoning error: {e}")
         return jsonify({
@@ -632,30 +641,30 @@ def jav_preferences():
     """Get or update user preferences"""
     try:
         from jav_agent import jav
-        
+
         if request.method == 'GET':
             return jsonify({
                 "preferences": jav.user_preferences,
                 "learned_patterns_count": len(jav.learned_patterns.get("successful_automations", {})),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-        
+
         elif request.method == 'POST':
             data = request.get_json()
             if not data:
                 return jsonify({"error": "Preferences data required"}), 400
-            
+
             # Update preferences
             jav.user_preferences.update(data)
             jav.save_user_preferences(jav.user_preferences)
-            
+
             return jsonify({
                 "status": "success",
                 "message": "Preferences updated",
                 "preferences": jav.user_preferences,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            
+
     except Exception as e:
         logger.error(f"Preferences error: {e}")
         return jsonify({
@@ -669,22 +678,22 @@ def apply_automation():
     """Apply an automation playbook"""
     try:
         from jav_agent import jav
-        
+
         data = request.get_json()
         if not data or 'playbook_id' not in data:
             return jsonify({"error": "playbook_id required"}), 400
-        
+
         playbook_id = data['playbook_id']
         context = data.get('context', {})
-        
+
         result = jav.apply_automation(playbook_id, context)
-        
+
         return jsonify({
             "status": "success",
             "result": result,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Apply automation error: {e}")
         return jsonify({
@@ -698,20 +707,20 @@ def create_playbook():
     """Create a new automation playbook"""
     try:
         from jav_agent import jav
-        
+
         data = request.get_json()
         if not data:
             return jsonify({"error": "Request data required"}), 400
-        
+
         problem_description = data.get('problem_description', '')
         solution_steps = data.get('solution_steps', [])
         success = data.get('success', True)
-        
+
         if not problem_description or not solution_steps:
             return jsonify({"error": "problem_description and solution_steps required"}), 400
-        
+
         playbook = jav.create_automation_from_solution(problem_description, solution_steps, success)
-        
+
         return jsonify({
             "status": "success",
             "playbook": {
@@ -722,7 +731,7 @@ def create_playbook():
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Create playbook error: {e}")
         return jsonify({
@@ -736,7 +745,7 @@ def list_playbooks():
     """List all automation playbooks"""
     try:
         from persistent_memory_engine import persistent_memory
-        
+
         playbooks = []
         for playbook in persistent_memory.playbooks:
             if not playbook.retired:
@@ -752,13 +761,13 @@ def list_playbooks():
                     "created_at": playbook.created_at,
                     "last_used": playbook.last_used
                 })
-        
+
         return jsonify({
             "playbooks": playbooks,
             "total": len(playbooks),
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"List playbooks error: {e}")
         return jsonify({
@@ -772,22 +781,22 @@ def retire_playbook():
     """Retire an outdated playbook"""
     try:
         from persistent_memory_engine import persistent_memory
-        
+
         data = request.get_json()
         if not data or 'playbook_id' not in data:
             return jsonify({"error": "playbook_id required"}), 400
-        
+
         playbook_id = data['playbook_id']
         reason = data.get('reason', 'User requested')
-        
+
         persistent_memory.retire_playbook(playbook_id, reason)
-        
+
         return jsonify({
             "status": "success",
             "message": f"Playbook {playbook_id} retired",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Retire playbook error: {e}")
         return jsonify({
@@ -801,14 +810,14 @@ def cross_project_insights():
     """Get cross-project insights and patterns"""
     try:
         from persistent_memory_engine import persistent_memory
-        
+
         insights = persistent_memory.get_cross_project_insights()
-        
+
         return jsonify({
             "insights": insights,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Cross-project insights error: {e}")
         return jsonify({
@@ -822,18 +831,18 @@ def get_bible_deviations():
     """Get tracked bible deviations"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         bible_file = request.args.get('bible_file')
         section = request.args.get('section')
-        
+
         deviations = bible_evolution.deviations
-        
+
         # Filter if requested
         if bible_file:
             deviations = [d for d in deviations if d.bible_file == bible_file]
         if section:
             deviations = [d for d in deviations if d.section == section]
-        
+
         # Convert to dict for JSON serialization
         deviations_data = [
             {
@@ -851,13 +860,13 @@ def get_bible_deviations():
             }
             for d in deviations
         ]
-        
+
         return jsonify({
             "deviations": deviations_data,
             "total": len(deviations_data),
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Bible deviations error: {e}")
         return jsonify({
@@ -871,16 +880,16 @@ def track_bible_deviation():
     """Track a new bible deviation"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         data = request.get_json()
         if not data:
             return jsonify({"error": "Request data required"}), 400
-        
+
         required_fields = ["bible_file", "section", "documented_process", "actual_process", "context"]
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
-        
+
         deviation_id = bible_evolution.track_deviation(
             bible_file=data["bible_file"],
             section=data["section"],
@@ -889,14 +898,14 @@ def track_bible_deviation():
             context=data["context"],
             override_reason=data.get("override_reason")
         )
-        
+
         return jsonify({
             "status": "success",
             "deviation_id": deviation_id,
             "message": "Deviation tracked successfully",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Track deviation error: {e}")
         return jsonify({
@@ -910,9 +919,9 @@ def analyze_bible_patterns():
     """Analyze deviation patterns for amendment suggestions"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         analysis = bible_evolution.analyze_deviation_patterns()
-        
+
         return jsonify({
             "analysis": analysis,
             "summary": {
@@ -922,7 +931,7 @@ def analyze_bible_patterns():
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Analyze patterns error: {e}")
         return jsonify({
@@ -936,16 +945,16 @@ def propose_bible_amendment():
     """Propose an amendment to bible documentation"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         data = request.get_json()
         if not data:
             return jsonify({"error": "Request data required"}), 400
-        
+
         required_fields = ["bible_file", "section", "current_text", "proposed_text", "reasoning"]
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
-        
+
         amendment_id = bible_evolution.propose_amendment(
             bible_file=data["bible_file"],
             section=data["section"],
@@ -954,14 +963,14 @@ def propose_bible_amendment():
             reasoning=data["reasoning"],
             supporting_deviations=data.get("supporting_deviations", [])
         )
-        
+
         return jsonify({
             "status": "success",
             "amendment_id": amendment_id,
             "message": "Amendment proposed successfully",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Propose amendment error: {e}")
         return jsonify({
@@ -975,15 +984,15 @@ def generate_bible_review_session():
     """Generate comprehensive bible review session"""
     try:
         from bible_integration import bible_integration
-        
+
         review_session = bible_integration.generate_team_review_session()
-        
+
         return jsonify({
             "review_session": review_session,
             "status": "generated",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Review session error: {e}")
         return jsonify({
@@ -997,14 +1006,14 @@ def get_bible_amendments():
     """Get proposed bible amendments"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         status_filter = request.args.get('status')  # draft, reviewed, approved, etc.
-        
+
         amendments = bible_evolution.amendments
-        
+
         if status_filter:
             amendments = [a for a in amendments if a.status == status_filter]
-        
+
         amendments_data = [
             {
                 "id": a.id,
@@ -1020,7 +1029,7 @@ def get_bible_amendments():
             }
             for a in amendments
         ]
-        
+
         return jsonify({
             "amendments": amendments_data,
             "total": len(amendments_data),
@@ -1032,7 +1041,7 @@ def get_bible_amendments():
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Get amendments error: {e}")
         return jsonify({
@@ -1046,16 +1055,16 @@ def get_onboarding_brief():
     """Get onboarding brief for new users"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         user_type = request.args.get('user_type', 'new_user')
-        
+
         brief = bible_evolution.generate_onboarding_brief(user_type)
-        
+
         return jsonify({
             "onboarding_brief": brief,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Onboarding brief error: {e}")
         return jsonify({
@@ -1069,16 +1078,16 @@ def get_compliance_report():
     """Get bible compliance report"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         bible_file = request.args.get('bible_file', 'AGENT_BIBLE.md')
-        
+
         compliance_report = bible_evolution.monitor_compliance(bible_file)
-        
+
         return jsonify({
             "compliance_report": compliance_report,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Compliance report error: {e}")
         return jsonify({
@@ -1092,14 +1101,14 @@ def get_bible_versions():
     """Get bible version history"""
     try:
         from bible_evolution_engine import bible_evolution
-        
+
         bible_file = request.args.get('bible_file')
-        
+
         versions = bible_evolution.versions
-        
+
         if bible_file:
             versions = [v for v in versions if v.bible_file == bible_file]
-        
+
         versions_data = [
             {
                 "version": v.version,
@@ -1112,13 +1121,13 @@ def get_bible_versions():
             }
             for v in versions
         ]
-        
+
         return jsonify({
             "versions": versions_data,
             "total": len(versions_data),
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        
+
     except Exception as e:
         logger.error(f"Get versions error: {e}")
         return jsonify({
@@ -1133,18 +1142,18 @@ def product_audit():
     try:
         import os
         import glob
-        
+
         # Analyze file structure and documentation
         docs = {}
         code_files = {}
-        
+
         # Check key documentation files
         doc_files = ['README.md', 'AGENT_BIBLE.md', 'config.json', 'version.json']
         for doc in doc_files:
             if os.path.exists(doc):
                 with open(doc, 'r') as f:
                     docs[doc] = f.read()
-        
+
         # Analyze code structure
         py_files = glob.glob('*.py')
         for py_file in py_files:
@@ -1156,7 +1165,7 @@ def product_audit():
                     functions = content.count('def ')
                     classes = content.count('class ')
                     endpoints = content.count('@app.route')
-                    
+
                     code_files[py_file] = {
                         "lines": lines,
                         "functions": functions,
@@ -1166,19 +1175,19 @@ def product_audit():
                     }
             except:
                 pass
-        
+
         # Get memory statistics for product usage insights
         memory = load_memory()
-        
+
         # Analyze memory for product insights
         categories = {}
         success_patterns = {}
         user_pain_points = []
-        
+
         for mem in memory[-50:]:  # Recent memories
             cat = mem.get('category', 'unknown')
             categories[cat] = categories.get(cat, 0) + 1
-            
+
             if not mem.get('success', True):
                 user_pain_points.append({
                     "topic": mem.get('topic', ''),
@@ -1186,7 +1195,7 @@ def product_audit():
                     "input": mem.get('input', '')[:100],
                     "timestamp": mem.get('timestamp', '')
                 })
-        
+
         # Analyze UI and frontend
         ui_files = ['index.html', 'MemoryTimeline.jsx']
         ui_analysis = {}
@@ -1200,7 +1209,7 @@ def product_audit():
                         "size_kb": round(len(content) / 1024, 2),
                         "components": content.count('function ') + content.count('const ') + content.count('class ')
                     }
-        
+
         # Product positioning analysis
         features_mentioned = []
         if 'README.md' in docs:
@@ -1209,7 +1218,7 @@ def product_audit():
             for keyword in feature_keywords:
                 if keyword in readme:
                     features_mentioned.append(keyword)
-        
+
         audit_result = {
             "product_overview": {
                 "name": "MemoryOS",
@@ -1269,9 +1278,9 @@ def product_audit():
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
+
         return jsonify(audit_result)
-        
+
     except Exception as e:
         logger.error(f"Product audit failed: {e}")
         return jsonify({
@@ -1288,11 +1297,11 @@ def bulletproof_main():
             os.makedirs('logs', exist_ok=True)
         except Exception as e:
             print(f"⚠️ Could not create logs directory: {e}")
-        
+
         # Log startup with bulletproof logger
         if BULLETPROOF_LOGGING:
             bulletproof_logger.log_info("Starting MemoryOS with bulletproof safeguards")
-        
+
         # Ensure memory file exists
         if not os.path.exists(MEMORY_FILE):
             try:
@@ -1311,7 +1320,7 @@ def bulletproof_main():
         try:
             from alerts import alert_manager
             print("🚨 Alerting system initialized")
-            
+
             # Check if alerting is configured
             webhook_configured = bool(os.getenv('ALERT_WEBHOOK_URL') or os.getenv('EMAIL_WEBHOOK_URL'))
             if webhook_configured:
@@ -1319,7 +1328,7 @@ def bulletproof_main():
             else:
                 print("⚠️  Alert webhooks not configured (optional)")
                 print("   Set ALERT_WEBHOOK_URL or EMAIL_WEBHOOK_URL to enable alerts")
-                
+
         except ImportError as e:
             print("⚠️  Alerting system not available")
             if BULLETPROOF_LOGGING:
@@ -1335,7 +1344,7 @@ def bulletproof_main():
             f"🛡️  Error handling: Enhanced with bulletproof logging",
             f"🧪 Tests: Run 'python -m pytest test_memoryos.py' before deploy"
         ]
-        
+
         for info in startup_info:
             print(info)
             if BULLETPROOF_LOGGING:
@@ -1350,20 +1359,20 @@ def bulletproof_main():
             if BULLETPROOF_LOGGING:
                 bulletproof_logger.log_error("Flask app startup failed", e, include_traceback=True)
             raise
-            
+
     except KeyboardInterrupt:
         print("\n🛑 MemoryOS shutdown by user")
         if BULLETPROOF_LOGGING:
             bulletproof_logger.log_info("MemoryOS shutdown by user interrupt")
-        
+
     except Exception as critical_error:
         error_msg = f"CRITICAL SYSTEM FAILURE: {critical_error}"
         print(f"💥 {error_msg}")
         print(f"📍 TRACEBACK: {traceback.format_exc()}")
-        
+
         if BULLETPROOF_LOGGING:
             bulletproof_logger.log_error("Critical system failure during startup", critical_error, include_traceback=True)
-        
+
         # Write emergency error log
         try:
             with open('emergency_startup_failure.log', 'a') as f:
@@ -1373,7 +1382,7 @@ def bulletproof_main():
                 f.write("-" * 80 + "\n")
         except Exception:
             pass  # Even emergency logging can fail
-        
+
         # Exit with error code
         import sys
         sys.exit(1)

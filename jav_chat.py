@@ -1585,52 +1585,93 @@ What would you like to explore or create together?"""
             return 'unknown time'
 """
 Jav Chat Interface - Central Command Hub
-Routes commands and integrates key features
+Routes commands and integrates key features with frustration detection
 """
 
 import logging
 from typing import Dict, Any, List
+from frustration_detector import init_frustration_detector
 
 class JavChat:
     """
     Jav Chat Interface - Command Routing Hub
-    Processes commands and dispatches to handlers
+    Processes commands and dispatches to handlers with gentle support
     """
 
     def __init__(self, jav_agent):
         self.jav = jav_agent
         self.logger = logging.getLogger('JavChat')
+        
+        # Initialize frustration detection
+        self.frustration_detector = init_frustration_detector(jav_agent)
+        
+        # Track intervention state
+        self.pending_interventions = []
+        self.user_intervention_preferences = {
+            "auto_hints": True,
+            "intervention_level": "help",  # hint, help, auto_debug
+            "encouragement": True
+        }
 
-    def process_command(self, command: str) -> Dict[str, Any]:
-        """Process user command and return response"""
+    def process_command(self, command: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Process user command and return response with frustration monitoring"""
+        original_command = command
         command = command.strip().lower()
+        context = context or {}
 
+        # Handle intervention responses first
+        if command.startswith("intervention:"):
+            return self.handle_intervention_response(command, context)
+        
+        result = None
+        success = True
+        
         try:
             if command.startswith("audit"):
-                return self.handle_audit_command(command)
+                result = self.handle_audit_command(command)
             elif command.startswith("health"):
-                return self.handle_health_command()
+                result = self.handle_health_command()
             elif command.startswith("suggest"):
-                return self.handle_suggestions_command(command)
+                result = self.handle_suggestions_command(command)
             elif command.startswith("fix"):
-                return self.handle_fix_command(command)
+                result = self.handle_fix_command(command)
             elif command.startswith("deploy"):
-                return self.handle_deploy_command(command)
+                result = self.handle_deploy_command(command)
             elif command.startswith("test"):
-                return self.handle_test_command(command)
+                result = self.handle_test_command(command)
             elif command.startswith("bible"):
-                return self.handle_bible_command(command)
+                result = self.handle_bible_command(command)
             elif "help" in command:
-                return self.get_help()
+                result = self.get_help()
             else:
-                return self.handle_general_query(command)
-
+                result = self.handle_general_query(command)
+            
+            # Check if command was successful
+            success = result.get("type") != "error"
+            
         except Exception as e:
-            return {
+            success = False
+            result = {
                 "type": "error",
                 "message": f"Error processing command: {str(e)}",
                 "suggestions": ["Try 'help' for available commands"]
             }
+            context["error"] = str(e)
+        
+        # Track interaction for frustration detection
+        self.frustration_detector.track_interaction(
+            "command", 
+            original_command, 
+            success, 
+            context
+        )
+        
+        # Check for frustration patterns and gentle intervention
+        intervention = self.check_for_gentle_intervention()
+        if intervention:
+            result = self.enhance_response_with_intervention(result, intervention)
+        
+        return result
 
     def handle_audit_command(self, command: str) -> Dict[str, Any]:
         """Handle audit command"""
@@ -1918,6 +1959,276 @@ class JavChat:
             ]
         }
 
+    def check_for_gentle_intervention(self) -> Optional[Dict[str, Any]]:
+        """Check if gentle intervention is needed"""
+        
+        patterns = self.frustration_detector.detect_frustration_patterns()
+        
+        if patterns:
+            intervention = self.frustration_detector.should_intervene(patterns)
+            
+            if intervention and self.user_intervention_preferences.get("auto_hints", True):
+                # Only intervene if user hasn't disabled it
+                level_preference = self.user_intervention_preferences.get("intervention_level", "help")
+                
+                # Respect user's intervention level preference
+                if self._intervention_level_ok(intervention["level"], level_preference):
+                    self.frustration_detector.mark_intervention_shown()
+                    return intervention
+        
+        return None
+    
+    def _intervention_level_ok(self, suggested_level: str, user_preference: str) -> bool:
+        """Check if intervention level is within user's preference"""
+        level_hierarchy = ["hint", "help", "auto_debug"]
+        
+        suggested_idx = level_hierarchy.index(suggested_level) if suggested_level in level_hierarchy else 0
+        preference_idx = level_hierarchy.index(user_preference) if user_preference in level_hierarchy else 1
+        
+        return suggested_idx <= preference_idx
+    
+    def enhance_response_with_intervention(self, response: Dict[str, Any], 
+                                         intervention: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance response with gentle intervention"""
+        
+        pattern = intervention["pattern"]
+        level = intervention["level"]
+        
+        # Create encouraging message
+        encouragement = ""
+        if self.user_intervention_preferences.get("encouragement", True):
+            encouragement = self.frustration_detector.get_encouragement_message(pattern)
+        
+        # Create intervention card
+        intervention_card = {
+            "type": "gentle_intervention",
+            "level": level,
+            "title": self._get_intervention_title(level, pattern.pattern_type),
+            "encouragement": encouragement,
+            "evidence": pattern.evidence,
+            "suggested_actions": intervention["suggested_actions"],
+            "pattern_summary": self._summarize_pattern(pattern),
+            "dismissible": True,
+            "escalation_options": self._get_escalation_options(level)
+        }
+        
+        # Add intervention to response
+        if "interventions" not in response:
+            response["interventions"] = []
+        response["interventions"].append(intervention_card)
+        
+        # Add gentle note to main message if it's an error
+        if response.get("type") == "error" and encouragement:
+            response["message"] = f"{encouragement}\n\n{response['message']}"
+        
+        return response
+    
+    def _get_intervention_title(self, level: str, pattern_type: str) -> str:
+        """Get friendly intervention title"""
+        
+        titles = {
+            "hint": {
+                "repeated_command": "💡 I notice you're trying this command again",
+                "repeated_error": "🤔 This error keeps coming up",
+                "no_progress": "🎯 Let's try a fresh approach",
+                "error_spike": "🔄 Lots of trial and error happening",
+                "session_fatigue": "⭐ You've been coding hard!"
+            },
+            "help": {
+                "repeated_command": "🚀 Let me help with that command",
+                "repeated_error": "🛠️ I can help solve this error",
+                "no_progress": "🎪 Ready to try something different?",
+                "error_spike": "🔧 Let's debug this systematically",
+                "session_fatigue": "🌟 Time to celebrate your progress!"
+            },
+            "auto_debug": {
+                "repeated_command": "🤖 Auto-debug this command?",
+                "repeated_error": "⚡ Auto-fix this error pattern?",
+                "no_progress": "🎨 Let me suggest a breakthrough approach",
+                "error_spike": "🔬 Run automated debugging?",
+                "session_fatigue": "💫 Save state and refresh?"
+            }
+        }
+        
+        return titles.get(level, {}).get(pattern_type, f"✨ {level.title()} available")
+    
+    def _summarize_pattern(self, pattern: FrustrationPattern) -> str:
+        """Create friendly pattern summary"""
+        
+        summaries = {
+            "repeated_command": "You've tried this command a few times - let's make it work!",
+            "repeated_error": "This error is being persistent - we can outsmart it!",
+            "no_progress": "Sometimes stepping back reveals new paths forward.",
+            "error_spike": "You're exploring lots of options - that's great problem solving!",
+            "session_fatigue": "Long coding sessions show real dedication to your project!"
+        }
+        
+        return summaries.get(pattern.pattern_type, "I notice a pattern we can address.")
+    
+    def _get_escalation_options(self, current_level: str) -> List[Dict[str, str]]:
+        """Get options to escalate intervention level"""
+        
+        escalation_map = {
+            "hint": [
+                {"level": "help", "title": "Get more help", "description": "Show detailed assistance"},
+                {"level": "auto_debug", "title": "Auto-debug", "description": "Let me fix this automatically"}
+            ],
+            "help": [
+                {"level": "auto_debug", "title": "Auto-debug", "description": "Apply automated fix"}
+            ],
+            "auto_debug": []  # Already at highest level
+        }
+        
+        return escalation_map.get(current_level, [])
+    
+    def handle_intervention_response(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle user response to intervention"""
+        
+        # Parse intervention command: "intervention:action_id:response"
+        parts = command.split(":", 2)
+        if len(parts) < 3:
+            return {"type": "error", "message": "Invalid intervention response format"}
+        
+        action_id = parts[1]
+        response_type = parts[2]  # accept, dismiss, escalate, etc.
+        
+        if response_type == "dismiss":
+            return {
+                "type": "intervention_dismissed",
+                "message": "Got it! I'll give you space to work. Type 'help' if you need me.",
+                "action": "dismissed"
+            }
+        elif response_type == "accept":
+            return self._execute_intervention_action(action_id, context)
+        elif response_type.startswith("escalate:"):
+            new_level = response_type.split(":", 1)[1]
+            return self._escalate_intervention(action_id, new_level, context)
+        elif response_type == "preferences":
+            return self._show_intervention_preferences()
+        
+        return {"type": "error", "message": "Unknown intervention response"}
+    
+    def _execute_intervention_action(self, action_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute the chosen intervention action"""
+        
+        # Parse action_id to understand what to do
+        parts = action_id.split("_")
+        if len(parts) < 2:
+            return {"type": "error", "message": "Invalid action ID"}
+        
+        pattern_type = parts[0]
+        level = parts[1]
+        
+        if pattern_type == "repeated_command":
+            return self._help_with_repeated_command(level, context)
+        elif pattern_type == "repeated_error":
+            return self._help_with_repeated_error(level, context)
+        elif pattern_type == "no_progress":
+            return self._help_with_no_progress(level, context)
+        elif pattern_type == "error_spike":
+            return self._help_with_error_spike(level, context)
+        elif pattern_type == "session_fatigue":
+            return self._help_with_session_fatigue(level, context)
+        
+        return {"type": "error", "message": "Unknown intervention type"}
+    
+    def _help_with_repeated_command(self, level: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Provide help for repeated command issues"""
+        
+        if level == "hint":
+            return {
+                "type": "intervention_help",
+                "title": "💡 Command Hint",
+                "message": "Try checking if there are any typos, or if you need different arguments. You can also try 'help [command]' for syntax.",
+                "suggestions": ["Check command syntax", "Verify arguments", "Try alternative command"]
+            }
+        elif level == "help":
+            # Get memory of similar successful commands
+            return {
+                "type": "intervention_help",
+                "title": "🚀 Command Help",
+                "message": "Let me show you similar commands that worked before and suggest alternatives.",
+                "memory_examples": self._get_memory_examples("command"),
+                "alternatives": ["Use different approach", "Break into smaller steps", "Check documentation"]
+            }
+        elif level == "auto_debug":
+            return {
+                "type": "intervention_auto",
+                "title": "🤖 Auto-Debug Command",
+                "message": "I'll analyze this command and suggest or apply fixes automatically.",
+                "action": "auto_debug_command",
+                "status": "analyzing"
+            }
+        
+        return {"type": "info", "message": "Help provided"}
+    
+    def _help_with_repeated_error(self, level: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Provide help for repeated errors"""
+        
+        if level == "auto_debug":
+            return {
+                "type": "intervention_auto",
+                "title": "⚡ Auto-Fix Error",
+                "message": "I'll search my memory for solutions to this error and apply the best fix.",
+                "action": "auto_fix_error",
+                "status": "searching_memory"
+            }
+        
+        return {
+            "type": "intervention_help",
+            "title": "🛠️ Error Analysis",
+            "message": "This error has appeared before. Let me show you what typically works.",
+            "memory_solutions": self._get_memory_examples("error"),
+            "systematic_approach": ["Identify root cause", "Apply known solution", "Verify fix"]
+        }
+    
+    def _help_with_no_progress(self, level: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Provide help when no progress is made"""
+        
+        return {
+            "type": "intervention_help",
+            "title": "🎯 Fresh Perspective",
+            "message": "Let's step back and look at this differently. Here's what we've tried and what might work:",
+            "summary": self._summarize_recent_attempts(),
+            "new_approaches": ["Try different strategy", "Use memory insights", "Break problem down"],
+            "memory_patterns": self._get_memory_examples("progress")
+        }
+    
+    def _get_memory_examples(self, example_type: str) -> List[Dict[str, Any]]:
+        """Get relevant examples from memory"""
+        # This would integrate with the memory system
+        # For now, return placeholder structure
+        
+        return [
+            {
+                "description": f"Similar {example_type} that worked",
+                "solution": "Example solution from memory",
+                "context": "When this worked before",
+                "success_rate": "85%"
+            }
+        ]
+    
+    def _summarize_recent_attempts(self) -> Dict[str, Any]:
+        """Summarize what user has tried recently"""
+        
+        interactions = list(self.frustration_detector.interaction_history)[-10:]
+        
+        commands_tried = []
+        errors_encountered = []
+        
+        for interaction in interactions:
+            if interaction["type"] == "command":
+                commands_tried.append(interaction["content"])
+                if not interaction["success"]:
+                    errors_encountered.append(interaction.get("context", {}).get("error", "Unknown error"))
+        
+        return {
+            "commands_tried": len(set(commands_tried)),
+            "unique_errors": len(set(errors_encountered)),
+            "time_span": "last 30 minutes",
+            "patterns": "Working on command execution and error handling"
+        }
+    
     def get_help(self) -> Dict[str, Any]:
         """Get help information"""
         return {
@@ -1939,5 +2250,9 @@ class JavChat:
                 "fix error logs",
                 "deploy to production",
                 "bible review"
-            ]
+            ],
+            "intervention_help": {
+                "message": "I watch for frustration patterns and offer gentle help",
+                "preferences": "Type 'intervention:preferences' to customize my assistance level"
+            }
         }

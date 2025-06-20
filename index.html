@@ -142,39 +142,72 @@
             <main class="flex-1 flex flex-col">
                 <!-- Conversation Canvas -->
                 <div class="flex-1 p-6 overflow-y-auto" x-ref="conversationContainer">
-                    <template x-for="message in conversationHistory" :key="message.id">
-                        <div class="mb-6"
-                             :class="message.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
-                            <div class="chat-bubble rounded-2xl p-4"
-                                 :class="message.role === 'user' ? 'bg-blue-600 text-white' : 'glass-panel text-gray-100'">
+                    
 
-                                <div class="flex items-start space-x-3">
-                                    <div class="text-lg" x-text="message.role === 'user' ? '🧑‍💻' : '🤖'"></div>
-                                    <div class="flex-1">
-                                        <div class="text-sm font-medium mb-1" x-text="message.role === 'user' ? 'You' : 'Jav'"></div>
-                                        <div x-html="message.content"></div>
-                                        <div class="text-xs opacity-70 mt-2" x-text="message.timestamp"></div>
+                    <div class="space-y-4">
+                            <template x-for="message in conversationHistory" :key="message.id">
+                                <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-sm font-medium text-gray-600">
+                                            <span x-text="message.role === 'user' ? '👤 You' : '🤖 Jav'"></span>
+                                        </span>
+                                        <span class="text-xs text-gray-500" x-text="message.timestamp"></span>
                                     </div>
-                                </div>
+                                    <div class="text-gray-800" x-html="message.content"></div>
 
-                                <!-- Implementation Cards -->
-                                <div x-show="message.implementations && message.implementations.length > 0" class="mt-4 space-y-2">
-                                    <template x-for="impl in message.implementations" :key="impl.id">
-                                        <div class="bg-black/20 rounded-lg p-3">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <span class="text-sm font-medium" x-text="impl.title"></span>
-                                                <button @click="implementCode(impl)" 
-                                                        class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-xs">
-                                                    Implement
+                                    <!-- Intervention Cards -->
+                                    <template x-for="intervention in message.interventions" :key="intervention.pattern_summary">
+                                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                            <div class="flex items-start justify-between mb-2">
+                                                <h4 class="text-sm font-medium text-yellow-800" x-text="intervention.title"></h4>
+                                                <button @click="dismissIntervention(intervention.suggested_actions[0]?.action_id)" 
+                                                        class="text-yellow-600 hover:text-yellow-800 text-xs">
+                                                    ✕
                                                 </button>
                                             </div>
-                                            <div class="text-xs text-gray-300" x-text="impl.description"></div>
+
+                                            <p x-show="intervention.encouragement" 
+                                               class="text-sm text-yellow-700 mb-2" 
+                                               x-text="intervention.encouragement"></p>
+
+                                            <p class="text-sm text-yellow-700 mb-3" x-text="intervention.pattern_summary"></p>
+
+                                            <!-- Evidence (optional, collapsible) -->
+                                            <details x-show="intervention.evidence && intervention.evidence.length" class="mb-3">
+                                                <summary class="text-xs text-yellow-600 cursor-pointer">What I noticed</summary>
+                                                <ul class="mt-1 text-xs text-yellow-600 ml-4">
+                                                    <template x-for="evidence in intervention.evidence">
+                                                        <li x-text="evidence"></li>
+                                                    </template>
+                                                </ul>
+                                            </details>
+
+                                            <!-- Action Buttons -->
+                                            <div class="flex flex-wrap gap-2">
+                                                <template x-for="action in intervention.suggested_actions.slice(0, 2)">
+                                                    <button @click="acceptIntervention(action.action_id)"
+                                                            class="px-3 py-1 text-xs bg-yellow-200 text-yellow-800 rounded hover:bg-yellow-300">
+                                                        <span x-text="action.title"></span>
+                                                    </button>
+                                                </template>
+
+                                                <!-- Escalation Options -->
+                                                <template x-for="escalation in intervention.escalation_options">
+                                                    <button @click="escalateIntervention(intervention.suggested_actions[0]?.action_id, escalation.level)"
+                                                            class="px-3 py-1 text-xs bg-blue-200 text-blue-800 rounded hover:bg-blue-300">
+                                                        <span x-text="escalation.title"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </template>
+
+                                    <div x-show="message.type" class="mt-2">
+                                        <span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded" x-text="message.type"></span>
+                                    </div>
                                 </div>
-                            </div>
+                            </template>
                         </div>
-                    </template>
 
                     <!-- Typing Indicator -->
                     <div x-show="javTyping" class="flex justify-start mb-6">
@@ -518,7 +551,8 @@
                                 role: memory.type === 'user_input' ? 'user' : 'assistant',
                                 content: memory.output || memory.input,
                                 timestamp: this.formatTimestamp(memory.timestamp),
-                                implementations: memory.implementations || []
+                                implementations: memory.implementations || [],
+                                interventions: memory.interventions || []
                             }));
                     } catch (error) {
                         console.error('Failed to load conversation history:', error);
@@ -582,7 +616,8 @@
                                 role: 'assistant',
                                 content: result.response.message || result.response,
                                 timestamp: this.formatTimestamp(new Date().toISOString()),
-                                implementations: result.response.implementations || []
+                                implementations: result.response.implementations || [],
+                                interventions: result.response.interventions || []
                             });
 
                             // Check for implementations
@@ -826,6 +861,18 @@
                     });
 
                     this.scrollToBottom();
+                },
+
+                dismissIntervention(actionId) {
+                    console.log('Dismissing intervention:', actionId);
+                },
+
+                acceptIntervention(actionId) {
+                    console.log('Accepting intervention:', actionId);
+                },
+
+                escalateIntervention(actionId, level) {
+                    console.log('Escalating intervention:', actionId, 'to level:', level);
                 }
             };
         }
@@ -949,13 +996,13 @@
             setTimeout(() => messageEl.remove(), 5000);
         }
     </script>
-        
+
         <aside class="w-96 flex-none bg-slate-900 border-l border-slate-700">
-            
-            
-            
-            
-            
+
+
+
+
+
         </aside>
 </body>
 </html>
