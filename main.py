@@ -791,7 +791,7 @@ def get_feedback_trends():
     except FileNotFoundError:
         return {"message": "No feedback file found or invalid JSON"}
 
-@app.route('/founder', methods=['GET'])
+@app.route('/founder', methods=['GET'], endpoint='founder_status_get_endpoint')
 @requires_confirmation
 def founder_status_get():
     """GPT endpoint for founder agent status and intelligence"""
@@ -854,7 +854,7 @@ def founder_status_get():
             {"confirmed": False, "error": str(e)}
         )
 
-@app.route('/founder/start', methods=['POST'])
+@app.route('/founder/start', methods=['POST'], endpoint='start_founder_endpoint')
 @requires_confirmation  
 def start_founder():
     """Start the proactive founder agent"""
@@ -884,7 +884,7 @@ def founder_status_json():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/founder/insights', methods=['GET'])
+@app.route('/founder/insights', methods=['GET'], endpoint='founder_insights_endpoint')
 def founder_insights():
     """Get founder insights for UI"""
     try:
@@ -896,7 +896,7 @@ def founder_insights():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/founder/ui')
+@app.route('/founder/ui', endpoint='founder_ui_endpoint')
 def founder_ui():
     """Serve the founder intelligence UI"""
     try:
@@ -951,7 +951,7 @@ def get_cached_health():
     """Cached system health status"""
     return connection_validator._test_endpoint('/system-health')
 
-@app.route('/system-health')
+@app.route('/system-health', endpoint='system_health_endpoint')
 def system_health():
     """Get system health status"""
     try:
@@ -961,7 +961,7 @@ def system_health():
         logging.error(f"Error checking system health: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
 
-@app.route('/express/status')
+@app.route('/express/status', endpoint='express_status_endpoint')
 def express_status():
     """Get Express validation status"""
     global EXPRESS_VALIDATION_CACHE, EXPRESS_VALIDATION_LAST_UPDATE
