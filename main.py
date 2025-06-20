@@ -7,6 +7,7 @@ import logging
 from json.decoder import JSONDecodeError
 import re
 from collections import Counter
+import subprocess
 
 # Use absolute path for memory file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1723,6 +1724,184 @@ def trigger_git_sync():
         
     except Exception as e:
         logging.error(f"Error in git sync: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/last-commit', methods=['GET'])
+def get_last_commit():
+    """Get the last Git commit information"""
+    try:
+        # Try reading from git logs first
+        git_log_file = os.path.join(BASE_DIR, '.git', 'logs', 'HEAD')
+        
+        if os.path.exists(git_log_file):
+            with open(git_log_file, 'r') as f:
+                lines = f.readlines()
+                if lines:
+                    last_line = lines[-1].strip()
+                    # Parse git log format: old_hash new_hash name <email> timestamp timezone message
+                    parts = last_line.split(' ', 6)
+                    if len(parts) >= 7:
+                        return jsonify({
+                            "hash": parts[1][:8],
+                            "full_hash": parts[1],
+                            "author": parts[2],
+                            "timestamp": parts[4],
+                            "message": parts[6] if len(parts) > 6 else "No message",
+                            "source": "git_logs"
+                        })
+        
+        # Fallback to git log command
+        try:
+            result = subprocess.run(
+                ['git', 'log', '-1', '--pretty=format:%H|%h|%an|%ae|%at|%s'], 
+                capture_output=True, text=True, cwd=BASE_DIR
+            )
+            
+            if result.returncode == 0 and result.stdout:
+                parts = result.stdout.strip().split('|')
+                if len(parts) >= 6:
+                    return jsonify({
+                        "hash": parts[1],
+                        "full_hash": parts[0],
+                        "author": parts[2],
+                        "email": parts[3],
+                        "timestamp": parts[4],
+                        "message": parts[5],
+                        "source": "git_command"
+                    })
+            
+            return jsonify({"error": "No commits found"}), 404
+            
+        except subprocess.CalledProcessError as e:
+            return jsonify({"error": f"Git command failed: {e}"}), 500
+            
+    except Exception as e:
+        logging.error(f"Error getting last commit: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/system-health', methods=['GET'])
+def get_system_health():
+    """Get comprehensive system health status"""
+    try:
+        # Memory count
+        memory_count = 0
+        try:
+            with open(MEMORY_FILE, 'r') as f:
+                memory = json.load(f)
+                memory_count = len(memory)
+        except (FileNotFoundError, json.JSONDecodeError):
+            memory_count = 0
+        
+        # Last 5 command outputs
+        last_commands = []
+        try:
+            task_output_file = os.path.join(BASE_DIR, "task_output.json")
+            with open(task_output_file, 'r') as f:
+                task_data = json.load(f)
+                if isinstance(task_data, list):
+                    last_commands = task_data[-5:] if len(task_data) >= 5 else task_data
+                else:
+                    last_commands = [task_data]
+        except (FileNotFoundError, json.JSONDecodeError):
+            last_commands = []
+        
+        # Git sync status
+        git_status = {"status": "unknown", "has_changes": False, "last_sync": None}
+        try:
+            # Check if there are uncommitted changes
+            result = subprocess.run(
+                ['git', 'status', '--porcelain'], 
+                capture_output=True, text=True, cwd=BASE_DIR
+            )
+            git_status["has_changes"] = bool(result.stdout.strip())
+            git_status["status"] = "dirty" if git_status["has_changes"] else "clean"
+            
+            # Check last sync from commit log
+            commit_log_file = os.path.join(BASE_DIR, 'commit_log.json')
+            if os.path.exists(commit_log_file):
+                with open(commit_log_file, 'r') as f:
+                    commit_data = json.load(f)
+                    commits = commit_data.get('commits', [])
+                    if commits:
+                        git_status["last_sync"] = commits[-1].get('timestamp')
+        except Exception as e:
+            git_status["error"] = str(e)
+        
+        # Active Flask routes
+        active_routes = []
+        for rule in app.url_map.iter_rules():
+            active_routes.append({
+                "endpoint": rule.endpoint,
+                "route": str(rule.rule),
+                "methods": list(rule.methods - {'HEAD', 'OPTIONS'})
+            })
+        
+        # Task runner status
+        task_runner_status = {"running": False, "last_task": None}
+        try:
+            # Check if task_output.json has recent activity (within last 5 minutes)
+            task_output_file = os.path.join(BASE_DIR, "task_output.json")
+            if os.path.exists(task_output_file):
+                stat = os.stat(task_output_file)
+                last_modified = datetime.datetime.fromtimestamp(stat.st_mtime)
+                time_diff = datetime.datetime.now() - last_modified
+                task_runner_status["running"] = time_diff.total_seconds() < 300  # 5 minutes
+                
+                with open(task_output_file, 'r') as f:
+                    task_data = json.load(f)
+                    if isinstance(task_data, list) and task_data:
+                        task_runner_status["last_task"] = task_data[-1].get('timestamp')
+        except Exception as e:
+            task_runner_status["error"] = str(e)
+        
+        # System uptime (Flask app start time)
+        uptime_info = {
+            "start_time": "Unknown",
+            "uptime_seconds": 0
+        }
+        
+        health_data = {
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "memory": {
+                "total_entries": memory_count,
+                "file_exists": os.path.exists(MEMORY_FILE)
+            },
+            "commands": {
+                "last_5_outputs": last_commands,
+                "task_runner": task_runner_status
+            },
+            "git": git_status,
+            "flask": {
+                "active_routes": len(active_routes),
+                "routes": active_routes,
+                "port": 80,
+                "host": "0.0.0.0"
+            },
+            "system": {
+                "uptime": uptime_info,
+                "base_directory": BASE_DIR,
+                "config_loaded": bool(SYSTEM_CONFIG)
+            },
+            "health_score": 100  # Will be calculated based on various factors
+        }
+        
+        # Calculate health score
+        health_score = 100
+        if memory_count == 0:
+            health_score -= 10
+        if git_status["has_changes"]:
+            health_score -= 5
+        if not task_runner_status["running"]:
+            health_score -= 15
+        if len(last_commands) == 0:
+            health_score -= 10
+        
+        health_data["health_score"] = max(health_score, 0)
+        
+        return jsonify(health_data)
+        
+    except Exception as e:
+        logging.error(f"Error getting system health: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/')
