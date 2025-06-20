@@ -1,39 +1,191 @@
 
 # MemoryOS
 
-A Flask-based memory system with AI integration and automated GitHub sync.
+A Flask-based persistent AI memory system with intelligent logging, context awareness, and automated insights for development workflows.
 
-**🎯 Project Governance**: This project is governed by [AGENT_BIBLE.md](./AGENT_BIBLE.md) for all AI/agent logic, pipeline integration, and user experience. All behaviors, boundaries, and automation must comply with the principles defined in AGENT_BIBLE.md.
+**🎯 Project Governance**: This project is governed by comprehensive documentation "bibles" that define all behaviors, boundaries, and standards. Every component must comply with these foundational documents.
 
-## 📖 Documentation
+## 📖 Core Documentation (Required Reading)
 
-- **[AGENT_BIBLE.md](./AGENT_BIBLE.md)** - Source of truth for agent behavior, pipeline boundaries, and onboarding guidelines
-- **[SYSTEM_UPGRADES.md](./SYSTEM_UPGRADES.md)** - System enhancements and feature documentation
-- **[CHANGELOG.md](./CHANGELOG.md)** - Project version history and changes
+### System Bibles
+- **[AGENT_BIBLE.md](./AGENT_BIBLE.md)** - Agent behavior, boundaries, and pipeline integration rules
+- **[MEMORY_BIBLE.md](./MEMORY_BIBLE.md)** - Memory schemas, logging standards, and data handling
+- **[PRODUCT_BIBLE.md](./PRODUCT_BIBLE.md)** - Product vision, feature boundaries, and user experience
+- **[SECURITY_BIBLE.md](./SECURITY_BIBLE.md)** - Security principles, access control, and vulnerability handling
+
+### User & Developer Guides  
+- **[API_REFERENCE.md](./API_REFERENCE.md)** - Complete API documentation and schemas
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contributor guidelines and development standards
+- **[PRIVACY_POLICY.md](./PRIVACY_POLICY.md)** - User data rights, retention, and compliance
+
+### Project History
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and feature evolution
+- **[SYSTEM_UPGRADES.md](./SYSTEM_UPGRADES.md)** - Technical enhancements and architecture changes
 
 ## 🚀 Quick Start
 
-1. **Check System Health**: `GET /system-health` - Verify AGENT_BIBLE.md compliance
-2. **Onboarding Guide**: `GET /onboarding` - Learn capabilities and boundaries
-3. **View Memories**: `GET /memory` - See logged experiences
-4. **Add Memory**: `POST /memory` - Log new experiences (requires API key)
+### 1. System Health Check
+```bash
+GET /system-health
+```
+Verify all bible compliance and system status.
 
-## 🤖 Agent Compliance
+### 2. Complete Onboarding  
+```bash
+GET /onboarding
+```
+Essential reading - explains capabilities, boundaries, and required manual steps.
 
-All AI agent interactions are governed by AGENT_BIBLE.md:
-- ✅ Manual confirmation required for "live" feature claims
-- ✅ Explicit boundaries between automated and manual operations  
-- ✅ Transparent reporting of incomplete states and next steps
-- ✅ API-first design with clear intervention points
+### 3. Explore the API
+```bash
+GET /memory          # View existing memories
+GET /stats           # System analytics  
+GET /digest          # Weekly insights
+POST /memory         # Log new memory (API key required)
+```
 
-## Test Commit
+### 4. Set Up Authentication
+- Add `JAVLIN_API_KEY` to Replit Secrets
+- Use header: `X-API-KEY: your_key` for POST operations
 
-This line was added to test the new Git configuration with user "Darryl".
-# ✅ Git identity verified
-# ✅ Git identity verified at Fri Jun 20 12:42:13 AM UTC 2025
-# ✅ Git identity verified at 2025-06-20 00:47
-# ✅ Git identity confirmed at 2025-06-20T00:55Z
-# Sync test 2025-06-20T01:00Z
-# Sync test 2025-06-20T01:00Z
-# Sync test 2025-06-20T01:00Z
-# Sync test 2025-06-20T01:00Z
+## 🏗️ Architecture Overview
+
+### Core Components
+- **Memory System**: Intelligent logging with ML-powered auto-classification
+- **Context Engine**: Maintains state awareness for AI agents and development workflows
+- **Insight Generator**: Analyzes patterns and provides actionable recommendations  
+- **Git Integration**: Automated sync with version control and changelog generation
+- **Health Monitor**: Infrastructure audit and compliance verification
+
+### Key Features
+- 📝 **Structured Memory Logging** with auto-tagging and relationship mapping
+- 🤖 **AI Agent Integration** with clear boundaries and manual confirmation requirements
+- 📊 **Analytics Dashboard** via digest endpoint with weekly summaries
+- 🔄 **Auto-Logging** with ML predictions and importance scoring
+- 🛡️ **Security-First Design** with comprehensive audit trails
+- 🔗 **Git Workflow Integration** with automated commit analysis
+
+## 🤖 Agent Compliance Framework
+
+All AI interactions governed by bible documentation:
+
+### ✅ What Agents CAN Do
+- Log structured memories via authenticated API
+- Provide context-aware insights and recommendations  
+- Generate automated summaries and analytics
+- Monitor system health and compliance status
+- Suggest optimizations based on memory patterns
+
+### ❌ What Agents CANNOT Do  
+- Execute commands without human/Replit Assistant trigger
+- Claim features are "live" without endpoint validation
+- Modify system configurations or security settings
+- Access user data without proper authentication
+- Bypass manual confirmation requirements
+
+### 🔒 Compliance Requirements
+- **Manual confirmation required** for deployment claims
+- **Explicit boundaries** documented between automated/manual operations
+- **Transparent reporting** of incomplete states and next steps  
+- **API-first design** with clear human intervention points
+- **Audit trails** for all agent decisions and actions
+
+## 🛠️ Installation & Setup
+
+### Replit Deployment (Recommended)
+1. **Fork this Repl** to your account
+2. **Set API Key**: Add `JAVLIN_API_KEY` to Replit Secrets  
+3. **Run System**: Click "Run" button to start Flask API
+4. **Verify Health**: Test `GET /system-health` endpoint
+
+### Environment Variables
+```bash
+JAVLIN_API_KEY=your_secure_api_key_here
+```
+
+### Dependencies
+All dependencies managed automatically by Replit via `pyproject.toml`.
+
+## 📊 Usage Examples
+
+### Basic Memory Logging
+```python
+import requests
+
+# Log a development decision
+response = requests.post('https://your-repl.username.repl.co/memory', 
+    headers={'X-API-KEY': 'your_key'},
+    json={
+        'topic': 'API Design Decision',
+        'type': 'Decision', 
+        'input': 'Choosing between REST and GraphQL',
+        'output': 'Selected REST for simplicity and tooling',
+        'score': 20,
+        'maxScore': 25,
+        'success': True,
+        'category': 'development',
+        'reviewed': False
+    })
+```
+
+### Analytics and Insights
+```python
+# Get weekly digest
+digest = requests.get('https://your-repl.username.repl.co/digest').json()
+
+# View system statistics  
+stats = requests.get('https://your-repl.username.repl.co/stats').json()
+
+# Check unreviewed memories
+unreviewed = requests.get('https://your-repl.username.repl.co/unreviewed').json()
+```
+
+### Auto-Logging Integration
+```python
+# Passive auto-logging (no auth required)
+requests.post('https://your-repl.username.repl.co/autolog',
+    json={
+        'input': 'Refactored user authentication',
+        'output': 'Improved security and reduced code complexity',
+        'topic': 'Auth Refactor'
+    })
+```
+
+## 🔧 Development Workflow
+
+### 1. Before Making Changes
+- Read relevant bible documentation
+- Check system health: `GET /system-health`
+- Review current memory context: `GET /context`
+
+### 2. During Development  
+- Log important decisions and insights
+- Use auto-logging for routine operations
+- Monitor system health continuously
+
+### 3. After Changes
+- Verify bible compliance with test script
+- Update relevant documentation
+- Log deployment and results
+- Run infrastructure audit: `GET /audit`
+
+## 🚨 Important Notes
+
+### Security
+- **Never commit API keys** - use Replit Secrets only
+- **All bible documentation is legally binding**
+- **Report security issues immediately** via memory system
+
+### Compliance
+- **AGENT_BIBLE.md compliance required** for all AI interactions
+- **Manual confirmation needed** for any "live" feature claims  
+- **Data handling must follow PRIVACY_POLICY.md**
+
+### Support
+- **System issues**: Log as BugFix in memory system
+- **Feature requests**: Check PRODUCT_BIBLE.md alignment first
+- **Security concerns**: Follow SECURITY_BIBLE.md reporting procedures
+
+---
+
+**MemoryOS is production-ready, audit-compliant, and designed for serious development workflows. All operations are governed by comprehensive documentation standards.**

@@ -2008,6 +2008,7 @@ def get_system_health():
 
 @app.route('/')
 def home():
+    return {'status': 'healthy', 'service': 'Javlin Memory API'}, 200
 
 
 @app.route('/onboarding', methods=['GET'])
@@ -2031,9 +2032,20 @@ def get_onboarding():
         
         onboarding_data = {
             "welcome_message": "Welcome to MemoryOS - Persistent AI Memory System",
-            "agent_bible_compliance": {
-                "status": bible_summary,
-                "last_updated": check_agent_bible_compliance().get("last_updated", "Unknown")
+            "foundational_documentation": {
+                "agent_bible": {
+                    "status": bible_summary,
+                    "last_updated": check_agent_bible_compliance().get("last_updated", "Unknown"),
+                    "description": "Agent behavior boundaries and compliance rules"
+                },
+                "required_reading": [
+                    {"file": "AGENT_BIBLE.md", "purpose": "Agent behavior and pipeline boundaries"},
+                    {"file": "MEMORY_BIBLE.md", "purpose": "Memory schemas and logging standards"},
+                    {"file": "PRODUCT_BIBLE.md", "purpose": "Product vision and feature boundaries"},
+                    {"file": "SECURITY_BIBLE.md", "purpose": "Security principles and practices"},
+                    {"file": "API_REFERENCE.md", "purpose": "Complete API documentation"},
+                    {"file": "PRIVACY_POLICY.md", "purpose": "Data rights and compliance"}
+                ]
             },
             "what_memoryos_can_do": [
                 "✅ Log and retrieve structured memories via API",
@@ -2071,14 +2083,22 @@ def get_onboarding():
                 "agent_context": ["/context", "/build-state", "/daily-focus"],
                 "infrastructure": ["/audit", "/git-sync", "/insights"]
             },
-            "agent_bible_principles": [
-                "🧠 Persistent, cofounder-grade AI for creative/engineering workflows",
-                "📝 Logs decisions, bugs, insights, and emotions as structured memories",
-                "🚨 Cannot execute commands unless triggered by human/Replit Assistant",
-                "✅ Must validate 'live' claims via endpoint checks or human confirmation",
-                "🔍 Always surfaces incomplete states and required next steps",
-                "📊 API-first design with optional manual bridges clearly explained"
+            "bible_compliance_principles": [
+                "🧠 AGENT_BIBLE.md: Persistent, cofounder-grade AI with clear boundaries",
+                "📝 MEMORY_BIBLE.md: Structured logging with standardized schemas",
+                "🎯 PRODUCT_BIBLE.md: Clear feature boundaries and user experience principles",
+                "🔒 SECURITY_BIBLE.md: Security-first design with comprehensive protection",
+                "🕵️ PRIVACY_POLICY.md: User data rights and transparent handling",
+                "🤝 CONTRIBUTING.md: Development standards and bible compliance",
+                "🔗 API_REFERENCE.md: Complete documentation with schema validation"
             ],
+            "governance_framework": {
+                "all_operations_governed_by": "Comprehensive bible documentation",
+                "manual_confirmation_required": "For any 'live' feature claims",
+                "security_compliance": "All operations must follow SECURITY_BIBLE.md",
+                "data_handling": "Must comply with PRIVACY_POLICY.md",
+                "development_standards": "All contributions must follow CONTRIBUTING.md"
+            },
             "success_verification": {
                 "how_to_confirm_features_work": [
                     "Test API endpoints directly (e.g., curl or browser)",
