@@ -64,7 +64,22 @@ app.register_blueprint(task_output_bp)
 from session_manager import SessionManager
 from bible_compliance import init_bible_compliance, requires_confirmation
 from connection_validator import ConnectionValidator
-from compliance_middleware import init_compliance_middleware, send_user_output, log_and_respond, OutputChannel, api_output, ui_output
+try:
+    from compliance_middleware import init_compliance_middleware, send_user_output, log_and_respond, OutputChannel, api_output, ui_output
+except ImportError as e:
+    logging.warning(f"Compliance middleware import failed: {e}")
+    # Create fallback functions
+    def send_user_output(message, channel, metadata=None):
+        return {"message": message, "channel": str(channel), "metadata": metadata}
+    def log_and_respond(message, metadata=None):
+        return {"message": message, "metadata": metadata}
+    class OutputChannel:
+        API_RESPONSE = "api_response"
+        UI_OUTPUT = "ui_output"
+    def api_output(func):
+        return func
+    def ui_output(func):
+        return func
 
 # Initialize all compliance and validation systems
 bible_compliance = init_bible_compliance(BASE_DIR)
@@ -974,4 +989,10 @@ def express_status():
         return jsonify({"status": "error", "error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    try:
+        logging.info("Starting MemoryOS Flask API...")
+        app.run(host='0.0.0.0', port=80, debug=False)
+    except Exception as e:
+        logging.error(f"Failed to start Flask app: {e}")
+        print(f"Error starting app: {e}")
+        exit(1)

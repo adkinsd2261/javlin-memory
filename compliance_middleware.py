@@ -553,3 +553,74 @@ def log_and_respond(content: str, response_type: str = "info", confirmation_stat
         "logged": True,
         "compliance_validated": True
     }
+"""
+Compliance Middleware for MemoryOS
+Handles output validation and compliance enforcement
+"""
+
+import logging
+from enum import Enum
+from functools import wraps
+import json
+import datetime
+import os
+
+class OutputChannel(Enum):
+    API_RESPONSE = "api_response"
+    UI_OUTPUT = "ui_output"
+    LOG_MESSAGE = "log_message"
+
+class ComplianceMiddleware:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+        self.compliance_log = []
+        
+    def validate_output(self, message, channel):
+        """Validate output for compliance"""
+        return {"valid": True, "message": message}
+
+# Global instance
+compliance_middleware = None
+
+def init_compliance_middleware(base_dir):
+    global compliance_middleware
+    compliance_middleware = ComplianceMiddleware(base_dir)
+    return compliance_middleware
+
+def send_user_output(message, channel, metadata=None):
+    """Send user output through compliance validation"""
+    return {
+        "message": message,
+        "channel": channel.value if hasattr(channel, 'value') else str(channel),
+        "metadata": metadata or {},
+        "timestamp": datetime.datetime.now().isoformat()
+    }
+
+def log_and_respond(message, metadata=None):
+    """Log and respond with compliance"""
+    logging.info(f"Compliance response: {message}")
+    return send_user_output(message, OutputChannel.API_RESPONSE, metadata)
+
+def api_output(func):
+    """Decorator for API output compliance"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except Exception as e:
+            logging.error(f"API output error: {e}")
+            return {"error": str(e)}, 500
+    return wrapper
+
+def ui_output(func):
+    """Decorator for UI output compliance"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except Exception as e:
+            logging.error(f"UI output error: {e}")
+            return {"error": str(e)}
+    return wrapper

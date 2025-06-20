@@ -145,7 +145,7 @@ class BibleCompliance:
 
     def requires_confirmation(self, action_type: str = 'general'):
         """Decorator to enforce confirmation requirements per AGENT_BIBLE.md"""
-        def decorator(func: Callable) -> Callable:
+        def confirmation_decorator(func: Callable) -> Callable:
             @wraps(func)
             def confirmation_wrapper(*args, **kwargs):
                 # Check if action requires confirmation
@@ -174,7 +174,7 @@ class BibleCompliance:
                 return result
             confirmation_wrapper.__name__ = f"{func.__name__}_with_confirmation"
             return confirmation_wrapper
-        return decorator
+        return confirmation_decorator
 
     def _check_confirmation_requirement(self, action_type: str, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """Check if action requires confirmation per bible policies with connection-first validation"""
@@ -494,7 +494,7 @@ def requires_confirmation(action_type: str = 'general'):
         return bible_compliance.requires_confirmation(action_type)
     else:
         # Fallback if compliance not initialized
-        def decorator(func):
+        def confirmation_decorator(func):
             @wraps(func)
             def confirmation_wrapper(*args, **kwargs):
                 result = func(*args, **kwargs)
@@ -504,4 +504,4 @@ def requires_confirmation(action_type: str = 'general'):
                 return result
             confirmation_wrapper.__name__ = f"{func.__name__}_with_confirmation"
             return confirmation_wrapper
-        return decorator
+        return confirmation_decorator

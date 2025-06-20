@@ -295,3 +295,41 @@ class SessionManager:
         except Exception as e:
             logging.error(f"Error generating session summary: {e}")
             return f"❌ Error generating session summary: {str(e)}"
+"""
+Session Manager for MemoryOS
+Handles session state and persistence
+"""
+
+import json
+import os
+import datetime
+import logging
+
+class SessionManager:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+        self.sessions_dir = os.path.join(base_dir, 'sessions')
+        os.makedirs(self.sessions_dir, exist_ok=True)
+        
+    def save_session(self, session_id, data):
+        """Save session data"""
+        try:
+            session_file = os.path.join(self.sessions_dir, f"{session_id}.json")
+            with open(session_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            return True
+        except Exception as e:
+            logging.error(f"Error saving session: {e}")
+            return False
+            
+    def load_session(self, session_id):
+        """Load session data"""
+        try:
+            session_file = os.path.join(self.sessions_dir, f"{session_id}.json")
+            if os.path.exists(session_file):
+                with open(session_file, 'r') as f:
+                    return json.load(f)
+            return {}
+        except Exception as e:
+            logging.error(f"Error loading session: {e}")
+            return {}

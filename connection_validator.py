@@ -226,3 +226,69 @@ class ConnectionValidator:
             pass
         
         return self.validate_fresh_connection(action_type, require_endpoints)
+"""
+Connection Validator for MemoryOS
+Validates backend connections and health
+"""
+
+import requests
+import logging
+import datetime
+import json
+import os
+
+class ConnectionValidator:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+        self.last_check = None
+        self.connection_cache = {}
+        
+    def validate_fresh_connection(self, action_type, endpoints=None):
+        """Validate fresh connection for action"""
+        if endpoints is None:
+            endpoints = ['/health', '/memory']
+            
+        result = {
+            'confirmation_allowed': True,
+            'overall_health_score': 100,
+            'failed_endpoints': [],
+            'endpoints_validated': endpoints
+        }
+        
+        # Test each endpoint
+        for endpoint in endpoints:
+            try:
+                response = self._test_endpoint(endpoint)
+                if response.get('status') != 'success':
+                    result['failed_endpoints'].append(endpoint)
+                    result['overall_health_score'] -= 25
+            except Exception as e:
+                result['failed_endpoints'].append(endpoint)
+                result['overall_health_score'] -= 25
+                logging.warning(f"Endpoint {endpoint} failed: {e}")
+                
+        if result['overall_health_score'] < 50:
+            result['confirmation_allowed'] = False
+            
+        return result
+        
+    def _test_endpoint(self, endpoint):
+        """Test a specific endpoint"""
+        try:
+            if endpoint.startswith('http'):
+                url = endpoint
+            else:
+                url = f"http://127.0.0.1:80{endpoint}"
+                
+            response = requests.get(url, timeout=5)
+            
+            return {
+                'status': 'success' if response.status_code == 200 else 'failed',
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds()
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'error': str(e)
+            }
