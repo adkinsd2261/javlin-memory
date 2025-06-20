@@ -1,0 +1,55 @@
+Prompt: Transform Jav Studio into a Truly Interactive, Inspiring Co-Builder Workspace
+
+The current UI is flat, generic, and non-interactive. Users are lost at first glance—there’s no sense of partnership, journey, or inspiration. Here’s what to change:
+
+Add a Playful, Step-By-Step Onboarding Flow
+
+First-time (or returning) users are personally welcomed by Jav (avatar/animation)—“Hey, [Name], I’m Jav! Ready to build together?”
+
+Walk them through the core creative loop (memory, suggestion, code, implementation, undo, bible).
+
+Use interactive coach marks, tooltips, and “first mission” demo (“Let’s create your first memory by brainstorming an idea together!”)
+
+Make Jav’s Presence Tangible
+
+Prominent, animated Jav avatar that responds to user actions.
+
+Chat bubbles/voice/tone that shift with context (“Thinking…”, “Let’s try this!”).
+
+Jav reacts visually when you drag, drop, or interact—always feels alive and collaborative.
+
+Show Creative Flow, Not Just a Blank Canvas
+
+Add a “creative timeline” (visual history of memories, actions, and builds).
+
+Example projects, recent memories, inspirational cards on first load.
+
+Show what’s possible (“Try building a Flask app! Want an AI code review?”)
+
+Elevate Visual Hierarchy & Rhythm
+
+Use layered color, shadow, and animation to lead the eye.
+
+Make “Begin Building” a big, inviting, central call to action—everything else fades back.
+
+Key actions (drop, chat, code, implement) should pop with animation/feedback.
+
+Contextual, Inline Suggestions
+
+Don’t wait for input—Jav should propose ideas, tips, and next actions dynamically (“Try asking for a project idea!”).
+
+As the user interacts, suggestions update live—just like a real co-builder.
+
+Real Creative Workspace Metaphors
+
+Dockable panels, floating “memory cards”, draggable timeline, agent chat always visible.
+
+“Ready for your next breakthrough?”—the workspace inspires action.
+
+Goal:
+From first second, users feel Jav is a creative partner.
+Onboarding is interactive, emotional, and demo-driven—everyone gets an immediate taste of “magic.”
+The UI/UX is fluid, layered, and rhythmically guides users from idea to memory to implementation.
+
+If you need inspiration, ask for a wireframe, animation, or competitor breakdown.
+
