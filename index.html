@@ -834,7 +834,7 @@
         }
 
         .particle {
-            position: absolute;
+            position: absolute,
             width: 4px;
             height: 4px;
             border-radius: 50%;
@@ -902,6 +902,244 @@
 
         .avatar-reaction.error {
             color: #f44336;
+        }
+
+        /* Immersive Onboarding Styles */
+        .immersive-onboarding {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(15, 15, 35, 0.98) 0%, rgba(8, 8, 20, 0.99) 100%);
+            backdrop-filter: blur(20px);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .onboarding-avatar-stage {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 60px;
+        }
+
+        .stage-avatar {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(2.5);
+        }
+
+        .stage-avatar .javlin-avatar {
+            width: 80px;
+            height: 80px;
+        }
+
+        .stage-avatar .avatar-orb {
+            width: 100%;
+            height: 100%;
+        }
+
+        .stage-avatar.breathing {
+            animation: gentle-breathing 3s ease-in-out infinite;
+        }
+
+        .stage-avatar.excited {
+            animation: excited-pulse 2s ease-in-out infinite;
+        }
+
+        .stage-avatar.listening {
+            animation: listening-glow 2.5s ease-in-out infinite;
+        }
+
+        @keyframes gentle-breathing {
+            0%, 100% { 
+                transform: scale(2.5);
+                opacity: 0.9;
+            }
+            50% { 
+                transform: scale(2.7);
+                opacity: 1;
+            }
+        }
+
+        @keyframes excited-pulse {
+            0%, 100% { 
+                transform: scale(2.5);
+                box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+            }
+            50% { 
+                transform: scale(2.8);
+                box-shadow: 0 0 60px rgba(168, 85, 247, 0.9);
+            }
+        }
+
+        @keyframes listening-glow {
+            0%, 100% { 
+                transform: scale(2.5);
+                box-shadow: 0 0 50px rgba(124, 58, 237, 0.7);
+            }
+            50% { 
+                transform: scale(2.7);
+                box-shadow: 0 0 80px rgba(59, 130, 246, 0.9);
+            }
+        }
+
+        .onboarding-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 0 40px;
+        }
+
+        .onboarding-title {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 16px;
+            background: linear-gradient(45deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: title-glow 3s ease-in-out infinite;
+        }
+
+        .onboarding-subtitle {
+            font-size: 1.5rem;
+            color: #8b5cf6;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+
+        .onboarding-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        @keyframes title-glow {
+            0%, 100% { 
+                text-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+            }
+            50% { 
+                text-shadow: 0 0 30px rgba(236, 72, 153, 0.5);
+            }
+        }
+
+        .onboarding-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .onboarding-button {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 32px;
+            color: white;
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .onboarding-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .onboarding-button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .onboarding-button.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .onboarding-progress {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .onboarding-skip {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .onboarding-skip:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .demo-highlight {
+            position: absolute;
+            border: 2px solid #8b5cf6;
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.1);
+            pointer-events: none;
+            z-index: 310;
+            animation: highlight-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes highlight-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(139, 92, 246, 0.8);
+            }
+        }
+
+        .typewriter-text {
+            overflow: hidden;
+            border-right: 2px solid #8b5cf6;
+            white-space: nowrap;
+            animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
+            max-width: fit-content;
+            margin: 0 auto;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #8b5cf6; }
         }
     </style>
 </head>
@@ -1245,12 +1483,64 @@
         </div>
     </div>
 
+    <!-- Immersive Onboarding -->
+    <div class="immersive-onboarding" x-show="showImmersiveOnboarding">
+        <button @click="showImmersiveOnboarding = false">Close Onboarding</button>
+    </div>
     <script>
         function javWorkspace() {
             return {
                 // Core State
                 totalMemories: 0,
                 showOnboarding: false,
+                showImmersiveOnboarding: false,
+                onboardingStep: 0,
+                onboardingSteps: [
+                    {
+                        title: "Hey, I'm Jav! 👋",
+                        subtitle: "Your creative AI partner",
+                        description: "I'm here to help you build, ideate, and solve problems without getting in your way.",
+                        action: "next",
+                        avatarState: "excited"
+                    },
+                    {
+                        title: "Let's Chat! 💬",
+                        subtitle: "Try saying hello",
+                        description: "I understand natural language. Just tell me what you want to build or ask for help.",
+                        action: "demo_chat",
+                        avatarState: "listening"
+                    },
+                    {
+                        title: "Creative & Dev Modes 🎨⚡",
+                        subtitle: "I adapt to your workflow",
+                        description: "Creative mode for collaboration, Dev mode for focused reviews. Press ⌘⇧M to switch anytime.",
+                        action: "demo_mode_switch",
+                        avatarState: "creative"
+                    },
+                    {
+                        title: "Your Memory System 🧠",
+                        subtitle: "Everything builds on what came before",
+                        description: "I remember every solution, every creative decision. Your workspace gets smarter with every interaction.",
+                        action: "demo_memory",
+                        avatarState: "dev"
+                    },
+                    {
+                        title: "Quick Actions & Shortcuts ⚡",
+                        subtitle: "Power at your fingertips",
+                        description: "⌘J opens me, ⌘K searches memories, ⌘M opens timeline, ⌘Q shows quick actions.",
+                        action: "demo_shortcuts",
+                        avatarState: "listening"
+                    },
+                    {
+                        title: "Ready to Create! 🚀",
+                        subtitle: "Let's build something amazing together",
+                        description: "Your calm, creative workspace is ready. I'll be floating here whenever you need me.",
+                        action: "complete",
+                        avatarState: "excited"
+                    }
+                ],
+                onboardingProgress: 0,
+                showOnboardingSkip: false,
                 panelOpen: false,
                 panelFullWidth: false,
 
