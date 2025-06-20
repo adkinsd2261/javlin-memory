@@ -463,6 +463,74 @@ def ai_context():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
+@app.route('/jav/chat', methods=['POST'])
+def jav_chat():
+    """Jav chat interface endpoint"""
+    try:
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({"error": "No message provided"}), 400
+        
+        # Import Jav components
+        from jav_agent import jav
+        from jav_chat import JavChat
+        
+        # Initialize chat interface
+        chat = JavChat(jav)
+        
+        # Process the command
+        result = chat.process_command(data['message'])
+        
+        # Log the interaction
+        jav.log_to_memory(
+            topic=f"Jav Chat: {data['message'][:50]}",
+            type_="UserInteraction",
+            input_=data['message'],
+            output=str(result),
+            success=result.get('type') != 'error',
+            category="jav"
+        )
+        
+        return jsonify({
+            "status": "success",
+            "response": result,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Jav chat error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/jav/status')
+def jav_status():
+    """Get Jav agent status"""
+    try:
+        from jav_agent import jav
+        
+        # Get current state
+        audit_result = jav.audit_current_state()
+        
+        return jsonify({
+            "status": "active",
+            "agent_version": "1.0.0",
+            "current_state": audit_result,
+            "config_loaded": bool(jav.me_config),
+            "workflows_loaded": len(jav.workflows),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Jav status error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
 @app.route('/product/audit')
 def product_audit():
     """Comprehensive product audit for strategic analysis"""

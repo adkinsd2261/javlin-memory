@@ -20,7 +20,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Bulletproof Start"
+runButton = "Start Jav Assistant"
 
 [[workflows.workflow]]
 name = "Start MemoryOS API"
@@ -83,3 +83,20 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python bulletproof_startup.py"
+
+[[workflows.workflow]]
+name = "Start Jav Assistant"
+author = 44033680
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"python.*main.py\" 2>/dev/null || echo \"No processes to kill\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 2"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
