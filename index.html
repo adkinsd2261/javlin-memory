@@ -5,158 +5,725 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MemoryOS - Deep Work AI Agent</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .glass { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
-        .typing-indicator { opacity: 0.7; }
-        .typing-indicator span { animation: typing 1.4s infinite; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --blue-primary: #0080ff;
+            --blue-secondary: #0066cc;
+            --blue-glow: #0080ff40;
+            --white-primary: #ffffff;
+            --white-secondary: #f0f0f0;
+            --white-muted: #cccccc;
+            --gray-dark: #333333;
+            --gray-medium: #666666;
+            --gray-light: #999999;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--white-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Premium Glow Effects */
+        .glow-blue {
+            box-shadow: 0 0 20px var(--blue-glow), 0 0 40px var(--blue-glow);
+        }
+
+        .glow-white {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        /* Background Effects */
+        .bg-gradient-radial {
+            background: radial-gradient(circle at center, var(--bg-secondary) 0%, var(--bg-primary) 70%);
+        }
+
+        .bg-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bg-glass-blue {
+            background: rgba(0, 128, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 128, 255, 0.2);
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-bottom: 1px solid var(--gray-dark);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--blue-primary), transparent);
+        }
+
+        .logo-container {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--white-primary) 0%, var(--blue-primary) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .logo-container::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, var(--blue-primary), var(--white-primary));
+            border-radius: 14px;
+            z-index: -1;
+            filter: blur(4px);
+            opacity: 0.6;
+        }
+
+        .logo-diamond {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--white-primary) 0%, var(--blue-primary) 100%);
+            transform: rotate(45deg);
+            border-radius: 4px;
+        }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-healthy {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+        }
+
+        .status-loading {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--gray-dark);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-secondary) 100%);
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+
+        .chat-messages {
+            height: 480px;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg-primary);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--gray-dark);
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .message-user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .message-user .message-bubble {
+            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-secondary) 100%);
+            color: var(--white-primary);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-assistant .message-bubble {
+            background: var(--bg-glass);
+            color: var(--white-secondary);
+            border: 1px solid var(--gray-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .message-user .message-avatar {
+            background: var(--blue-primary);
+            color: var(--white-primary);
+        }
+
+        .message-assistant .message-avatar {
+            background: var(--bg-glass);
+            border: 1px solid var(--gray-dark);
+            color: var(--blue-primary);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--gray-light);
+            margin-top: 4px;
+        }
+
+        /* Typing Animation */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--blue-primary);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--gray-dark);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--gray-dark);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--white-primary);
+            font-size: 0.9rem;
+            resize: none;
+            max-height: 120px;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 0 2px var(--blue-glow);
+        }
+
+        .chat-input::placeholder {
+            color: var(--gray-light);
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-secondary) 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: var(--white-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-send-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px var(--blue-glow);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Sidebar Cards */
+        .sidebar-card {
+            background: var(--bg-glass);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gray-dark);
+        }
+
+        .sidebar-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+
+        .sidebar-card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--bg-glass-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--white-primary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .stat-label {
+            color: var(--white-muted);
+            font-size: 0.875rem;
+        }
+
+        .stat-value {
+            color: var(--blue-primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Memory Items */
+        .memory-item {
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--gray-dark);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--blue-primary);
+        }
+
+        .memory-item-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .memory-type {
+            background: var(--bg-glass-blue);
+            color: var(--blue-primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .memory-time {
+            color: var(--gray-light);
+            font-size: 0.75rem;
+            margin-left: auto;
+        }
+
+        .memory-topic {
+            color: var(--white-secondary);
+            font-size: 0.875rem;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .memory-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .memory-status {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .memory-status.success {
+            color: #00ff00;
+        }
+
+        .memory-status.failed {
+            color: #ff4444;
+        }
+
+        .memory-category {
+            color: var(--gray-light);
+            font-size: 0.75rem;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--gray-dark);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--white-secondary);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-glass);
+            border-color: var(--blue-primary);
+            color: var(--white-primary);
+        }
+
+        .action-btn:hover .action-icon {
+            color: var(--blue-primary);
+        }
+
+        .action-icon {
+            font-size: 1.2rem;
+            color: var(--gray-light);
+            transition: color 0.2s ease;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--gray-dark);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--white-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--gray-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--white-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+
+            .chat-messages {
+                height: 300px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .text-center { text-align: center; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .opacity-60 { opacity: 0.6; }
+        .opacity-80 { opacity: 0.8; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen" x-data="memoryOS()">
+<body x-data="memoryOS()">
     <!-- Header -->
-    <header class="gradient-bg text-white py-6 shadow-lg">
-        <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                        <span class="text-2xl">🧠</span>
+    <header class="header">
+        <div class="container">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="logo-container glow-blue">
+                        <div class="logo-diamond"></div>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold">MemoryOS</h1>
-                        <p class="text-white/80 text-sm">Your Deep Work AI Agent</p>
+                        <h1 class="text-glow" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;">MemoryOS</h1>
+                        <p style="color: var(--white-muted); font-size: 0.875rem;">Your Deep Work AI Agent</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="glass rounded-lg px-4 py-2">
-                        <span class="text-sm">Status: </span>
-                        <span x-text="systemStatus" :class="systemStatus === 'healthy' ? 'text-green-300' : 'text-red-300'"></span>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="status-pill" :class="systemStatus === 'healthy' ? 'status-healthy' : 'status-loading'">
+                        <span x-text="systemStatus === 'healthy' ? '●' : '○'"></span>
+                        <span x-text="systemStatus"></span>
                     </div>
-                    <div class="glass rounded-lg px-4 py-2">
-                        <span class="text-sm">Memories: </span>
-                        <span x-text="totalMemories" class="font-mono"></span>
+                    <div class="status-pill bg-glass">
+                        <span class="mono" x-text="totalMemories"></span>
+                        <span>memories</span>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Interface -->
-    <div class="container mx-auto px-6 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- AI Chat Interface -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
-                        <h2 class="text-xl font-semibold flex items-center">
-                            <span class="mr-3">🤖</span>
-                            AI Agent Chat
-                        </h2>
-                        <p class="text-white/80 text-sm mt-1">Context-aware conversations with persistent memory</p>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-grid">
+            <!-- Chat Interface -->
+            <div class="chat-container glow-white">
+                <div class="chat-header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 1.5rem;">🤖</div>
+                        <div>
+                            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 4px;">AI Agent Chat</h2>
+                            <p style="opacity: 0.8; font-size: 0.875rem;">Context-aware conversations with persistent memory</p>
+                        </div>
                     </div>
-                    
-                    <!-- Chat Messages -->
-                    <div class="h-96 overflow-y-auto p-6 space-y-4" x-ref="chatContainer">
-                        <template x-for="message in chatHistory" :key="message.id">
-                            <div class="flex" :class="message.role === 'user' ? 'justify-end' : 'justify-start'">
-                                <div class="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl" 
-                                     :class="message.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'">
-                                    <p class="text-sm" x-text="message.content"></p>
-                                    <span class="text-xs opacity-60" x-text="new Date(message.timestamp).toLocaleTimeString()"></span>
-                                </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div class="chat-messages" x-ref="chatContainer">
+                    <template x-for="message in chatHistory" :key="message.id">
+                        <div class="message" :class="message.role === 'user' ? 'message-user' : 'message-assistant'">
+                            <div class="message-avatar">
+                                <span x-text="message.role === 'user' ? 'You' : '🧠'"></span>
                             </div>
-                        </template>
-                        
-                        <!-- Typing Indicator -->
-                        <div x-show="isTyping" class="flex justify-start">
-                            <div class="bg-gray-100 px-4 py-3 rounded-2xl">
-                                <div class="typing-indicator flex space-x-1">
-                                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                            <div>
+                                <div class="message-bubble">
+                                    <p x-text="message.content"></p>
+                                </div>
+                                <div class="message-time" x-text="new Date(message.timestamp).toLocaleTimeString()"></div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Typing Indicator -->
+                    <div x-show="isTyping" class="message message-assistant">
+                        <div class="message-avatar">🧠</div>
+                        <div>
+                            <div class="message-bubble">
+                                <div class="typing-indicator">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Chat Input -->
-                    <div class="border-t p-6">
-                        <form @submit.prevent="sendMessage()" class="flex space-x-4">
-                            <input 
-                                type="text" 
-                                x-model="currentMessage"
-                                placeholder="Ask your AI agent anything..."
-                                class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                :disabled="isTyping"
-                            >
-                            <button 
-                                type="submit"
-                                :disabled="!currentMessage.trim() || isTyping"
-                                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-xl font-medium transition-colors"
-                            >
-                                Send
-                            </button>
-                        </form>
-                    </div>
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <form @submit.prevent="sendMessage()" class="chat-input-wrapper">
+                        <textarea 
+                            x-model="currentMessage"
+                            placeholder="Ask your AI agent anything..."
+                            class="chat-input"
+                            rows="1"
+                            :disabled="isTyping"
+                            @keydown.enter.exact.prevent="sendMessage()"
+                            @input="autoResize($event)"
+                        ></textarea>
+                        <button 
+                            type="submit"
+                            :disabled="!currentMessage.trim() || isTyping"
+                            class="chat-send-btn"
+                        >
+                            <span>Send</span>
+                            <span>→</span>
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <!-- Memory & System Panel -->
-            <div class="space-y-6">
-                
-                <!-- Quick Stats -->
-                <div class="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <span class="mr-2">📊</span>
-                        System Overview
-                    </h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Total Memories</span>
-                            <span class="font-mono font-medium" x-text="totalMemories"></span>
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- System Overview -->
+                <div class="sidebar-card">
+                    <div class="sidebar-card-header">
+                        <div class="sidebar-card-icon">📊</div>
+                        <div class="sidebar-card-title">System Overview</div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Memories</span>
+                            <span class="stat-value mono" x-text="totalMemories"></span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Success Rate</span>
-                            <span class="font-mono font-medium" x-text="successRate"></span>
+                        <div class="stat-item">
+                            <span class="stat-label">Success Rate</span>
+                            <span class="stat-value mono" x-text="successRate"></span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">AI Provider</span>
-                            <span class="font-mono font-medium" x-text="aiProvider"></span>
+                        <div class="stat-item">
+                            <span class="stat-label">AI Provider</span>
+                            <span class="stat-value" x-text="aiProvider"></span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Session</span>
-                            <span class="font-mono text-xs" x-text="sessionId"></span>
+                        <div class="stat-item">
+                            <span class="stat-label">Session</span>
+                            <span class="stat-value mono text-xs" x-text="sessionId.slice(-8)"></span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Recent Memories -->
-                <div class="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <span class="mr-2">🧠</span>
-                        Recent Memories
-                    </h3>
-                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                <div class="sidebar-card">
+                    <div class="sidebar-card-header">
+                        <div class="sidebar-card-icon">🧠</div>
+                        <div class="sidebar-card-title">Recent Memories</div>
+                    </div>
+                    <div style="max-height: 320px; overflow-y: auto;">
                         <template x-for="memory in recentMemories" :key="memory.timestamp">
-                            <div class="border-l-4 border-blue-200 pl-3 py-2">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm font-medium" x-text="memory.type"></span>
-                                    <span class="text-xs text-gray-500" x-text="getRelativeTime(memory.timestamp)"></span>
+                            <div class="memory-item">
+                                <div class="memory-item-header">
+                                    <span class="memory-type" x-text="memory.type"></span>
+                                    <span class="memory-time" x-text="getRelativeTime(memory.timestamp)"></span>
                                 </div>
-                                <p class="text-sm text-gray-600 line-clamp-2" x-text="memory.topic"></p>
-                                <div class="flex items-center mt-1 space-x-2">
-                                    <span :class="memory.success ? 'text-green-600' : 'text-red-600'" class="text-xs">
+                                <div class="memory-topic" x-text="memory.topic"></div>
+                                <div class="memory-meta">
+                                    <div class="memory-status" :class="memory.success ? 'success' : 'failed'">
                                         <span x-text="memory.success ? '✅' : '❌'"></span>
                                         <span x-text="memory.success ? 'Success' : 'Failed'"></span>
-                                    </span>
-                                    <span class="text-xs text-gray-400" x-text="memory.category"></span>
+                                    </div>
+                                    <div class="memory-category" x-text="memory.category"></div>
                                 </div>
                             </div>
                         </template>
@@ -164,32 +731,23 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <span class="mr-2">⚡</span>
-                        Quick Actions
-                    </h3>
-                    <div class="space-y-3">
-                        <button 
-                            @click="refreshMemories()"
-                            class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                        >
-                            <span class="mr-2">🔄</span>
-                            Refresh Context
+                <div class="sidebar-card">
+                    <div class="sidebar-card-header">
+                        <div class="sidebar-card-icon">⚡</div>
+                        <div class="sidebar-card-title">Quick Actions</div>
+                    </div>
+                    <div>
+                        <button @click="refreshMemories()" class="action-btn">
+                            <span class="action-icon">🔄</span>
+                            <span>Refresh Context</span>
                         </button>
-                        <button 
-                            @click="showMemoryTimeline = !showMemoryTimeline"
-                            class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                        >
-                            <span class="mr-2">📋</span>
-                            View Memory Timeline
+                        <button @click="showMemoryTimeline = !showMemoryTimeline" class="action-btn">
+                            <span class="action-icon">📋</span>
+                            <span>Memory Timeline</span>
                         </button>
-                        <button 
-                            @click="exportMemories()"
-                            class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                        >
-                            <span class="mr-2">📥</span>
-                            Export Memories
+                        <button @click="exportMemories()" class="action-btn">
+                            <span class="action-icon">📥</span>
+                            <span>Export Memories</span>
                         </button>
                     </div>
                 </div>
@@ -202,18 +760,14 @@
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50">
-        <div class="min-h-screen px-4 text-center">
-            <div class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-semibold">Memory Timeline</h3>
-                    <button @click="showMemoryTimeline = false" class="text-gray-400 hover:text-gray-600">
-                        <span class="text-2xl">×</span>
-                    </button>
-                </div>
-                <div id="memory-timeline-container" class="max-h-96 overflow-y-auto">
-                    <!-- Timeline will be loaded here -->
-                </div>
+         class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Memory Timeline</h3>
+                <button @click="showMemoryTimeline = false" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div x-text="'Timeline feature coming soon...'"></div>
             </div>
         </div>
     </div>
@@ -248,6 +802,14 @@
                         content: `🧠 Welcome to MemoryOS! I'm your context-aware AI agent with access to ${this.totalMemories} memories. I maintain persistent awareness across all our conversations. How can I help you today?`,
                         timestamp: new Date().toISOString()
                     });
+                    this.scrollToBottom();
+                },
+
+                // Auto-resize textarea
+                autoResize(event) {
+                    const textarea = event.target;
+                    textarea.style.height = 'auto';
+                    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
                 },
 
                 // Send message to AI agent
