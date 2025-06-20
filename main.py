@@ -749,7 +749,7 @@ def get_top_unreviewed_for_feedback(memory, limit=10):
         except:
             recency_bonus = -1000  # Very old or invalid timestamp
 
-        return (importance, recencye, recency_bonus)
+        return (importance, recency_bonus)
 
     sorted_unreviewed = sorted(unreviewed, key=sort_key, reverse=True)
 
