@@ -1,0 +1,64 @@
+The current “Start Creating” onboarding is NOT matching the required cinematic experience:
+
+There is NO full-canvas overlay, animation, or multi-step onboarding.
+
+The avatar does not appear in the center, breathe, or animate through steps.
+
+The onboarding is just a chat sidebar—not a cinematic or guided event.
+
+No transitions, no progress, no workspace highlighting—none of the experience outlined in the blueprint.
+
+What needs to be implemented (reference the blueprint):
+
+When “Start Creating” is clicked:
+
+Fade out (or blur) the main workspace
+
+Present a full-canvas overlay (z-index 9999), covering all UI
+
+Center the animated Jav avatar (2.5x size), glowing and breathing
+
+Animated, Step-by-Step Story:
+
+Display animated welcome text (“typewriter”/fade-in) below the avatar
+
+Show 4-6 progress dots or a progress bar below the headline
+
+Each step:
+
+Jav animates differently (idle, excited, listening, etc.)
+
+Relevant part of workspace is highlighted (with a glow/outline if possible)
+
+Concise, on-brand tip for that step (“Here’s memory search, here’s creative mode,” etc.)
+
+Next/Back buttons, on-brand, with smooth transitions
+
+Final Step:
+
+Jav avatar floats/shrinks to the normal corner position
+
+Overlay fades away, main workspace returns, user is ready to use all features
+
+Skip Option:
+
+Always provide a visible, on-brand “Skip” button/link (bottom or corner)
+
+Technical Implementation Hints
+Use a dedicated React component or overlay div for onboarding (conditionally rendered).
+
+Animate avatar with Framer Motion, GSAP, or CSS keyframes.
+
+Overlay must cover the entire workspace (not just right side).
+
+Use consistent gradients, glow, and border-radius for all elements.
+
+Steps and transitions must feel premium—no pop-in modals or sidebar hacks.
+
+Reference
+See attached screenshot for current, incorrect implementation.
+
+Refer to this blueprint (paste your previous message or docs) for the target onboarding experience.
+
+The goal is a cinematic, animated “Jav welcomes you” moment, with full-canvas takeover, not a sidebar chat. Please review the implementation, and iterate until the live product actually matches this vision—both visually and interactively.
+
