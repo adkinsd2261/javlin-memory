@@ -309,6 +309,28 @@
         "README.md"
       ],
       "logged_to_memory": true
+    },
+    {
+      "hash": "56e9e219b3e03035eff925777b82b7e690ab8e02",
+      "message": "Checkpoint before assistant change: Document agent guidelines and update project documentation for clarityAdds AGENT_BIBLE.md, updates README.md, commit_log.json, and memory.json to document agent behavior and pipeline requirements.Replit-Commit-Author: Assistant",
+      "timestamp": "2025-06-20T01:51:44.074140+00:00",
+      "files_changed": [
+        "commit_log.json",
+        "memory.json"
+      ],
+      "logged_to_memory": true
+    },
+    {
+      "hash": "3480ce2a31e4424ffde40b443a838b616cd93e1b",
+      "message": "Assistant checkpoint: Implement AGENT_BIBLE.md compliance system across codebaseAssistant generated file changes:- main.py: Add AGENT_BIBLE.md docstring and compliance references, Add AGENT_BIBLE.md compliance check function, Update system health endpoint with AGENT_BIBLE.md compliance check, Update health score calculation with AGENT_BIBLE.md compliance, Add onboarding endpoint with AGENT_BIBLE.md principles, Add AGENT_BIBLE.md validation to autolog functions- README.md: Add AGENT_BIBLE.md governance statement, Add AGENT_BIBLE.md quick start section- agent_bible_compliance_test.py: Create AGENT_BIBLE.md compliance test script- .github/workflows/agent_bible_compliance.yml: Create GitHub Actions workflow for compliance checking---User prompt:1. Add a docstring or comment at the top of all core agent logic (main.py, memory logging, API endpoints) referencing AGENT_BIBLE.md as the behavioral authority.2. In your onboarding route (e.g. /onboarding or first-run handler), add:   - A summary of the AGENT_BIBLE.md principles for new users   - A \u201cWhat I can/can\u2019t do\u201d checklist in the onboarding UI or output3. In system health checks (/system-health or /status), display:   - Last updated date of AGENT_BIBLE.md   - If current agent code matches documented behaviors (log a warning if not)4. Before executing any command or marking a feature \u201clive,\u201d verify:   - If the confirmation requirement from AGENT_BIBLE.md is satisfied   - If not, return an explicit message in the API/UI: \u201cManual confirmation required by AGENT_BIBLE.md: [reason]\u201d5. In README.md, add:   - \u201cThis project is governed by AGENT_BIBLE.md for all AI/agent logic, pipeline integration, and user experience.\u201d6. Optional: Set up a test or linter that checks for AGENT_BIBLE.md compliance in agent logic on every commit or PR.This ensures that MemoryOS, all agent code, and user experience remain fully aligned with the behaviors and boundaries established in AGENT_BIBLE.md.Replit-Commit-Author: AssistantReplit-Commit-Session-Id: 123af9d8-1e8f-4592-82e4-585aa9a47bd9",
+      "timestamp": "2025-06-20T01:53:44.304526+00:00",
+      "files_changed": [
+        ".github/workflows/agent_bible_compliance.yml",
+        "README.md",
+        "agent_bible_compliance_test.py",
+        "main.py"
+      ],
+      "logged_to_memory": true
     }
   ],
   "auto_log_commits": true,
