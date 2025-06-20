@@ -1,0 +1,95 @@
+Jav Onboarding Event — Implementation Blueprint
+Goal:
+Implement a cinematic, animated onboarding event presented by Jav, fully integrated with our dark, minimal, neon-accented workspace. This must feel like a seamless, magical “meeting Jav” experience—not a popup, modal, or generic tour.
+
+1. Onboarding Launch Mechanism
+Trigger:
+When user clicks “Start Creating” (or first visit), fade out workspace content gently.
+
+Canvas Overlay:
+Render a full-screen overlay (position: fixed, z-index: 9999) with dark semi-transparent background, matching our site’s deep hue.
+
+Avatar Centerpiece:
+Jav’s animated avatar appears at the center (2.5x normal size), with breathing/pulse glow using the site’s primary neon gradient.
+
+2. Cinematic Avatar Animation
+Breathing / Idle:
+Use @keyframes or Framer Motion for smooth pulse—soft glow radiates outward, subtly shifts hue (no rapid/harsh effects).
+
+State Animations:
+
+Intro: Jav “wakes up” with a gentle scale+fade+glow.
+
+Excited: Slight hop/bounce + brighter glow.
+
+Listening: Soft shimmer, maybe a “listening ring” pulse.
+
+Theme:
+Use the same color palette, box-shadow, and border-radius as existing site elements.
+
+3. Interactive, Animated Story Flow
+Typewriter/Reveal Text:
+Large headline (“Welcome! I’m Jav. Ready to create together?”), animated in with a typewriter or fade-in effect.
+
+Animated Progress Steps:
+Below the avatar, display 4-6 progress dots or a progress bar—styled with our neon/gradient.
+
+Step-by-Step Guide:
+For each feature (memory, creative/dev mode, quick actions, shortcuts, etc.):
+
+Jav animates to express excitement or “points” at demo.
+
+Highlight relevant workspace area with an animated border/glow (e.g., highlight memory count, mode switcher, etc.).
+
+Accompany with concise microcopy and actionable tip (e.g., “Switch modes any time with this button!”).
+
+Use Next/Back buttons, large, rounded, and on-brand.
+
+4. Seamless Workspace Integration
+Smooth Transitions:
+Each onboarding step smoothly transitions (opacity, scale, or slide) instead of hard cuts or pop-ins.
+
+Live Demo:
+When showing “mode switching” or “memory flow,” animate the actual UI elements (or demo versions) so users see how they’ll interact for real.
+
+Dismiss/Skip:
+Prominently display a “Skip intro” (text link, bottom right)—never block user’s flow.
+
+Onboarding End:
+Final message from Jav (“Let’s build something together!”), then avatar smoothly shrinks/fades into its normal corner position; main workspace fades back in.
+
+5. Technical Hints (React/JS/HTML/CSS)
+Overlay:
+Use a dedicated onboarding component (e.g., <JavOnboarding />) rendered conditionally.
+
+Avatar Animation:
+Framer Motion or GSAP for smooth scale, glow, and movement.
+
+Workspace Highlight:
+Use absolute-positioned translucent borders/divs to “call out” features behind the overlay (with a drop-shadow glow effect).
+
+Progress Steps:
+Flex container, on-brand neon gradient for active step, subtle for inactive.
+
+Responsiveness:
+Center everything, max-width 700px, plenty of vertical breathing room.
+
+6. Always On-Brand, Never Distracting
+Minimal, deep work:
+Plenty of empty space, no excessive clutter.
+
+Never break theme:
+No “off the shelf” modals or generic illustration styles.
+
+Copy:
+Use warm, brief, inviting text. Jav speaks like a partner, not a bot.
+
+References
+Design inspiration:
+Apple onboarding, Notion’s onboarding, modern “hero” landing pages.
+
+Existing product elements:
+Use same shadows, gradients, border-radius, typography as the current workspace.
+
+If you need copy for each step or have any UI questions, ask me!
+Every implementation detail should look and feel like it was always part of this product, not bolted on.
