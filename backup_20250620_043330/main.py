@@ -1031,9 +1031,9 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Clean git sync"""
+    """Simple git sync using unified manager"""
     try:
-        from git_manager import git_manager
+        from simple_git_manager import git_manager
         
         message = request.args.get('message', '🔧 Manual sync via API endpoint')
         result = git_manager.commit_and_push(message)
@@ -1096,8 +1096,24 @@ def log_to_memory(topic, type_, input_, output, success=True, score=None, max_sc
     except Exception as e:
         print(f"Failed to save memory: {e}")
 
-    # Simple logging without complex auto-sync
-    print(f"Memory logged: {topic} - {len(memory)} total entries")
+    # Schedule auto-sync check (don't run immediately to prevent recursion)
+    try:
+        syncer = GitHubSyncer(BASE_DIR)
+        recent_logs = memory[-10:]  # Check last 10 entries
+
+        # Only check if sync is needed, don't actually sync to prevent recursion
+        if syncer.should_auto_sync(recent_logs):
+            print(f"Auto-sync scheduled: {len(recent_logs)} recent changes detected")
+            # Create a flag file for external sync triggering
+            sync_flag_file = os.path.join(BASE_DIR, '.sync_needed')
+            with open(sync_flag_file, 'w') as f:
+                json.dump({
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'changes_count': len(recent_logs),
+                    'reason': 'auto_sync_threshold_met'
+                }, f)
+    except Exception as e:
+        print(f"Auto-sync scheduling failed: {e}")
 
     return entry
 
