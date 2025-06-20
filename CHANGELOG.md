@@ -14,6 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [v0.11.0] - 2025-06-20
+
+### Features
+- Git Commit: Checkpoint before assistant change: Document agent...: Committed changes with hash 56e9e219...
+- Git Commit: Assistant checkpoint: Implement AGENT_BIBLE.md com...: Committed changes with hash 3480ce2a...
+- Git Commit: Checkpoint before assistant change: Enhance the AI...: Committed changes with hash 7d0b98d8...
+- Git Commit: Assistant checkpoint: Context rehydration workflow...: Committed changes with hash e92ea27d...
+- Git Commit: Checkpoint before assistant change: Ensure reliabl...: Committed changes with hash 11acf636...
+
+### Other
+- Founder Insight - Product Category and Trajectory: Logged as a pivotal founder insight: This system can create a new product category and achieve break...
+
+
 ## [v0.10.0] - 2025-06-20
 
 ### Features

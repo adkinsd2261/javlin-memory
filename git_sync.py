@@ -459,7 +459,16 @@ class GitHubSyncer:
 
     def run_auto_sync(self, force: bool = False) -> Dict[str, any]:
         """Run auto-sync with proper lock handling and loop prevention"""
+        import fcntl
+        import tempfile
+        
+        # Use file locking to prevent concurrent sync operations
+        lock_file_path = os.path.join(tempfile.gettempdir(), 'memoryos_git_sync.lock')
+        
         try:
+            lock_file = open(lock_file_path, 'w')
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            
             # Prevent recursive calls by checking if sync is already running
             if hasattr(self, '_sync_in_progress') and self._sync_in_progress:
                 return {"status": "skipped", "message": "Sync already in progress"}
@@ -513,24 +522,68 @@ class GitHubSyncer:
             # Always clear the in-progress flag
             if hasattr(self, '_sync_in_progress'):
                 self._sync_in_progress = False
+            
+            # Release file lock
+            try:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                lock_file.close()
+                os.unlink(lock_file_path)
+            except:
+                pass
 
     def _force_clear_git_locks(self):
-        """Force clear all git lock files"""
+        """Force clear all git lock files with process checking"""
+        import time
+        import psutil
+        
+        # Kill any running git processes first
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                if proc.info['name'] and 'git' in proc.info['name'].lower():
+                    if proc.info['cmdline'] and any('git' in str(cmd).lower() for cmd in proc.info['cmdline']):
+                        try:
+                            proc.terminate()
+                            time.sleep(0.5)
+                            if proc.is_running():
+                                proc.kill()
+                            self.logger.info(f"Terminated git process: {proc.info['pid']}")
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            pass
+        except Exception as e:
+            self.logger.warning(f"Failed to check/kill git processes: {e}")
+        
+        # Wait for processes to clean up
+        time.sleep(1)
+        
         lock_patterns = [
             '.git/index.lock',
             '.git/refs/heads/main.lock',
             '.git/config.lock',
-            '.git/HEAD.lock'
+            '.git/HEAD.lock',
+            '.git/COMMIT_EDITMSG.lock',
+            '.git/refs/remotes/origin/main.lock'
         ]
 
         for pattern in lock_patterns:
             lock_path = os.path.join(self.base_dir, pattern)
-            if os.path.exists(lock_path):
-                try:
-                    os.remove(lock_path)
-                    self.logger.info(f"Removed git lock: {pattern}")
-                except Exception as e:
-                    self.logger.warning(f"Failed to remove lock {pattern}: {e}")
+            max_attempts = 3
+            for attempt in range(max_attempts):
+                if os.path.exists(lock_path):
+                    try:
+                        os.remove(lock_path)
+                        self.logger.info(f"Removed git lock: {pattern}")
+                        break
+                    except PermissionError:
+                        if attempt < max_attempts - 1:
+                            time.sleep(0.5)
+                            continue
+                        else:
+                            self.logger.error(f"Failed to remove lock {pattern} after {max_attempts} attempts")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to remove lock {pattern}: {e}")
+                        break
+                else:
+                    break
 
     def _perform_sync_with_timeout(self):
         """Perform git sync with timeout and proper error handling"""
