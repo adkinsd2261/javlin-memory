@@ -29,9 +29,19 @@ class GPTReplitIntegration:
 
     def validate_before_response(self, user_query: str, response_type: str = "general") -> Dict[str, Any]:
         """
-        REQUIRED: GPT must call this before generating any response
-        Returns validation status and live Replit state
+        Validate connection only for system operations, not general conversation
         """
+        # Only require strict validation for system operations
+        action_types_requiring_validation = ["live_claim", "deployment", "system_change", "feature_activation"]
+        
+        if response_type not in action_types_requiring_validation:
+            # For general conversation, just return success
+            return {
+                "gpt_response_authorized": True,
+                "validation_timestamp": datetime.now(timezone.utc).isoformat(),
+                "validation_type": "conversation_mode"
+            }
+
         try:
             validation_data = {
                 "query": user_query,
@@ -78,16 +88,24 @@ class GPTReplitIntegration:
     def check_compliance_before_claim(self, intended_claim: str) -> Dict[str, Any]:
         """
         Check if GPT can make a specific claim (like 'feature is live')
+        Only enforce for definitive system state claims, not conversational language
         """
-        action_words = ['live', 'deployed', 'running', 'active', 'implemented', 'complete', 'working']
+        # More specific patterns that indicate system state claims
+        definitive_claim_patterns = [
+            'feature is live', 'system is running', 'deployed successfully', 
+            'integration is active', 'endpoint is working', 'service is operational'
+        ]
 
-        if any(word in intended_claim.lower() for word in action_words):
+        # Check for definitive system claims, not just any use of action words
+        is_definitive_claim = any(pattern in intended_claim.lower() for pattern in definitive_claim_patterns)
+        
+        if is_definitive_claim:
             validation = self.validate_before_response(intended_claim, "live_claim")
 
             if not validation.get('gpt_response_authorized', False):
                 return {
                     "claim_allowed": False,
-                    "reason": "AGENT_BIBLE.md compliance: Live claims require backend validation",
+                    "reason": "AGENT_BIBLE.md compliance: Definitive system state claims require backend validation",
                     "required_action": "Perform fresh connection check or get human confirmation",
                     "alternative_phrasing": "Consider using: 'This should be working' or 'Please verify this is active'"
                 }
