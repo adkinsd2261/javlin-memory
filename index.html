@@ -904,26 +904,51 @@
             color: #f44336;
         }
 
-        /* Immersive Onboarding Styles */
+        /* Cinematic Jav Onboarding Event */
         .immersive-onboarding {
             position: fixed;
             inset: 0;
             background: radial-gradient(circle at 50% 50%, rgba(15, 15, 35, 0.98) 0%, rgba(8, 8, 20, 0.99) 100%);
             backdrop-filter: blur(20px);
-            z-index: 300;
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             overflow: hidden;
+            animation: onboarding-fade-in 1s ease-out;
         }
 
+        @keyframes onboarding-fade-in {
+            from { 
+                opacity: 0; 
+                backdrop-filter: blur(0px);
+            }
+            to { 
+                opacity: 1; 
+                backdrop-filter: blur(20px);
+            }
+        }
+
+        /* Cinematic Avatar Stage */
         .onboarding-avatar-stage {
             position: relative;
-            width: 250px;
-            height: 250px;
-            margin-bottom: 60px;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 80px;
             perspective: 1000px;
+            animation: stage-appear 1.5s ease-out 0.5s both;
+        }
+
+        @keyframes stage-appear {
+            from { 
+                opacity: 0; 
+                transform: scale(0.5) translateY(50px);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0);
+            }
         }
 
         .stage-avatar {
@@ -932,13 +957,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transform: scale(3);
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(2.5);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
         .stage-avatar .javlin-avatar {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
         }
 
         .stage-avatar .avatar-orb {
@@ -946,192 +972,424 @@
             height: 100%;
         }
 
-        .stage-avatar.breathing {
-            animation: gentle-breathing 4s ease-in-out infinite;
+        /* Jav Wakes Up Animation */
+        .stage-avatar.awakening {
+            animation: jav-awakening 2s ease-out;
         }
 
-        .stage-avatar.excited {
-            animation: excited-pulse 1.5s ease-in-out infinite, float 3s ease-in-out infinite;
-        }
-
-        .stage-avatar.listening {
-            animation: listening-glow 2s ease-in-out infinite, subtle-rotate 8s linear infinite;
-        }
-
-        .stage-avatar.creative {
-            animation: creative-flare 1.5s ease-in-out infinite, sparkle 2s ease-in-out infinite;
-        }
-
-        .stage-avatar.dev {
-            animation: dev-pulse 2.5s ease-in-out infinite, steady-glow 4s ease-in-out infinite;
-        }
-
-        @keyframes gentle-breathing {
-            0%, 100% { 
-                transform: scale(3) translateY(0px);
+        @keyframes jav-awakening {
+            0% { 
+                transform: scale(0.5);
+                opacity: 0;
+                filter: brightness(0.3);
+            }
+            30% { 
+                transform: scale(2.8);
+                opacity: 0.7;
+                filter: brightness(0.8);
+            }
+            60% { 
+                transform: scale(2.3);
                 opacity: 0.9;
+                filter: brightness(1.1);
             }
-            50% { 
-                transform: scale(3.2) translateY(-5px);
+            100% { 
+                transform: scale(2.5);
                 opacity: 1;
+                filter: brightness(1);
             }
         }
 
-        @keyframes excited-pulse {
+        /* Breathing Animation - Default State */
+        .stage-avatar.breathing {
+            animation: cinematic-breathing 5s ease-in-out infinite;
+        }
+
+        @keyframes cinematic-breathing {
             0%, 100% { 
-                transform: scale(3);
-                box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+                transform: scale(2.5) translateY(0px);
+                box-shadow: 0 0 60px rgba(99, 102, 241, 0.6);
             }
             50% { 
-                transform: scale(3.3);
-                box-shadow: 0 0 80px rgba(168, 85, 247, 0.9);
+                transform: scale(2.7) translateY(-8px);
+                box-shadow: 0 0 100px rgba(139, 92, 246, 0.8);
             }
         }
 
-        @keyframes listening-glow {
-            0%, 100% { 
-                transform: scale(3) rotateY(0deg);
-                box-shadow: 0 0 50px rgba(124, 58, 237, 0.7);
-            }
-            50% { 
-                transform: scale(3.2) rotateY(180deg);
-                box-shadow: 0 0 80px rgba(59, 130, 246, 0.9);
-            }
+        /* Excited Animation - Introduction & Success */
+        .stage-avatar.excited {
+            animation: jav-excited 2s ease-in-out infinite, gentle-bounce 3s ease-in-out infinite;
         }
 
-        @keyframes creative-flare {
+        @keyframes jav-excited {
             0%, 100% { 
-                box-shadow: 0 0 60px rgba(168, 85, 247, 0.8);
+                box-shadow: 0 0 80px rgba(168, 85, 247, 0.7);
+                filter: brightness(1) hue-rotate(0deg);
             }
             25% { 
-                box-shadow: 0 0 80px rgba(236, 72, 153, 0.9);
+                box-shadow: 0 0 120px rgba(236, 72, 153, 0.9);
+                filter: brightness(1.2) hue-rotate(15deg);
             }
             50% { 
-                box-shadow: 0 0 70px rgba(244, 114, 182, 0.8);
+                box-shadow: 0 0 100px rgba(244, 114, 182, 0.8);
+                filter: brightness(1.1) hue-rotate(30deg);
             }
             75% { 
-                box-shadow: 0 0 90px rgba(168, 85, 247, 0.9);
+                box-shadow: 0 0 140px rgba(168, 85, 247, 0.9);
+                filter: brightness(1.3) hue-rotate(45deg);
             }
         }
 
-        @keyframes dev-pulse {
+        @keyframes gentle-bounce {
+            0%, 100% { transform: scale(2.5) translateY(0px); }
+            50% { transform: scale(2.7) translateY(-15px); }
+        }
+
+        /* Listening Animation - User Interaction */
+        .stage-avatar.listening {
+            animation: jav-listening 2.5s ease-in-out infinite, listening-ring 4s linear infinite;
+        }
+
+        @keyframes jav-listening {
             0%, 100% { 
-                box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+                box-shadow: 0 0 70px rgba(124, 58, 237, 0.8);
+                transform: scale(2.5);
             }
             50% { 
-                box-shadow: 0 0 60px rgba(20, 184, 166, 0.7);
+                box-shadow: 0 0 110px rgba(59, 130, 246, 0.9);
+                transform: scale(2.6);
             }
         }
 
-        @keyframes float {
-            0%, 100% { transform: scale(3) translateY(0px); }
-            50% { transform: scale(3.1) translateY(-10px); }
+        @keyframes listening-ring {
+            0% { 
+                box-shadow: 0 0 70px rgba(124, 58, 237, 0.8), 0 0 140px rgba(59, 130, 246, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 110px rgba(59, 130, 246, 0.9), 0 0 220px rgba(124, 58, 237, 0.4);
+            }
+            100% { 
+                box-shadow: 0 0 70px rgba(124, 58, 237, 0.8), 0 0 140px rgba(59, 130, 246, 0.3);
+            }
         }
 
-        @keyframes sparkle {
-            0%, 100% { filter: brightness(1) hue-rotate(0deg); }
-            25% { filter: brightness(1.2) hue-rotate(90deg); }
-            50% { filter: brightness(1.1) hue-rotate(180deg); }
-            75% { filter: brightness(1.3) hue-rotate(270deg); }
+        /* Creative Mode Animation */
+        .stage-avatar.creative {
+            animation: jav-creative 2s ease-in-out infinite, creative-sparkle 3s ease-in-out infinite;
         }
 
-        @keyframes steady-glow {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(1.1); }
+        @keyframes jav-creative {
+            0%, 100% { 
+                box-shadow: 0 0 90px rgba(168, 85, 247, 0.8);
+            }
+            20% { 
+                box-shadow: 0 0 120px rgba(236, 72, 153, 0.9);
+            }
+            40% { 
+                box-shadow: 0 0 100px rgba(244, 114, 182, 0.8);
+            }
+            60% { 
+                box-shadow: 0 0 130px rgba(168, 85, 247, 0.9);
+            }
+            80% { 
+                box-shadow: 0 0 110px rgba(139, 92, 246, 0.8);
+            }
         }
 
+        @keyframes creative-sparkle {
+            0%, 100% { filter: brightness(1) hue-rotate(0deg) saturate(1); }
+            25% { filter: brightness(1.2) hue-rotate(90deg) saturate(1.2); }
+            50% { filter: brightness(1.1) hue-rotate(180deg) saturate(1.1); }
+            75% { filter: brightness(1.3) hue-rotate(270deg) saturate(1.3); }
+        }
+
+        /* Dev Mode Animation */
+        .stage-avatar.dev {
+            animation: jav-dev 3s ease-in-out infinite, steady-focus 4s ease-in-out infinite;
+        }
+
+        @keyframes jav-dev {
+            0%, 100% { 
+                box-shadow: 0 0 80px rgba(59, 130, 246, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 120px rgba(20, 184, 166, 0.8);
+            }
+        }
+
+        @keyframes steady-focus {
+            0%, 100% { 
+                filter: brightness(1);
+                transform: scale(2.5);
+            }
+            50% { 
+                filter: brightness(1.15);
+                transform: scale(2.6);
+            }
+        }
+
+        /* Content Container */
         .onboarding-content {
             text-align: center;
             max-width: 700px;
             padding: 0 40px;
             position: relative;
-            z-index: 310;
+            z-index: 10000;
+            animation: content-fade-in 1s ease-out 1s both;
         }
 
+        @keyframes content-fade-in {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        /* Cinematic Typography */
         .onboarding-title {
-            font-size: 3.5rem;
-            font-weight: 300;
-            margin-bottom: 20px;
+            font-size: 4rem;
+            font-weight: 200;
+            margin-bottom: 24px;
             background: linear-gradient(45deg, #a855f7, #ec4899, #f472b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: title-glow 3s ease-in-out infinite;
-            min-height: 80px;
+            min-height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
-        .onboarding-subtitle {
-            font-size: 1.8rem;
-            color: #a78bfa;
-            margin-bottom: 24px;
-            font-weight: 400;
-            animation: subtitle-fade 0.8s ease-in-out;
+        .onboarding-title.typewriter {
+            overflow: hidden;
+            border-right: 3px solid #8b5cf6;
+            white-space: nowrap;
+            animation: cinematic-typing 2s steps(30, end) 1.5s both, title-glow 4s ease-in-out 3.5s infinite, blink-caret 1s step-end 3.5s infinite;
+            max-width: fit-content;
+            margin: 0 auto 24px auto;
         }
 
-        .onboarding-description {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            line-height: 1.7;
-            margin-bottom: 50px;
-            animation: description-slide 1s ease-in-out;
+        @keyframes cinematic-typing {
+            from { width: 0; }
+            to { width: 100%; }
         }
 
         @keyframes title-glow {
             0%, 100% { 
-                text-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+                text-shadow: 0 0 40px rgba(168, 85, 247, 0.4);
                 background: linear-gradient(45deg, #a855f7, #ec4899, #f472b6);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
             }
             50% { 
-                text-shadow: 0 0 50px rgba(236, 72, 153, 0.6);
+                text-shadow: 0 0 80px rgba(236, 72, 153, 0.6);
                 background: linear-gradient(45deg, #ec4899, #f472b6, #a855f7);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
             }
         }
 
-        @keyframes subtitle-fade {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #8b5cf6; }
+        }
+
+        .onboarding-subtitle {
+            font-size: 2rem;
+            color: #a78bfa;
+            margin-bottom: 32px;
+            font-weight: 300;
+            animation: subtitle-reveal 0.8s ease-out 2s both;
+        }
+
+        @keyframes subtitle-reveal {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px);
+                filter: blur(5px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+                filter: blur(0px);
+            }
+        }
+
+        .onboarding-description {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.8;
+            margin-bottom: 60px;
+            animation: description-slide 0.8s ease-out 2.5s both;
         }
 
         @keyframes description-slide {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(25px);
+                filter: blur(3px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+                filter: blur(0px);
+            }
         }
 
-        .onboarding-actions {
+        /* Interactive Demo Areas */
+        .demo-chat-preview {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            margin: 20px auto;
+            backdrop-filter: blur(10px);
+            animation: demo-area-appear 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-chat-preview:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+            animation: demo-shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes demo-shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes demo-area-appear {
+            from { 
+                opacity: 0; 
+                transform: scale(0.9) translateY(20px);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .demo-mode-switch {
             display: flex;
-            gap: 24px;
+            gap: 16px;
             justify-content: center;
             align-items: center;
-            animation: actions-appear 1.2s ease-in-out;
+            margin: 20px 0;
         }
 
-        @keyframes actions-appear {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
+        .demo-memory {
+            max-width: 400px;
+            margin: 20px auto;
+            opacity: 0.95;
+            transform: scale(0.98);
+            animation: memory-demo-pulse 0.8s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .demo-memory:hover {
+            transform: scale(1.02);
+            opacity: 1;
+        }
+
+        @keyframes memory-demo-pulse {
+            from { 
+                opacity: 0; 
+                transform: scale(0.85) translateY(30px);
+            }
+            to { 
+                opacity: 0.95; 
+                transform: scale(0.98) translateY(0);
+            }
+        }
+
+        .shortcut-demo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 450px;
+            margin: 20px auto;
+        }
+
+        .shortcut-demo-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
+        }
+
+        .shortcut-demo-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+        }
+
+        .shortcut-demo-item .shortcut {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 15px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* Cinematic Action Buttons */
+        .onboarding-actions {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            animation: actions-rise 0.8s ease-out 3s both;
+        }
+
+        @keyframes actions-rise {
+            from { 
+                opacity: 0; 
+                transform: translateY(40px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
         }
 
         .onboarding-button {
             background: linear-gradient(45deg, #6366f1, #8b5cf6);
             border: none;
-            border-radius: 20px;
-            padding: 18px 36px;
+            border-radius: 25px;
+            padding: 20px 40px;
             color: white;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 17px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 12px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
         }
 
         .onboarding-button:before {
@@ -1141,8 +1399,8 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease-out;
         }
 
         .onboarding-button:hover:before {
@@ -1150,36 +1408,51 @@
         }
 
         .onboarding-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+            transform: translateY(-4px) scale(1.08);
+            box-shadow: 0 20px 50px rgba(99, 102, 241, 0.5);
         }
 
         .onboarding-button.secondary {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 30px rgba(255, 255, 255, 0.1);
         }
 
         .onboarding-button.secondary:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px) scale(1.02);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
         }
 
+        /* Cinematic Progress Indicator */
         .onboarding-progress {
             position: absolute;
-            bottom: 80px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 16px;
+            gap: 20px;
+            animation: progress-appear 0.6s ease-out 3.5s both;
+        }
+
+        @keyframes progress-appear {
+            from { 
+                opacity: 0; 
+                transform: translateX(-50%) translateY(20px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         .progress-dot {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.3);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             position: relative;
         }
@@ -1187,172 +1460,131 @@
         .progress-dot:before {
             content: '';
             position: absolute;
-            inset: -4px;
+            inset: -6px;
             border-radius: 50%;
             background: transparent;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
 
         .progress-dot.active {
             background: #8b5cf6;
-            box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
-            transform: scale(1.2);
-
-        @keyframes demo-highlight {
-            0%, 100% { 
-                background: rgba(255, 255, 255, 0.05);
-                transform: scale(1);
-            }
-            50% { 
-                background: rgba(139, 92, 246, 0.2);
-                transform: scale(1.05);
-            }
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.7);
+            transform: scale(1.3);
         }
 
         .progress-dot.active:before {
             background: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         }
 
         .progress-dot:hover {
-            transform: scale(1.3);
-            background: rgba(255, 255, 255, 0.6);
+            transform: scale(1.4);
+            background: rgba(255, 255, 255, 0.7);
         }
 
+        /* Skip Button */
         .onboarding-skip {
             position: absolute;
-            top: 40px;
-            right: 40px;
+            top: 50px;
+            right: 50px;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            padding: 12px 20px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            padding: 14px 24px;
+            border-radius: 15px;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(15px);
+            font-size: 15px;
+            font-weight: 500;
         }
 
         .onboarding-skip:hover {
             color: white;
             background: rgba(255, 255, 255, 0.15);
-            transform: scale(1.05);
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
         }
 
+        /* Workspace Element Highlights */
         .demo-highlight {
             position: absolute;
-            border: 3px solid #8b5cf6;
-            border-radius: 16px;
+            border: 4px solid #8b5cf6;
+            border-radius: 20px;
             background: rgba(139, 92, 246, 0.15);
             pointer-events: none;
-            z-index: 310;
-            animation: highlight-pulse 2s ease-in-out infinite;
+            z-index: 10001;
+            animation: cinematic-highlight 3s ease-in-out infinite;
+            backdrop-filter: blur(5px);
         }
 
-        @keyframes highlight-pulse {
+        @keyframes cinematic-highlight {
             0%, 100% { 
-                box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+                box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
                 border-color: #8b5cf6;
+                transform: scale(1);
             }
             50% { 
-                box-shadow: 0 0 50px rgba(139, 92, 246, 0.9);
+                box-shadow: 0 0 80px rgba(139, 92, 246, 0.9);
                 border-color: #a78bfa;
+                transform: scale(1.02);
             }
         }
 
-        .typewriter-text {
-            overflow: hidden;
-            border-right: 3px solid #8b5cf6;
-            white-space: nowrap;
-            animation: typing 3s steps(40, end), blink-caret 1s step-end infinite;
-            max-width: fit-content;
-            margin: 0 auto;
-        }
-
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-
-        @keyframes blink-caret {
-            from, to { border-color: transparent; }
-            50% { border-color: #8b5cf6; }
-        }
-
-        /* Demo Interactive Elements */
-        .demo-chat-preview {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+        /* Demo Response Animation */
+        .demo-response {
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: rgba(99, 102, 241, 0.1);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 15px;
             padding: 20px;
-            max-width: 500px;
-            margin: 0 auto;
+            color: #818cf8;
+            font-size: 15px;
+            text-align: center;
+            animation: demo-response-slide 0.6s ease-out;
+            backdrop-filter: blur(10px);
         }
 
-        .demo-mode-switch {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            align-items: center;
+        @keyframes demo-response-slide {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        .demo-memory {
-            max-width: 400px;
-            margin: 0 auto;
-            opacity: 0.9;
-            transform: scale(0.95);
-            animation: demo-appear 0.8s ease-in-out;
-        }
-
-        @keyframes demo-appear {
-            from { opacity: 0; transform: scale(0.8) translateY(20px); }
-            to { opacity: 0.9; transform: scale(0.95) translateY(0); }
-        }
-
-        .shortcut-demo-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .shortcut-demo-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .shortcut-demo-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .shortcut-demo-item .shortcut {
-            background: rgba(139, 92, 246, 0.2);
-            color: #a78bfa;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-            font-weight: 600;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .onboarding-title {
+                font-size: 3rem;
+            }
+            
+            .onboarding-subtitle {
+                font-size: 1.5rem;
+            }
+            
+            .onboarding-description {
+                font-size: 1.1rem;
+            }
+            
+            .stage-avatar {
+                transform: scale(2);
+            }
+            
+            .onboarding-content {
+                padding: 0 20px;
+            }
+            
+            .shortcut-demo-grid {
+                grid-template-columns: 1fr;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
@@ -1370,22 +1602,23 @@
             Skip Tour
         </button>
 
-        <!-- Main Onboarding Stage -->
+        <!-- Cinematic Avatar Stage -->
         <div class="onboarding-avatar-stage">
             <div class="stage-avatar" 
                  :class="{
-                    'breathing': onboardingStep === 0,
-                    'excited': onboardingStep === 1 || onboardingStep === 5,
-                    'listening': onboardingStep === 2,
-                    'creative': onboardingStep === 3,
-                    'dev': onboardingStep === 4
+                    'awakening': onboardingStep === 0 && stepJustChanged,
+                    'breathing': onboardingStep === 0 && !stepJustChanged,
+                    'listening': onboardingStep === 1 || onboardingStep === 4,
+                    'creative': onboardingStep === 2,
+                    'dev': onboardingStep === 3,
+                    'excited': onboardingStep === 5
                  }">
                 <div class="javlin-avatar" 
                      :class="getCurrentStepAvatarClass()">
                     <div class="avatar-orb">
                         <div class="orb-core"></div>
                         <div class="orb-glow"></div>
-                        <div class="orb-particles" x-show="onboardingStep >= 3">
+                        <div class="orb-particles" x-show="onboardingStep >= 2">
                             <div class="particle"></div>
                             <div class="particle"></div>
                             <div class="particle"></div>
@@ -1395,9 +1628,10 @@
             </div>
         </div>
 
-        <!-- Onboarding Content -->
+        <!-- Cinematic Content -->
         <div class="onboarding-content">
-            <h1 class="onboarding-title typewriter-text" 
+            <h1 class="onboarding-title" 
+                :class="{ 'typewriter': onboardingStep === 0 }"
                 x-text="getCurrentStepData().title"
                 :key="onboardingStep"></h1>
             
@@ -1813,44 +2047,44 @@
                 onboardingStep: 0,
                 onboardingSteps: [
                     {
-                        title: "Hey, I'm Jav! 👋",
+                        title: "Welcome! I'm Jav. Ready to create together?",
                         subtitle: "Your creative AI partner",
-                        description: "I'm here to help you build, ideate, and solve problems without getting in your way.",
-                        action: "next",
-                        avatarState: "excited"
+                        description: "I'm here to help you build, ideate, and solve problems without getting in your way. Let's make something amazing.",
+                        action: "introduction",
+                        avatarState: "awakening"
                     },
                     {
-                        title: "Let's Chat! 💬",
+                        title: "Let's have a conversation",
                         subtitle: "Try saying hello",
-                        description: "I understand natural language. Just tell me what you want to build or ask for help.",
+                        description: "I understand natural language perfectly. Just tell me what you want to build, ask for help, or share your ideas.",
                         action: "demo_chat",
                         avatarState: "listening"
                     },
                     {
-                        title: "Creative & Dev Modes 🎨⚡",
-                        subtitle: "I adapt to your workflow",
-                        description: "Creative mode for collaboration, Dev mode for focused reviews. Press ⌘⇧M to switch anytime.",
+                        title: "I adapt to your workflow",
+                        subtitle: "Creative & Dev modes",
+                        description: "Creative mode for collaboration and brainstorming. Dev mode for focused code reviews. Switch anytime with ⌘⇧M.",
                         action: "demo_mode_switch",
                         avatarState: "creative"
                     },
                     {
-                        title: "Your Memory System 🧠",
-                        subtitle: "Everything builds on what came before",
-                        description: "I remember every solution, every creative decision. Your workspace gets smarter with every interaction.",
+                        title: "Everything builds on what came before",
+                        subtitle: "Your memory system",
+                        description: "I remember every solution, every creative decision, every breakthrough. Your workspace gets smarter with every interaction.",
                         action: "demo_memory",
                         avatarState: "dev"
                     },
                     {
-                        title: "Quick Actions & Shortcuts ⚡",
-                        subtitle: "Power at your fingertips",
-                        description: "⌘J opens me, ⌘K searches memories, ⌘M opens timeline, ⌘Q shows quick actions.",
+                        title: "Power at your fingertips",
+                        subtitle: "Quick actions & shortcuts",
+                        description: "⌘J opens me instantly, ⌘K searches all memories, ⌘M shows your timeline, ⌘Q reveals quick actions. Master these for lightning-fast workflow.",
                         action: "demo_shortcuts",
                         avatarState: "listening"
                     },
                     {
-                        title: "Ready to Create! 🚀",
-                        subtitle: "Let's build something amazing together",
-                        description: "Your calm, creative workspace is ready. I'll be floating here whenever you need me.",
+                        title: "Let's build something amazing together!",
+                        subtitle: "Your workspace is ready",
+                        description: "Everything you need for deep creative work is here. I'll be floating nearby whenever inspiration strikes.",
                         action: "complete",
                         avatarState: "excited"
                     }
@@ -1978,51 +2212,99 @@
                     });
                 },
 
-                // Immersive Onboarding Management
+                // Cinematic Onboarding Management
+                stepJustChanged: false,
+                workspaceFaded: false,
+
                 getCurrentStepData() {
                     return this.onboardingSteps[this.onboardingStep] || this.onboardingSteps[0];
                 },
 
                 getCurrentStepAvatarClass() {
                     const step = this.getCurrentStepData();
-                    return step.avatarState || 'idle';
+                    return step.avatarState || 'breathing';
                 },
 
                 nextOnboardingStep() {
                     if (this.onboardingStep < this.onboardingSteps.length - 1) {
-                        this.onboardingStep++;
-                        this.triggerStepTransition();
+                        this.triggerCinematicTransition(() => {
+                            this.onboardingStep++;
+                            this.triggerStepActions();
+                        });
                     }
                 },
 
                 previousOnboardingStep() {
                     if (this.onboardingStep > 0) {
-                        this.onboardingStep--;
-                        this.triggerStepTransition();
+                        this.triggerCinematicTransition(() => {
+                            this.onboardingStep--;
+                            this.triggerStepActions();
+                        });
                     }
                 },
 
                 goToOnboardingStep(stepIndex) {
                     if (stepIndex >= 0 && stepIndex < this.onboardingSteps.length) {
-                        this.onboardingStep = stepIndex;
-                        this.triggerStepTransition();
+                        this.triggerCinematicTransition(() => {
+                            this.onboardingStep = stepIndex;
+                            this.triggerStepActions();
+                        });
                     }
                 },
 
-                triggerStepTransition() {
-                    // Add visual feedback for step transitions
+                triggerCinematicTransition(callback) {
+                    // Mark step as just changed for awakening animation
+                    this.stepJustChanged = true;
+                    
+                    // Trigger smooth avatar reaction
                     this.triggerAvatarReaction('success');
                     
-                    // Play step-specific actions
+                    // Execute the step change after a brief delay for smooth animation
+                    setTimeout(() => {
+                        callback();
+                        // Reset after awakening animation completes
+                        setTimeout(() => {
+                            this.stepJustChanged = false;
+                        }, 2000);
+                    }, 200);
+                },
+
+                triggerStepActions() {
                     const currentStep = this.getCurrentStepData();
+                    
+                    // Fade workspace for demo steps
+                    if (['demo_chat', 'demo_mode_switch', 'demo_memory', 'demo_shortcuts'].includes(currentStep.action)) {
+                        this.fadeWorkspaceForDemo();
+                    }
+                    
+                    // Trigger step-specific demos
                     if (currentStep.action === 'demo_chat') {
-                        this.simulateChatDemo();
+                        setTimeout(() => this.simulateChatDemo(), 1000);
                     } else if (currentStep.action === 'demo_mode_switch') {
-                        this.simulateModeSwitch();
+                        setTimeout(() => this.simulateModeSwitch(), 1000);
                     } else if (currentStep.action === 'demo_memory') {
-                        this.simulateMemoryDemo();
+                        setTimeout(() => this.simulateMemoryDemo(), 1000);
                     } else if (currentStep.action === 'demo_shortcuts') {
-                        this.simulateShortcutsDemo();
+                        setTimeout(() => this.simulateShortcutsDemo(), 1000);
+                    }
+                },
+
+                fadeWorkspaceForDemo() {
+                    // Gently fade background workspace for focus
+                    const workspace = document.querySelector('.workspace-canvas');
+                    if (workspace) {
+                        workspace.style.transition = 'opacity 0.8s ease-out';
+                        workspace.style.opacity = '0.3';
+                        this.workspaceFaded = true;
+                    }
+                },
+
+                restoreWorkspaceFocus() {
+                    // Restore workspace visibility
+                    const workspace = document.querySelector('.workspace-canvas');
+                    if (workspace && this.workspaceFaded) {
+                        workspace.style.opacity = '1';
+                        this.workspaceFaded = false;
                     }
                 },
 
@@ -2038,103 +2320,183 @@
                 handleDemoInput(event) {
                     const input = event.target.value;
                     if (input.length > 5) {
-                        // Show demo response
+                        // Show cinematic demo response
                         setTimeout(() => {
-                            this.showDemoResponse(input);
-                        }, 800);
+                            this.showCinematicDemoResponse(input, event.target);
+                        }, 1200);
                     }
                 },
 
-                showDemoResponse(input) {
-                    // Create a demo response overlay
+                showCinematicDemoResponse(input, inputElement) {
+                    // Create a cinematic demo response
                     const demoResponse = document.createElement('div');
                     demoResponse.className = 'demo-response';
-                    demoResponse.style.cssText = `
-                        position: absolute;
-                        top: 60px;
-                        left: 0;
-                        right: 0;
-                        background: rgba(99, 102, 241, 0.1);
-                        border: 1px solid rgba(99, 102, 241, 0.3);
-                        border-radius: 12px;
-                        padding: 16px;
-                        color: #818cf8;
-                        font-size: 14px;
-                        text-align: center;
-                        animation: slideDown 0.5s ease-out;
-                    `;
-                    demoResponse.innerHTML = `🎨 "I'd love to help you with: ${input.slice(0, 30)}..." - Ready when you are!`;
+                    demoResponse.innerHTML = `🎨 "I'd love to help you with: ${input.slice(0, 25)}..." - Ready when you are!`;
                     
-                    const demoContainer = event.target.closest('.demo-chat-preview');
+                    const demoContainer = inputElement.closest('.demo-chat-preview');
                     demoContainer.style.position = 'relative';
                     demoContainer.appendChild(demoResponse);
                     
+                    // Trigger avatar excitement
+                    this.triggerAvatarReaction('success');
+                    
                     setTimeout(() => {
                         demoResponse.remove();
-                    }, 3000);
+                    }, 4000);
                 },
 
                 demonstrateModeSwitch() {
+                    // Highlight the floating avatar for mode demonstration
+                    this.highlightWorkspaceElement('.floating-jav', 'Mode switching happens here');
+                    
                     this.workspaceMode = this.workspaceMode === 'creative' ? 'dev' : 'creative';
                     this.showModeSwitch = true;
                     
                     setTimeout(() => {
                         this.showModeSwitch = false;
-                    }, 2000);
-                },
-
-                simulateChatDemo() {
-                    // Visual hint about chat functionality
-                    setTimeout(() => {
-                        this.triggerAvatarReaction('success');
-                    }, 1000);
-                },
-
-                simulateModeSwitch() {
-                    // Demonstrate mode switching
-                    setTimeout(() => {
-                        this.demonstrateModeSwitch();
-                    }, 500);
-                },
-
-                simulateMemoryDemo() {
-                    // Highlight memory functionality
-                    this.showMemoryIndicator = true;
-                    this.memoryIndicatorText = "Building onboarding experience...";
-                    
-                    setTimeout(() => {
-                        this.showMemoryIndicator = false;
+                        this.removeWorkspaceHighlights();
                     }, 3000);
                 },
 
+                simulateChatDemo() {
+                    // No additional demo needed - the interactive input is the demo
+                    this.triggerAvatarReaction('success');
+                },
+
+                simulateModeSwitch() {
+                    // Live workspace demonstration
+                    setTimeout(() => {
+                        this.demonstrateModeSwitch();
+                    }, 800);
+                },
+
+                simulateMemoryDemo() {
+                    // Highlight memory indicator and show live demo
+                    this.highlightWorkspaceElement('.memory-indicator', 'Your memory system');
+                    
+                    this.showMemoryIndicator = true;
+                    this.memoryIndicatorText = "Building cinematic onboarding experience...";
+                    
+                    setTimeout(() => {
+                        this.showMemoryIndicator = false;
+                        this.removeWorkspaceHighlights();
+                    }, 4000);
+                },
+
                 simulateShortcutsDemo() {
-                    // Animate shortcuts demonstration
+                    // Animate shortcuts in sequence
                     const shortcuts = document.querySelectorAll('.shortcut-demo-item');
                     shortcuts.forEach((shortcut, index) => {
                         setTimeout(() => {
-                            shortcut.style.animation = 'demo-highlight 0.8s ease-in-out';
-                        }, index * 200);
+                            shortcut.style.animation = 'demo-highlight 1.2s ease-in-out';
+                            shortcut.style.transform = 'scale(1.05)';
+                            
+                            setTimeout(() => {
+                                shortcut.style.animation = '';
+                                shortcut.style.transform = '';
+                            }, 1200);
+                        }, index * 300);
                     });
+                    
+                    // Highlight workspace hint
+                    setTimeout(() => {
+                        this.highlightWorkspaceElement('.workspace-hint', 'Live shortcuts');
+                        setTimeout(() => {
+                            this.removeWorkspaceHighlights();
+                        }, 3000);
+                    }, 1500);
+                },
+
+                highlightWorkspaceElement(selector, label) {
+                    const element = document.querySelector(selector);
+                    if (!element) return;
+                    
+                    const rect = element.getBoundingClientRect();
+                    const highlight = document.createElement('div');
+                    highlight.className = 'demo-highlight workspace-highlight';
+                    highlight.style.cssText = `
+                        position: fixed;
+                        top: ${rect.top - 10}px;
+                        left: ${rect.left - 10}px;
+                        width: ${rect.width + 20}px;
+                        height: ${rect.height + 20}px;
+                        z-index: 10001;
+                        pointer-events: none;
+                    `;
+                    
+                    if (label) {
+                        const labelEl = document.createElement('div');
+                        labelEl.textContent = label;
+                        labelEl.style.cssText = `
+                            position: absolute;
+                            top: -40px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: rgba(139, 92, 246, 0.9);
+                            color: white;
+                            padding: 8px 16px;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: 500;
+                            white-space: nowrap;
+                        `;
+                        highlight.appendChild(labelEl);
+                    }
+                    
+                    document.body.appendChild(highlight);
+                },
+
+                removeWorkspaceHighlights() {
+                    document.querySelectorAll('.workspace-highlight').forEach(el => el.remove());
                 },
 
                 skipOnboarding() {
-                    this.showImmersiveOnboarding = false;
-                    this.showOnboarding = false;
-                    localStorage.setItem('jav-workspace-visited', 'true');
-                    localStorage.setItem('jav-onboarding-skipped', 'true');
+                    this.performOnboardingExit('skipped');
                 },
 
                 completeOnboarding() {
-                    this.showImmersiveOnboarding = false;
-                    this.showOnboarding = false;
-                    localStorage.setItem('jav-workspace-visited', 'true');
-                    localStorage.setItem('jav-onboarding-completed', 'true');
+                    this.performOnboardingExit('completed');
+                },
+
+                performOnboardingExit(type) {
+                    // Restore workspace visibility first
+                    this.restoreWorkspaceFocus();
+                    this.removeWorkspaceHighlights();
                     
-                    // Graceful transition to workspace
+                    // Set avatar to excited state for farewell
+                    this.stepJustChanged = true;
+                    this.onboardingStep = 5; // Excited state
+                    
+                    // Store completion state
+                    localStorage.setItem('jav-workspace-visited', 'true');
+                    localStorage.setItem(`jav-onboarding-${type}`, 'true');
+                    
+                    // Cinematic exit transition
                     setTimeout(() => {
-                        this.triggerAvatarReaction('success');
-                        this.openCreativePanel();
-                    }, 800);
+                        // Fade out onboarding overlay
+                        const onboarding = document.querySelector('.immersive-onboarding');
+                        if (onboarding) {
+                            onboarding.style.transition = 'opacity 1s ease-out';
+                            onboarding.style.opacity = '0';
+                        }
+                        
+                        // After fade, remove overlay and show workspace
+                        setTimeout(() => {
+                            this.showImmersiveOnboarding = false;
+                            this.showOnboarding = false;
+                            
+                            // Avatar gracefully moves to corner position
+                            if (type === 'completed') {
+                                setTimeout(() => {
+                                    this.triggerAvatarReaction('success');
+                                    // Automatically open creative panel for completed onboarding
+                                    setTimeout(() => {
+                                        this.openCreativePanel();
+                                    }, 1500);
+                                }, 500);
+                            }
+                        }, 1000);
+                    }, type === 'completed' ? 2000 : 800);
                 },
 
                 openCreativePanel() {
