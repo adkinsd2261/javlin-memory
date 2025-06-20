@@ -793,7 +793,7 @@ def get_feedback_trends():
 
 @app.route('/founder', methods=['GET'])
 @requires_confirmation
-def founder_status():
+def founder_status_get():
     """GPT endpoint for founder agent status and intelligence"""
     try:
         # Validate connection first
@@ -876,7 +876,7 @@ def start_founder():
         logging.error(f"Start founder error: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/founder/status', methods=['GET'])
+@app.route('/founder/status', methods=['GET'], endpoint='founder_status_json_endpoint')
 def founder_status_json():
     """JSON status for the founder UI"""
     try:
@@ -991,7 +991,7 @@ def express_status():
 if __name__ == '__main__':
     try:
         logging.info("Starting MemoryOS Flask API...")
-        app.run(host='0.0.0.0', port=80, debug=False)
+        app.run(host='0.0.0.0', port=5000, debug=False)
     except Exception as e:
         logging.error(f"Failed to start Flask app: {e}")
         print(f"Error starting app: {e}")
