@@ -52,25 +52,31 @@ class GitCoordinator:
         return False, ""
     
     def _simple_clear_locks(self):
-        """Simple, non-destructive lock clearing"""
+        """Aggressive lock clearing - force remove all git locks"""
         lock_files = [
             '.git/index.lock',
             '.git/refs/heads/main.lock', 
-            '.git/HEAD.lock'
+            '.git/HEAD.lock',
+            '.git/config.lock',
+            '.git/COMMIT_EDITMSG.lock'
         ]
+        
+        # Kill any git processes first
+        try:
+            subprocess.run(['pkill', '-9', 'git'], capture_output=True, timeout=5)
+            time.sleep(1)
+        except:
+            pass
         
         removed = 0
         for lock_file in lock_files:
             if os.path.exists(lock_file):
                 try:
-                    # Check if file is actually stale (older than 5 minutes)
-                    stat = os.stat(lock_file)
-                    age = time.time() - stat.st_mtime
-                    if age > 300:  # 5 minutes
-                        os.remove(lock_file)
-                        removed += 1
-                except:
-                    pass
+                    os.remove(lock_file)
+                    removed += 1
+                    print(f"Removed lock file: {lock_file}")
+                except Exception as e:
+                    print(f"Failed to remove {lock_file}: {e}")
         
         return removed
     
@@ -90,10 +96,12 @@ class GitCoordinator:
                 status = self._load_status()
                 
                 try:
-                    # Clear any stale locks first
+                    # Always clear locks before operations - be aggressive
+                    print(f"🔧 Clearing git locks before {operation_name}")
                     cleared = self._simple_clear_locks()
                     if cleared > 0:
-                        time.sleep(1)  # Brief pause after clearing
+                        print(f"   Cleared {cleared} lock files")
+                        time.sleep(2)  # Longer pause after clearing
                     
                     # Execute the operation
                     result = operation_func(*args, **kwargs)

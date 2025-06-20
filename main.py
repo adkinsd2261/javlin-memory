@@ -1031,122 +1031,32 @@ from git_sync import GitHubSyncer
 
 @app.route('/git-sync', methods=['POST'])
 def git_sync():
-    """Sync changes to GitHub with robust error handling and locking"""
-
-    # Use file locking to prevent concurrent git operations
-    lock_file_path = os.path.join(tempfile.gettempdir(), 'memoryos_git_sync.lock')
-
+    """Sync changes to GitHub using coordinated git operations"""
     try:
-        # Create lock file with timeout
-        lock_file = open(lock_file_path, 'w')
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-        # Check circuit breaker
-        try:
-            with open('git_sync_status.json', 'r') as f:
-                sync_status = json.load(f)
-        except:
-            sync_status = {"last_success": None, "failure_count": 0, "last_failure": None}
-
-        # Block if too many recent failures
-        if sync_status.get("failure_count", 0) >= 3:
-            last_failure = sync_status.get("last_failure")
-            if last_failure:
-                try:
-                    from datetime import datetime, timedelta
-                    last_fail_time = datetime.fromisoformat(last_failure.replace('Z', '+00:00'))
-                    if datetime.now(timezone.utc) - last_fail_time < timedelta(minutes=5):
-                        return jsonify({"status": "blocked", "message": "Too many recent failures, sync blocked"}), 429
-                except:
-                    pass
-
+        from git_coordinator import coordinated_git_add_commit_push
+        
         force = request.args.get('force', 'false').lower() == 'true'
-
-        # Try shell script first as fallback
-        try:
-            shell_result = subprocess.run(['bash', 'force_git_push.sh'], 
-                                        capture_output=True, text=True, timeout=120, cwd=BASE_DIR)
-            if shell_result.returncode == 0:
-                sync_status["last_success"] = datetime.now(timezone.utc).isoformat()
-                sync_status["failure_count"] = 0
-                with open('git_sync_status.json', 'w') as f:
-                    json.dump(sync_status, f)
-
-                return jsonify({
-                    "status": "success", 
-                    "message": "Git sync completed via shell script",
-                    "method": "shell_script"
-                })
-        except subprocess.TimeoutExpired:
-            logging.warning("Shell script git push timed out")
-        except Exception as e:
-            logging.warning(f"Shell script failed: {e}")
-
-        # Fallback to GitHubSyncer
-        syncer = GitHubSyncer(BASE_DIR)
-        result = syncer.run_auto_sync(force=force)
-
-        # Update sync status
+        message = request.args.get('message', '🔧 Manual sync via API endpoint')
+        
+        # Use the coordinated git operation
+        result = coordinated_git_add_commit_push(message)
+        
+        # Log to memory if successful
         if result.get('status') == 'success':
-            sync_status["last_success"] = datetime.now(timezone.utc).isoformat()
-            sync_status["failure_count"] = 0
-        else:
-            sync_status["failure_count"] = sync_status.get("failure_count", 0) + 1
-            sync_status["last_failure"] = datetime.now(timezone.utc).isoformat()
-
-        with open('git_sync_status.json', 'w') as f:
-            json.dump(sync_status, f)
-
-        # Don't log to memory if this was called from memory logging (prevent recursion)
-        try:
-            caller_frame = inspect.currentframe().f_back
-            should_log_to_memory = caller_frame and 'log_to_memory' not in str(caller_frame.f_code.co_filename)
-        except:
-            should_log_to_memory = True  # Default to logging if inspection fails
-
-        if should_log_to_memory:
-            # Log the sync attempt to memory (only if not called from memory system)
-            try:
-                with open(MEMORY_FILE, 'r') as f:
-                    memory = json.load(f)
-            except (FileNotFoundError, JSONDecodeError):
-                memory = []
-
-            sync_entry = {
-                "topic": "Manual GitHub Sync",
-                "type": "SystemUpdate",
-                "input": f"Manual GitHub sync via /git-sync endpoint (force={force})",
-                "output": f"Sync result: {result.get('status')}. {result.get('message', '')}",
-                "score": 15,
-                "maxScore": 25,
-                "success": result.get('status') == 'success',
-                "category": "development",
-                "tags": ["git", "sync", "manual", "endpoint"],
-                "context": "Manual GitHub synchronization via API endpoint",
-                "related_to": [],
-                "reviewed": False,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "auto_generated": True
-            }
-
-            memory.append(sync_entry)
-            with open(MEMORY_FILE, 'w') as f:
-                json.dump(memory, f, indent=2)
-
+            log_to_memory(
+                topic="Manual GitHub Sync", 
+                type_="SystemUpdate",
+                input_=f"Manual sync via /git-sync (force={force})",
+                output=f"✅ {result.get('result', 'Sync completed')}",
+                success=True,
+                category="development",
+                tags=["git", "sync", "manual", "api"]
+            )
+        
         return jsonify(result)
+        
     except Exception as e:
-        # Log exception and increment failure count
-        try:
-            with open('git_sync_status.json', 'r') as f:
-                sync_status = json.load(f)
-        except:
-            sync_status = {"last_success": None, "failure_count": 0, "last_failure": None}
-
-        sync_status["failure_count"] = sync_status.get("failure_count", 0) + 1
-        sync_status["last_failure"] = datetime.now(timezone.utc).isoformat()
-        with open('git_sync_status.json', 'w') as f:
-            json.dump(sync_status, f)
-
+        logging.error(f"Git sync error: {e}")
         return jsonify({
             'status': 'error',
             'message': str(e)
