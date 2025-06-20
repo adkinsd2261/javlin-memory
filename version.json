@@ -1,8 +1,7 @@
-
 {
-  "version": "v0.2.3",
-  "date": "2025-06-19",
-  "description": "Added auto-tagging, /autolog, and filtering to memory API",
+  "version": "v0.8.0",
+  "date": "2025-06-20",
+  "description": "New features and enhancements",
   "changes": [
     "Implemented importance scoring (0-100 scale)",
     "Enabled auto-tag generation from content",
@@ -13,18 +12,48 @@
   ],
   "previous_versions": [
     {
+      "version": "v0.7.0",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
+    {
+      "version": "v0.6.0",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
+    {
+      "version": "v0.5.0",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
+    {
+      "version": "v0.4.0",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
+    {
+      "version": "v0.3.0",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
+    {
+      "version": "v0.2.3",
+      "date": "2025-06-20",
+      "description": "New features and enhancements"
+    },
+    {
       "version": "v0.2.2",
       "date": "2025-06-19",
       "description": "Enhanced API authentication and logging"
     },
     {
-      "version": "v0.2.1", 
+      "version": "v0.2.1",
       "date": "2025-06-19",
       "description": "Added stats endpoint and memory filtering"
     },
     {
       "version": "v0.2.0",
-      "date": "2025-06-19", 
+      "date": "2025-06-19",
       "description": "Initial Flask memory system with GPT integration"
     }
   ],
@@ -33,8 +62,10 @@
   "next_version": "v0.3.0",
   "planned_features": [
     "Full state awareness",
-    "Git commit integration", 
+    "Git commit integration",
     "Feedback system",
     "Advanced memory analytics"
-  ]
+  ],
+  "bump_type": "minor",
+  "auto_bumped": true
 }
