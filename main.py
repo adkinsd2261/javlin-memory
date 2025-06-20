@@ -747,7 +747,7 @@ def generate_feedback_prompt(memory_entry):
     success = memory_entry.get('success', False)
 
     if memory_type in ['BugFix', 'SystemTest']:
-        return f"How valuable was resolving '{topic}'? Did it prevent futureissues?"
+        return f"How valuable was resolving '{topic}'? Did it prevent future issues?"
     elif memory_type in ['Decision', 'Insight']:
         return f"How impactful was this decision about '{topic}'? Would you make it again?"
     elif memory_type in ['BuildLog', 'Feature']:
