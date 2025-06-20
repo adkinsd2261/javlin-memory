@@ -1,8 +1,8 @@
 
 #!/bin/bash
 echo "🔧 Setting Git identity..."
-git config --global user.name "adkinsd2261"
-git config --global user.email "adkinsd2261@gmail.com"
+git config --global user.name "Darryl"
+git config --global user.email "adkinsd226@gmail.com"
 
 echo "🧹 Removing lock files..."
 rm -f .git/index.lock .git/refs/heads/main.lock
