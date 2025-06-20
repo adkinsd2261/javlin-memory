@@ -315,6 +315,59 @@ def test_alerts():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 501
 
+@app.route('/ai/query', methods=['POST'])
+def ai_query():
+    """Query the persistent AI agent"""
+    try:
+        data = request.get_json()
+        if not data or 'input' not in data:
+            return jsonify({"error": "No input provided"}), 400
+        
+        from intelligent_agent import MemoryAwareAgent
+        agent = MemoryAwareAgent(memory_api_base="http://0.0.0.0:5000")
+        
+        result = agent.query_ai(data['input'])
+        
+        return jsonify({
+            "status": "success",
+            "ai_response": result,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"AI query failed: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+@app.route('/ai/context')
+def ai_context():
+    """Get current AI context state"""
+    try:
+        from intelligent_agent import MemoryAwareAgent
+        agent = MemoryAwareAgent(memory_api_base="http://0.0.0.0:5000")
+        
+        context = agent.load_persistent_context()
+        
+        return jsonify({
+            "status": "healthy",
+            "ai_provider": agent.ai_provider,
+            "model": agent.model.get('model', 'unknown'),
+            "context": context,
+            "session_id": agent.session_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"AI context failed: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
 if __name__ == '__main__':
     # Ensure memory file exists
     if not os.path.exists(MEMORY_FILE):
