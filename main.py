@@ -758,8 +758,7 @@ def get_top_unreviewed_for_feedback(memory, limit=10):
 
     # Sort by importance score (if available) and timestamp (recent first)
     def sort_key(m):
-        ```text
-Importance = m.get('importance_score', m.get('score', 0))
+        importance = m.get('importance_score', m.get('score', 0))
         try:
             timestamp = datetime.fromisoformat(m.get('timestamp', '').replace('Z', '+00:00'))
             recency_bonus = (datetime.now(timezone.utc) - timestamp).days * -1  # Negative for recent first
