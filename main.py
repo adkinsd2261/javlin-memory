@@ -465,28 +465,40 @@ def ai_context():
 
 @app.route('/jav/chat', methods=['POST'])
 def jav_chat():
-    """Handle Jav chat commands with frustration detection"""
+    """Handle Jav chat messages with workspace integration and frustration detection"""
     try:
         data = request.get_json()
-        command = data.get('command', '')
+        message = data.get('message', '')
         context = data.get('context', {})
 
-        if not command:
-            return jsonify({"error": "No command provided"}), 400
+        if not message:
+            return jsonify({"error": "No message provided"}), 400
 
-        # Process command through Jav chat interface
+        # Initialize Jav agent if not available
+        try:
+            from jav_agent import jav
+        except:
+            # Create minimal jav object for chat
+            class MinimalJav:
+                def __init__(self):
+                    self.memory_api = "http://0.0.0.0:5000"
+            jav = MinimalJav()
+
+        # Process message through Jav chat interface
         from jav_chat import JavChat
         jav_chat_handler = JavChat(jav)
 
-        result = jav_chat_handler.process_command(command, context)
+        result = jav_chat_handler.process_command(message, context)
 
         return jsonify({
             "status": "success",
-            "message": result.get("message", "Command processed"),
+            "message": result.get("message", "Message processed"),
             "type": result.get("type", "success"),
             "interventions": result.get("interventions", []),
             "suggestions": result.get("suggestions", []),
-            "details": result,
+            "keyboard_hint": result.get("keyboard_hint"),
+            "workspace_integration": result.get("workspace_integration", False),
+            "response": result,  # For compatibility
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
 
@@ -496,10 +508,11 @@ def jav_chat():
         # Track error for frustration detection
         try:
             from jav_chat import JavChat
+            from jav_agent import jav
             jav_chat_handler = JavChat(jav)
             jav_chat_handler.frustration_detector.track_interaction(
-                "command", 
-                command, 
+                "message", 
+                message, 
                 False, 
                 {"error": str(e), "context": "chat_endpoint_error"}
             )
@@ -508,9 +521,10 @@ def jav_chat():
 
         return jsonify({
             "status": "error", 
-            "message": f"Error processing command: {str(e)}",
+            "message": f"I encountered an issue, but I'm still here to help: {str(e)}",
             "error": str(e),
             "type": "error",
+            "suggestions": ["Try rephrasing your request", "Ask for help with something specific"],
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 

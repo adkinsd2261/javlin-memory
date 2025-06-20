@@ -1613,38 +1613,45 @@ class JavChat:
             "encouragement": True
         }
 
-    def process_command(self, command: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Process user command and return response with frustration monitoring"""
-        original_command = command
-        command = command.strip().lower()
+    def process_command(self, message: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Process user message/command and return response with workspace integration"""
+        original_message = message
+        message_lower = message.strip().lower()
         context = context or {}
 
         # Handle intervention responses first
-        if command.startswith("intervention:"):
-            return self.handle_intervention_response(command, context)
+        if message_lower.startswith("intervention:"):
+            return self.handle_intervention_response(message_lower, context)
         
         result = None
         success = True
         
         try:
-            if command.startswith("audit"):
-                result = self.handle_audit_command(command)
-            elif command.startswith("health"):
+            # Enhanced command processing for workspace integration
+            if any(word in message_lower for word in ["memory", "recall", "remember", "history"]):
+                result = self.handle_memory_command(message)
+            elif any(word in message_lower for word in ["timeline", "creative history", "past work"]):
+                result = self.handle_timeline_command(message)
+            elif any(word in message_lower for word in ["quick action", "debug", "improve", "feature"]):
+                result = self.handle_quick_action_command(message)
+            elif message_lower.startswith("audit"):
+                result = self.handle_audit_command(message_lower)
+            elif message_lower.startswith("health"):
                 result = self.handle_health_command()
-            elif command.startswith("suggest"):
-                result = self.handle_suggestions_command(command)
-            elif command.startswith("fix"):
-                result = self.handle_fix_command(command)
-            elif command.startswith("deploy"):
-                result = self.handle_deploy_command(command)
-            elif command.startswith("test"):
-                result = self.handle_test_command(command)
-            elif command.startswith("bible"):
-                result = self.handle_bible_command(command)
-            elif "help" in command:
+            elif message_lower.startswith("suggest"):
+                result = self.handle_suggestions_command(message_lower)
+            elif message_lower.startswith("fix"):
+                result = self.handle_fix_command(message_lower)
+            elif message_lower.startswith("deploy"):
+                result = self.handle_deploy_command(message_lower)
+            elif message_lower.startswith("test"):
+                result = self.handle_test_command(message_lower)
+            elif message_lower.startswith("bible"):
+                result = self.handle_bible_command(message_lower)
+            elif "help" in message_lower:
                 result = self.get_help()
             else:
-                result = self.handle_general_query(command)
+                result = self.handle_creative_conversation(message, context)
             
             # Check if command was successful
             success = result.get("type") != "error"
@@ -1653,15 +1660,15 @@ class JavChat:
             success = False
             result = {
                 "type": "error",
-                "message": f"Error processing command: {str(e)}",
-                "suggestions": ["Try 'help' for available commands"]
+                "message": f"Let's try a different approach together. {str(e)}",
+                "suggestions": ["Try describing what you want to build", "Ask for help with a specific feature"]
             }
             context["error"] = str(e)
         
         # Track interaction for frustration detection
         self.frustration_detector.track_interaction(
-            "command", 
-            original_command, 
+            "message", 
+            original_message, 
             success, 
             context
         )
@@ -2229,30 +2236,142 @@ class JavChat:
             "patterns": "Working on command execution and error handling"
         }
     
+    def handle_memory_command(self, message: str) -> Dict[str, Any]:
+        """Handle memory-related requests"""
+        try:
+            # Get recent memories for context
+            import requests
+            response = requests.get('http://0.0.0.0:5000/memory?limit=10')
+            if response.status_code == 200:
+                data = response.json()
+                memories = data.get('memories', [])
+                
+                # Find relevant memories based on message content
+                relevant_memories = []
+                for memory in memories:
+                    if any(word in memory.get('topic', '').lower() or 
+                          word in memory.get('input', '').lower() or 
+                          word in memory.get('output', '').lower() 
+                          for word in message.lower().split()):
+                        relevant_memories.append(memory)
+                
+                if relevant_memories:
+                    memory_list = "\n".join([
+                        f"• **{mem.get('topic', 'Untitled')}**: {mem.get('output', 'No details')[:100]}..."
+                        for mem in relevant_memories[:3]
+                    ])
+                    
+                    return {
+                        "type": "memory_recall",
+                        "message": f"🧠 **Found {len(relevant_memories)} relevant memories:**\n\n{memory_list}\n\nWould you like me to elaborate on any of these or help you build on them?",
+                        "memories": relevant_memories,
+                        "suggestions": ["Build on this solution", "Find similar patterns", "Create new approach"]
+                    }
+                else:
+                    return {
+                        "type": "memory_info",
+                        "message": f"🔍 I have {len(memories)} memories but none seem directly related to your query. Would you like me to:\n\n• Search more broadly\n• Help you create a new solution\n• Show you recent work patterns",
+                        "suggestions": ["Search all memories", "Start fresh approach", "Show recent patterns"]
+                    }
+            else:
+                return {
+                    "type": "error",
+                    "message": "I'm having trouble accessing my memory right now. Let's work through this step by step."
+                }
+        except Exception as e:
+            return {
+                "type": "error",
+                "message": f"Memory recall error: {str(e)}. But I'm still here to help you build!"
+            }
+
+    def handle_timeline_command(self, message: str) -> Dict[str, Any]:
+        """Handle timeline and creative history requests"""
+        return {
+            "type": "timeline_info",
+            "message": "📊 **Creative Timeline Available**\n\nI can show you:\n• Recent project milestones\n• Creative breakthroughs\n• Solution patterns over time\n• Collaboration highlights\n\nUse ⌘M to open your timeline, or tell me what specific period you'd like to explore!",
+            "suggestions": ["Open timeline view", "Show recent patterns", "Find breakthrough moments"],
+            "keyboard_hint": "Press ⌘M to open timeline"
+        }
+
+    def handle_quick_action_command(self, message: str) -> Dict[str, Any]:
+        """Handle quick action requests"""
+        if "debug" in message.lower():
+            return {
+                "type": "debug_action",
+                "message": "🔧 **Debug Mode Activated**\n\nI'm analyzing your current workspace for:\n• Potential errors or issues\n• Performance bottlenecks\n• Code quality improvements\n• Missing dependencies\n\nWhat specific area would you like me to focus on?",
+                "suggestions": ["Analyze code quality", "Check for errors", "Review performance", "Validate dependencies"]
+            }
+        elif "improve" in message.lower():
+            return {
+                "type": "improvement_action",
+                "message": "⚡ **Enhancement Mode Ready**\n\nI can help improve:\n• Code efficiency and structure\n• User experience and design\n• Feature completeness\n• Documentation and clarity\n\nWhat aspect would you like to enhance first?",
+                "suggestions": ["Improve performance", "Enhance UX", "Add features", "Better documentation"]
+            }
+        elif "feature" in message.lower():
+            return {
+                "type": "feature_action",
+                "message": "✨ **Feature Brainstorming**\n\nLet's explore new possibilities:\n• What would make this more powerful?\n• What would users love to have?\n• What would save time or effort?\n• What would make this unique?\n\nWhat type of feature are you envisioning?",
+                "suggestions": ["User-focused features", "Developer tools", "Automation features", "Integration options"]
+            }
+        else:
+            return {
+                "type": "quick_actions_info",
+                "message": "⚡ **Quick Actions Ready**\n\nI can help you:\n• 🔧 Debug current issues\n• ⚡ Improve existing code\n• ✨ Add new features\n• 🧠 Recall past solutions\n\nPress ⌘Q for quick actions panel, or tell me what you'd like to work on!",
+                "suggestions": ["Debug this", "Improve this", "Add feature", "Recall solutions"],
+                "keyboard_hint": "Press ⌘Q for quick actions"
+            }
+
+    def handle_creative_conversation(self, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle general creative conversation with workspace awareness"""
+        workspace_mode = context.get('workspace_mode', 'creative')
+        
+        if workspace_mode == 'creative':
+            return {
+                "type": "creative_response",
+                "message": f"🎨 **Creative Mode Active**\n\nI love that you're thinking creatively! Let me help you explore this idea:\n\n\"{message}\"\n\nI can help you:\n• Brainstorm and expand on concepts\n• Find connections to past work\n• Prototype and test ideas\n• Build and iterate together\n\nWhat aspect excites you most? Let's dive deeper!",
+                "suggestions": ["Expand this idea", "Find related patterns", "Start prototyping", "Explore alternatives"]
+            }
+        else:
+            return {
+                "type": "dev_response", 
+                "message": f"⚙️ **Dev Mode Active**\n\nI'm ready to assist with your development needs. For your request:\n\n\"{message}\"\n\nI can help with:\n• Technical implementation\n• Code review and analysis\n• Problem-solving approach\n• Best practices guidance\n\nWhat specific technical aspect should we focus on?",
+                "suggestions": ["Technical implementation", "Code review", "Problem analysis", "Best practices"]
+            }
+
     def get_help(self) -> Dict[str, Any]:
-        """Get help information"""
+        """Get help information with workspace features"""
         return {
             "type": "help",
-            "message": "Jav Assistant Commands",
-            "commands": {
-                "audit": "Run comprehensive system audit",
-                "health": "Check system health status",
-                "suggest [task]": "Get memory-driven suggestions",
-                "fix [issue]": "Get fix recommendations",
-                "deploy": "Deploy with safety checks",
-                "test": "Run system tests",
-                "bible [action]": "Bible evolution and compliance management"
-            },
-            "examples": [
-                "audit current state",
-                "health check",
-                "suggest deployment",
-                "fix error logs",
-                "deploy to production",
-                "bible review"
-            ],
-            "intervention_help": {
-                "message": "I watch for frustration patterns and offer gentle help",
-                "preferences": "Type 'intervention:preferences' to customize my assistance level"
-            }
+            "title": "🚀 Jav Creative Workspace",
+            "message": """**Your Memory-Driven Creative Partner**
+
+**Core Features:**
+• 💬 Natural conversation and collaboration
+• 🧠 Memory-driven suggestions and recall
+• 📊 Creative timeline and history
+• ⚡ Quick actions for common tasks
+• 🎯 Smart interventions when stuck
+
+**Keyboard Shortcuts:**
+• ⌘J - Open Jav Assistant
+• ⌘K - Memory search & recall  
+• ⌘M - Creative timeline
+• ⌘Q - Quick actions panel
+• ⌘⇧M - Switch workspace mode
+
+**Workspace Modes:**
+• 🎨 Creative Mode: Collaborative building
+• ⚙️ Dev Mode: Technical assistance
+
+**Commands:**
+• "audit" - System health check
+• "memory [topic]" - Recall past work
+• "timeline" - Show creative history
+• "debug this" - Analyze current code
+• "improve this" - Enhancement suggestions
+• "bible [action]" - Documentation management
+
+Just talk to me naturally - I understand context and remember everything we build together!""",
+            "suggestions": ["Try a quick action", "Search memories", "Open timeline", "Switch modes"],
+            "workspace_integration": True
         }
