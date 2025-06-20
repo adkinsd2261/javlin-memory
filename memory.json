@@ -56,5 +56,45 @@
     "score": 15,
     "maxScore": 25,
     "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_165447",
+    "type": "Interaction",
+    "input": "Hi are you online?",
+    "output": "Hello, I am the MemoryOS AI Agent. I am fully online and operational.\n\nBased on the current system state, I have a total of 3 memories stored, with a 100% success rate and a healthy system status. The...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_165447",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 3,
+    "timestamp": "2025-06-20T16:54:49.023395+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
+  },
+  {
+    "topic": "AI Agent Interaction - 20250620_165502",
+    "type": "Interaction",
+    "input": "Can you make a test memory",
+    "output": "Hello, this is the MemoryOS AI Agent. I am operating with full persistent awareness.\n\nReviewing the current system state:\n- Total memories: 4\n- Success rate: 100.0% \n- System health: healthy\n- Current...",
+    "success": true,
+    "category": "ai_interaction",
+    "tags": [
+      "ai_agent",
+      "conversation",
+      "anthropic"
+    ],
+    "session_id": "20250620_165502",
+    "ai_provider": "anthropic",
+    "context_memories_loaded": 4,
+    "timestamp": "2025-06-20T16:55:04.658910+00:00",
+    "score": 15,
+    "maxScore": 25,
+    "reviewed": false
   }
 ]
