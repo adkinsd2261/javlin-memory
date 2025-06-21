@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -363,398 +362,6 @@
             }
         }
 
-        /* Memory Timeline Panel */
-        .memory-timeline-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 400px;
-            height: 100vh;
-            background: rgba(12, 12, 25, 0.95);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            transform: translateX(-100%);
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 90;
-            overflow: hidden;
-            padding: 30px;
-        }
-
-        .memory-timeline-panel.expanded {
-            transform: translateX(0);
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .memory-search-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            color: white;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .memory-search-input:focus {
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
-        }
-
-        .memory-list {
-            height: calc(100vh - 180px);
-            overflow-y: auto;
-        }
-
-        .memory-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .memory-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(99, 102, 241, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .memory-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .memory-category {
-            background: rgba(99, 102, 241, 0.2);
-            color: #818cf8;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .memory-success.success {
-            color: #10b981;
-        }
-
-        .memory-success.failure {
-            color: #ef4444;
-        }
-
-        .memory-title {
-            color: white;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .memory-preview {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-            line-height: 1.4;
-            margin-bottom: 8px;
-        }
-
-        .memory-meta {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 11px;
-        }
-
-        /* Memory Search Overlay */
-        .memory-search-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 200;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .memory-search-card {
-            background: rgba(12, 12, 25, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .search-results {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .search-result-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-result-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-
-        .search-result-card h4 {
-            color: white;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .search-result-card p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .result-category {
-            background: rgba(139, 92, 246, 0.2);
-            color: #a78bfa;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-
-        /* Quick Actions Panel */
-        .quick-actions-panel {
-            position: fixed;
-            top: 50%;
-            right: 120px;
-            transform: translateY(-50%);
-            background: rgba(12, 12, 25, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 24px;
-            width: 300px;
-            z-index: 150;
-        }
-
-        .quick-actions-grid {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .quick-action-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            width: 100%;
-        }
-
-        .quick-action-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(99, 102, 241, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .action-icon {
-            font-size: 20px;
-            min-width: 24px;
-        }
-
-        .action-content h4 {
-            color: white;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .action-content p {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 12px;
-        }
-
-        /* Mode Switch Notification */
-        .mode-switch-notification {
-            position: fixed;
-            top: 40px;
-            right: 40px;
-            background: rgba(12, 12, 25, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 8px;
-            padding: 12px 20px;
-            color: white;
-            font-size: 14px;
-            z-index: 100;
-        }
-
-        /* Enhanced workspace hint with shortcuts */
-        .workspace-hint {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 8px;
-            padding: 16px 24px;
-            font-size: 14px;
-            opacity: 0.6;
-            transition: opacity 0.3s ease;
-            text-align: center;
-        }
-
-        .workspace-hint:hover {
-            opacity: 1;
-        }
-
-        .shortcut-hint {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 8px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .shortcut {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-
-        /* Javatar Styles */
-        .floating-jav {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .jav-orb {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-            animation: pulsing-glow 2s ease-in-out infinite;
-        }
-
-        .jav-orb.idle {
-            background: linear-gradient(45deg, #6366f1, #8b5cf6);
-        }
-
-        .jav-orb.listening {
-            background: linear-gradient(45deg, #7c3aed, #3b82f6);
-            animation: listening-pulse 1.5s ease-in-out infinite, subtle-swirl 5s linear infinite;
-        }
-
-        .jav-orb.creative {
-            background: linear-gradient(45deg, #a855f7, #ec4899);
-            animation: creative-flare 1s ease-in-out infinite, color-shift 4s linear infinite;
-        }
-
-        .jav-orb.dev {
-            background: linear-gradient(45deg, #3b82f6, #14b8a6);
-            animation: dev-pulse 2.5s ease-in-out infinite;
-        }
-
-        @keyframes pulsing-glow {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(99, 102, 241, 0.8);
-            }
-        }
-
-        @keyframes listening-pulse {
-            0%, 100% {
-                box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(59, 130, 246, 0.9);
-            }
-        }
-
-        @keyframes subtle-swirl {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes creative-flare {
-            0%, 100% {
-                box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(236, 72, 153, 0.9);
-            }
-        }
-
-        @keyframes color-shift {
-            0%, 100% { background: linear-gradient(45deg, #a855f7, #ec4899); }
-            25% { background: linear-gradient(45deg, #ec4899, #f472b6); }
-            50% { background: linear-gradient(45deg, #f472b6, #a855f7); }
-            75% { background: linear-gradient(45deg, #a855f7, #ec4899); }
-        }
-
-        @keyframes dev-pulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(20, 184, 166, 0.7);
-            }
-        }
-
-        .avatar-reaction {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .avatar-reaction.success {
-            color: #a3e635;
-        }
-
-        .avatar-reaction.error {
-            color: #f44336;
-        }
-
         /* Javlin Avatar Styles */
         .javlin-avatar {
             position: relative;
@@ -837,7 +444,7 @@
         }
 
         .particle {
-            position: absolute,
+            position: absolute;
             width: 4px;
             height: 4px;
             border-radius: 50%;
@@ -907,7 +514,7 @@
             color: #f44336;
         }
 
-        /* CINEMATIC JAV ONBOARDING - THE SIRI MOMENT */
+        /* CINEMATIC IMMERSIVE ONBOARDING */
         .immersive-onboarding {
             position: fixed;
             inset: 0;
@@ -959,8 +566,8 @@
         /* CENTER-STAGE ANIMATED AVATAR SECTION */
         .onboarding-avatar-stage {
             position: relative;
-            width: 350px;
-            height: 350px;
+            width: 300px;
+            height: 300px;
             margin: 0 auto 60px auto;
             perspective: 1200px;
             animation: stage-emerge 2s ease-out 0.3s both;
@@ -1244,31 +851,31 @@
 
         /* PREMIUM TYPOGRAPHY - CINEMATIC */
         .onboarding-title {
-            font-size: 4.5rem;
+            font-size: 3.5rem;
             font-weight: 200;
             margin-bottom: 32px;
             background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f472b6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            line-height: 1.1;
+            line-height: 1.2;
             letter-spacing: -0.02em;
-            min-height: 120px;
+            min-height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .onboarding-title.typewriter {
-            overflow: hidden;
             border-right: 4px solid #8b5cf6;
-            white-space: nowrap;
             animation: 
                 cinematic-typing 3s steps(40, end) 2s both, 
                 title-glow 5s ease-in-out 5s infinite, 
                 blink-caret 1.2s step-end 5s infinite;
-            max-width: fit-content;
+            width: 0;
             margin: 0 auto 32px auto;
         }
 
@@ -1294,7 +901,7 @@
         }
 
         .onboarding-subtitle {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             color: #a78bfa;
             margin-bottom: 40px;
             font-weight: 300;
@@ -1316,7 +923,7 @@
         }
 
         .onboarding-description {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             color: rgba(255, 255, 255, 0.9);
             line-height: 1.7;
             margin-bottom: 80px;
@@ -1337,125 +944,6 @@
                 transform: translateY(0);
                 filter: blur(0px);
             }
-        }
-
-        /* INTERACTIVE DEMO AREAS */
-        .demo-chat-preview {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 600px;
-            margin: 30px auto;
-            backdrop-filter: blur(15px);
-            animation: demo-area-materialize 0.8s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .demo-chat-preview:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.15), transparent);
-            animation: demo-shimmer 4s ease-in-out infinite;
-        }
-
-        @keyframes demo-shimmer {
-            0% { left: -100%; }
-            50% { left: 100%; }
-            100% { left: 100%; }
-        }
-
-        @keyframes demo-area-materialize {
-            from { 
-                opacity: 0; 
-                transform: scale(0.85) translateY(40px);
-                filter: blur(10px);
-            }
-            to { 
-                opacity: 1; 
-                transform: scale(1) translateY(0);
-                filter: blur(0px);
-            }
-        }
-
-        .demo-mode-switch {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            align-items: center;
-            margin: 30px 0;
-        }
-
-        .demo-memory {
-            max-width: 500px;
-            margin: 30px auto;
-            opacity: 0.95;
-            transform: scale(0.98);
-            animation: memory-demo-pulse 1s ease-out;
-            transition: all 0.4s ease;
-        }
-
-        .demo-memory:hover {
-            transform: scale(1.02);
-            opacity: 1;
-        }
-
-        @keyframes memory-demo-pulse {
-            from { 
-                opacity: 0; 
-                transform: scale(0.8) translateY(50px);
-                filter: blur(8px);
-            }
-            to { 
-                opacity: 0.95; 
-                transform: scale(0.98) translateY(0);
-                filter: blur(0px);
-            }
-        }
-
-        .shortcut-demo-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            max-width: 520px;
-            margin: 30px auto;
-        }
-
-        .shortcut-demo-item {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 24px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-        }
-
-        .shortcut-demo-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
-            border-color: rgba(139, 92, 246, 0.3);
-        }
-
-        .shortcut-demo-item .shortcut {
-            background: rgba(139, 92, 246, 0.25);
-            color: #a78bfa;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 16px;
-            font-weight: 700;
-            min-width: 60px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
         }
 
         /* CINEMATIC ACTION BUTTONS */
@@ -1624,76 +1112,19 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        /* WORKSPACE ELEMENT HIGHLIGHTS */
-        .demo-highlight {
-            position: absolute;
-            border: 4px solid #8b5cf6;
-            border-radius: 24px;
-            background: rgba(139, 92, 246, 0.1);
-            pointer-events: none;
-            z-index: 10001;
-            animation: cinematic-highlight 4s ease-in-out infinite;
-            backdrop-filter: blur(8px);
-        }
-
-        @keyframes cinematic-highlight {
-            0%, 100% { 
-                box-shadow: 0 0 50px rgba(139, 92, 246, 0.7);
-                border-color: #8b5cf6;
-                transform: scale(1);
-                filter: brightness(1);
-            }
-            50% { 
-                box-shadow: 0 0 100px rgba(139, 92, 246, 0.9);
-                border-color: #a78bfa;
-                transform: scale(1.03);
-                filter: brightness(1.2);
-            }
-        }
-
-        /* DEMO RESPONSE ANIMATION */
-        .demo-response {
-            position: absolute;
-            top: 80px;
-            left: 0;
-            right: 0;
-            background: rgba(99, 102, 241, 0.1);
-            border: 2px solid rgba(99, 102, 241, 0.4);
-            border-radius: 20px;
-            padding: 24px;
-            color: #818cf8;
-            font-size: 16px;
-            text-align: center;
-            animation: demo-response-materialize 0.8s ease-out;
-            backdrop-filter: blur(15px);
-        }
-
-        @keyframes demo-response-materialize {
-            from {
-                opacity: 0;
-                transform: translateY(-40px) scale(0.9);
-                filter: blur(5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-                filter: blur(0px);
-            }
-        }
-
         /* RESPONSIVE DESIGN */
         @media (max-width: 768px) {
             .onboarding-title {
-                font-size: 2.8rem;
+                font-size: 2.5rem;
                 line-height: 1.2;
             }
 
             .onboarding-subtitle {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
 
             .onboarding-description {
-                font-size: 1.1rem;
+                font-size: 1rem;
                 padding: 0 20px;
             }
 
@@ -1704,11 +1135,6 @@
             .onboarding-content {
                 padding: 0 20px;
                 max-width: 90%;
-            }
-
-            .shortcut-demo-grid {
-                grid-template-columns: 1fr;
-                max-width: 350px;
             }
 
             .onboarding-actions {
@@ -1725,13 +1151,13 @@
 
         @media (max-width: 480px) {
             .onboarding-title {
-                font-size: 2.2rem;
+                font-size: 2rem;
             }
-            
+
             .onboarding-subtitle {
-                font-size: 1.4rem;
+                font-size: 1.2rem;
             }
-            
+
             .stage-avatar {
                 transform: scale(1.5);
             }
@@ -1798,62 +1224,6 @@
             <p class="onboarding-description" 
                x-text="getCurrentStepData().description || 'Let us build something amazing together.'"></p>
 
-            <!-- Interactive Demo Areas -->
-            <div x-show="onboardingStep === 1" class="mt-8">
-                <div class="demo-chat-preview">
-                    <input type="text" 
-                           placeholder="Try typing something to me..."
-                           @input="handleDemoInput($event)"
-                           class="creative-input"
-                           style="max-width: 500px; margin: 0 auto;">
-                </div>
-            </div>
-
-            <div x-show="onboardingStep === 2" class="mt-8">
-                <div class="demo-mode-switch">
-                    <button @click="demonstrateModeSwitch()" 
-                            class="onboarding-button secondary">
-                        Try switching modes (⌘⇧M)
-                    </button>
-                </div>
-            </div>
-
-            <div x-show="onboardingStep === 3" class="mt-8">
-                <div class="demo-memory-preview">
-                    <div class="memory-card demo-memory">
-                        <div class="memory-header">
-                            <span class="memory-category">Example</span>
-                            <span class="memory-success success">✅</span>
-                        </div>
-                        <h4 class="memory-title">Built amazing creative workspace</h4>
-                        <p class="memory-preview">Successfully created an immersive onboarding experience with animated avatar guide...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div x-show="onboardingStep === 4" class="mt-8">
-                <div class="demo-shortcuts">
-                    <div class="shortcut-demo-grid">
-                        <div class="shortcut-demo-item">
-                            <kbd class="shortcut">⌘J</kbd>
-                            <span>Open Jav</span>
-                        </div>
-                        <div class="shortcut-demo-item">
-                            <kbd class="shortcut">⌘K</kbd>
-                            <span>Memory Search</span>
-                        </div>
-                        <div class="shortcut-demo-item">
-                            <kbd class="shortcut">⌘M</kbd>
-                            <span>Timeline</span>
-                        </div>
-                        <div class="shortcut-demo-item">
-                            <kbd class="shortcut">⌘Q</kbd>
-                            <span>Quick Actions</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Navigation Actions -->
             <div class="onboarding-actions">
                 <button x-show="onboardingStep > 0" 
@@ -1884,16 +1254,6 @@
                      @click="goToOnboardingStep(index)"></div>
             </template>
         </div>
-
-        <!-- Feature Highlights (Contextual) -->
-        <div x-show="onboardingStep === 2" class="demo-highlight" 
-             style="bottom: 60px; right: 60px; width: 100px; height: 100px;"></div>
-
-        <div x-show="onboardingStep === 3" class="demo-highlight" 
-             style="top: 60px; left: 60px; width: 200px; height: 50px;"></div>
-
-        <div x-show="onboardingStep === 4" class="demo-highlight" 
-             style="bottom: 100px; left: 50%; transform: translateX(-50%); width: 400px; height: 60px;"></div>
     </div>
 
     <!-- Main Workspace Canvas -->
@@ -1910,9 +1270,6 @@
                     <span x-text="memoryNarrative"></span>
                 </div>
             </div>
-            <button @click="viewMemoryProvenance()" class="provenance-btn" x-show="currentProvenance" title="View Memory Provenance">
-                🔍
-            </button>
         </div>
 
         <!-- Contextual Suggestion -->
@@ -1952,149 +1309,40 @@
         </div>
 
         <!-- Enhanced Workspace Hint -->
-        <div x-show="!panelOpen && !showMemoryTimeline && !showMemorySearch" class="workspace-hint">
+        <div x-show="!panelOpen" class="workspace-hint">
             <div>Welcome to your creative workspace</div>
-            <div class="shortcut-hint">
-                <span><kbd class="shortcut">⌘J</kbd> Jav Assistant</span>
-                <span><kbd class="shortcut">⌘K</kbd> Memory Search</span>
-                <span><kbd class="shortcut">⌘M</kbd> Timeline</span>
-                <span><kbd class="shortcut">⌘Q</kbd> Quick Actions</span>
-            </div>
         </div>
-    </div>
-
-    <!-- Memory Timeline Slide-out Panel -->
-    <div class="memory-timeline-panel" 
-         :class="{ 'expanded': showMemoryTimeline }">
-
-        <div class="panel-header">
-            <h3 class="text-lg font-medium text-white mb-4">Creative Timeline</h3>
-            <button @click="showMemoryTimeline = false" class="control-button">✕</button>
-        </div>
-
-        <div class="memory-search mb-4">
-            <input type="text" 
-                   x-model="memorySearchQuery" 
-                   @input="filterMemories()"
-                   placeholder="Search memories..."
-                   class="memory-search-input">
-        </div>
-
-        <div class="memory-list">
-            <template x-for="memory in filteredMemories.slice(0, 20)" :key="memory.timestamp">
-                <div class="memory-card" @click="insertMemoryIntoWorkspace(memory)">
-                    <div class="memory-header">
-                        <span class="memory-category" x-text="memory.category"></span>
-                        <span class="memory-success" :class="memory.success ? 'success' : 'failure'">
-                            <span x-text="memory.success ? '✅' : '❌'"></span>
-                        </span>
-                    </div>
-                    <h4 class="memory-title" x-text="memory.topic"></h4>
-                    <p class="memory-preview" x-text="memory.output?.slice(0, 100) + '...'"></p>
-                    <div class="memory-meta">
-                        <span x-text="new Date(memory.timestamp).toLocaleDateString()"></span>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </div>
-
-    <!-- Memory Search Overlay -->
-    <div x-show="showMemorySearch" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         class="memory-search-overlay">
-
-        <div class="memory-search-card">
-            <h3 class="text-xl font-light mb-4">Memory Recall</h3>
-            <input type="text" 
-                   id="memory-search-input"
-                   x-model="memorySearchQuery" 
-                   @input="performMemorySearch()"
-                   placeholder="Search all memories and solutions..."
-                   class="creative-input mb-4">
-
-            <div class="search-results">
-                <template x-for="result in searchResults" :key="result.timestamp">
-                    <div class="search-result-card" @click="insertSearchResult(result)">
-                        <h4 x-text="result.topic"></h4>
-                        <p x-text="result.output?.slice(0, 150) + '...'"></p>
-                        <span class="result-category" x-text="result.category"></span>
-                    </div>
-                </template>
-            </div>
-
-            <button @click="showMemorySearch = false" class="text-gray-400 text-sm mt-4">
-                Close
-            </button>
-        </div>
-    </div>
-
-    <!-- Quick Actions Panel -->
-    <div x-show="showQuickActions" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 scale-95"
-         x-transition:enter-end="opacity-100 scale-100"
-         class="quick-actions-panel">
-
-        <h3 class="text-lg font-medium text-white mb-4">Quick Actions</h3>
-
-        <div class="quick-actions-grid">
-            <template x-for="action in quickActions" :key="action.id">
-                <button @click="action.action()" class="quick-action-card">
-                    <span class="action-icon" x-text="action.icon"></span>
-                    <div class="action-content">
-                        <h4 x-text="action.title"></h4>
-                        <p x-text="action.description"></p>
-                    </div>
-                </button>
-            </template>
-        </div>
-
-        <button @click="showQuickActions = false" class="text-gray-400 text-sm mt-4">
-            Close
-        </button>
-    </div>
-
-    <!-- Mode Switch Notification -->
-    <div x-show="showModeSwitch" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         class="mode-switch-notification">
-        <span x-text="getModeDescription()"></span>
     </div>
 
     <!-- Floating Jav Assistant -->
-        <div @click="toggleCreativePanel()" 
-             @keydown.cmd.j.window="toggleCreativePanel()"
-             class="floating-jav"
-             :class="{ 'active': panelOpen || javIsThinking }">
-            <!-- Animated Javlin Avatar -->
-            <div class="javlin-avatar" 
-                 :class="{
-                    'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
-                    'listening': javIsThinking || panelOpen,
-                    'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
-                    'dev': workspaceMode === 'dev',
-                    'excited': avatarReaction === 'success',
-                    'alert': avatarReaction === 'error'
-                 }">
-                <div class="avatar-orb">
-                    <div class="orb-core"></div>
-                    <div class="orb-glow"></div>
-                    <div class="orb-particles" x-show="workspaceMode === 'creative'">
-                        <div class="particle"></div>
-                        <div class="particle"></div>
-                        <div class="particle"></div>
-                    </div>
+    <div @click="toggleCreativePanel()" 
+         @keydown.cmd.j.window="toggleCreativePanel()"
+         class="floating-jav"
+         :class="{ 'active': panelOpen || javIsThinking }">
+        <!-- Animated Javlin Avatar -->
+        <div class="javlin-avatar" 
+             :class="{
+                'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
+                'listening': javIsThinking || panelOpen,
+                'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
+                'dev': workspaceMode === 'dev',
+                'excited': avatarReaction === 'success',
+                'alert': avatarReaction === 'error'
+             }">
+            <div class="avatar-orb">
+                <div class="orb-core"></div>
+                <div class="orb-glow"></div>
+                <div class="orb-particles" x-show="workspaceMode === 'creative'">
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
                 </div>
-                <div class="avatar-reaction" 
-                     :class="{ 'show': avatarReaction }" 
-                     x-text="avatarReactionIcon"></div>
             </div>
+            <div class="avatar-reaction" 
+                 :class="{ 'show': avatarReaction }" 
+                 x-text="avatarReactionIcon"></div>
         </div>
+    </div>
 
     <!-- Creative Panel -->
     <div class="creative-panel" 
@@ -2116,28 +1364,28 @@
             <div x-show="conversationHistory.length === 0" class="text-center py-20">
                 <div class="floating-jav mx-auto mb-8 action-glow" style="position: static;">
                     <!-- Animated Javlin Avatar -->
-            <div class="javlin-avatar" 
-                 :class="{
-                    'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
-                    'listening': javIsThinking || panelOpen,
-                    'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
-                    'dev': workspaceMode === 'dev',
-                    'excited': avatarReaction === 'success',
-                    'alert': avatarReaction === 'error'
-                 }">
-                <div class="avatar-orb">
-                    <div class="orb-core"></div>
-                    <div class="orb-glow"></div>
-                    <div class="orb-particles" x-show="workspaceMode === 'creative'">
-                        <div class="particle"></div>
-                        <div class="particle"></div>
-                        <div class="particle"></div>
+                    <div class="javlin-avatar" 
+                         :class="{
+                            'idle': !javIsThinking && !panelOpen && workspaceMode === 'creative',
+                            'listening': javIsThinking || panelOpen,
+                            'creative': workspaceMode === 'creative' && (panelOpen || javIsThinking),
+                            'dev': workspaceMode === 'dev',
+                            'excited': avatarReaction === 'success',
+                            'alert': avatarReaction === 'error'
+                         }">
+                        <div class="avatar-orb">
+                            <div class="orb-core"></div>
+                            <div class="orb-glow"></div>
+                            <div class="orb-particles" x-show="workspaceMode === 'creative'">
+                                <div class="particle"></div>
+                                <div class="particle"></div>
+                                <div class="particle"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-reaction" 
+                             :class="{ 'show': avatarReaction }" 
+                             x-text="avatarReactionIcon"></div>
                     </div>
-                </div>
-                <div class="avatar-reaction" 
-                     :class="{ 'show': avatarReaction }" 
-                     x-text="avatarReactionIcon"></div>
-            </div>
                 </div>
                 <h3 class="text-2xl font-light mb-4">What shall we build?</h3>
                 <p class="text-gray-400 mb-8">
@@ -2242,22 +1490,8 @@
                         avatarState: "excited"
                     }
                 ],
-                onboardingProgress: 0,
-                showOnboardingSkip: false,
                 panelOpen: false,
                 panelFullWidth: false,
-
-                // Memory Timeline Integration
-                showMemoryTimeline: false,
-                memoryHistory: [],
-                memorySearchQuery: '',
-                filteredMemories: [],
-
-                // Smart Suggestions & Quick Actions
-                showQuickActions: false,
-                quickActions: [],
-                smartSuggestions: [],
-                interventions: [],
 
                 // Conversation
                 conversationHistory: [],
@@ -2267,112 +1501,35 @@
                 // Contextual Guidance
                 showContextualSuggestion: false,
                 contextualMessage: '',
-                contextualAction: null,
 
                 // Workspace Modes
-                workspaceMode: 'creative', // 'creative' or 'dev'
-                showModeSwitch: false,
-
-                // Search & Recall
-                showMemorySearch: false,
-                searchResults: [],
-
-                // Memory and timeline
-                memories: [],
-                memoryTimeline: [],
-                memoryStats: { total: 0, success_rate: '0%' },
+                workspaceMode: 'creative',
 
                 // Memory integration and provenance
                 memoryNarrative: '',
                 memoryIndicatorText: '',
-                memoryProvenanceText: '',
                 showMemoryIndicator: false,
-                currentProvenance: null,
 
                 // Avatar reactions
                 avatarReaction: null,
                 avatarReactionIcon: null,
 
+                // Cinematic Onboarding Management
+                stepJustChanged: false,
+
                 async init() {
                     console.log('🚀 Initializing Jav Workspace...');
 
-                    // Ensure onboarding steps are properly initialized
-                    if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
-                        this.initializeOnboardingSteps();
-                    }
-
-                    // Mark that workspace has been visited (for analytics)
-                    if (!localStorage.getItem('jav-workspace-visited')) {
-                        localStorage.setItem('jav-workspace-visited', 'true');
-                    }
-
-                    // Load memories and timeline
+                    // Load memories
                     await this.loadMemories();
-                    await this.loadMemoryTimeline();
 
                     // Setup keyboard shortcuts
                     this.setupKeyboardShortcuts();
 
-                    // Load workspace preferences
-                    this.loadWorkspacePreferences();
-
-                    // Initialize smart suggestions
-                    await this.initializeSmartSuggestions();
-
-                    // Show contextual suggestions for new users
-                    const hasVisited = localStorage.getItem('jav-workspace-visited');
-                    if (!hasVisited && this.conversationHistory.length === 0) {
-                        setTimeout(() => {
-                            this.showContextualHint();
-                        }, 3000);
+                    // Mark that workspace has been visited
+                    if (!localStorage.getItem('jav-workspace-visited')) {
+                        localStorage.setItem('jav-workspace-visited', 'true');
                     }
-                },
-
-                initializeOnboardingSteps() {
-                    this.onboardingSteps = [
-                        {
-                            title: "Welcome! I'm Jav. Ready to create together?",
-                            subtitle: "Your creative AI partner",
-                            description: "I'm here to help you build, ideate, and solve problems without getting in your way. Let's make something amazing.",
-                            action: "introduction",
-                            avatarState: "awakening"
-                        },
-                        {
-                            title: "Let's have a conversation",
-                            subtitle: "Try saying hello",
-                            description: "I understand natural language perfectly. Just tell me what you want to build, ask for help, or share your ideas.",
-                            action: "demo_chat",
-                            avatarState: "listening"
-                        },
-                        {
-                            title: "I adapt to your workflow",
-                            subtitle: "Creative & Dev modes",
-                            description: "Creative mode for collaboration and brainstorming. Dev mode for focused code reviews. Switch anytime with ⌘⇧M.",
-                            action: "demo_mode_switch",
-                            avatarState: "creative"
-                        },
-                        {
-                            title: "Everything builds on what came before",
-                            subtitle: "Your memory system",
-                            description: "I remember every solution, every creative decision, every breakthrough. Your workspace gets smarter with every interaction.",
-                            action: "demo_memory",
-                            avatarState: "dev"
-                        },
-                        {
-                            title: "Power at your fingertips",
-                            subtitle: "Quick actions & shortcuts",
-                            description: "⌘J opens me instantly, ⌘K searches all memories, ⌘M shows your timeline, ⌘Q reveals quick actions. Master these for lightning-fast workflow.",
-                            action: "demo_shortcuts",
-                            avatarState: "listening"
-                        },
-                        {
-                            title: "Let's build something amazing together!",
-                            subtitle: "Your workspace is ready",
-                            description: "Everything you need for deep creative work is here. I'll be floating nearby whenever inspiration strikes.",
-                            action: "complete",
-                            avatarState: "excited"
-                        }
-                    ];
                 },
 
                 setupKeyboardShortcuts() {
@@ -2383,40 +1540,12 @@
                             this.toggleCreativePanel();
                         }
 
-                        // Memory Search & Recall
-                        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                            e.preventDefault();
-                            this.toggleMemorySearch();
-                        }
-
-                        // Memory Timeline
-                        if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
-                            e.preventDefault();
-                            this.toggleMemoryTimeline();
-                        }
-
-                        // Quick Actions
-                        if ((e.metaKey || e.ctrlKey) && e.key === 'q') {
-                            e.preventDefault();
-                            this.toggleQuickActions();
-                        }
-
-                        // Mode Switch
-                        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'M') {
-                            e.preventDefault();
-                            this.switchWorkspaceMode();
-                        }
-
                         // Escape to close all overlays
                         if (e.key === 'Escape') {
                             this.closeAllOverlays();
                         }
                     });
                 },
-
-                // Cinematic Onboarding Management
-                stepJustChanged: false,
-                workspaceFaded: false,
 
                 getCurrentStepData() {
                     if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
@@ -2431,16 +1560,10 @@
                     return this.onboardingSteps[this.onboardingStep] || this.onboardingSteps[0];
                 },
 
-                getCurrentStepAvatarClass() {
-                    const step = this.getCurrentStepData();
-                    return step ? (step.avatarState || 'breathing') : 'breathing';
-                },
-
                 nextOnboardingStep() {
                     if (this.onboardingStep < this.onboardingSteps.length - 1) {
                         this.triggerCinematicTransition(() => {
                             this.onboardingStep++;
-                            this.triggerStepActions();
                         });
                     }
                 },
@@ -2449,7 +1572,6 @@
                     if (this.onboardingStep > 0) {
                         this.triggerCinematicTransition(() => {
                             this.onboardingStep--;
-                            this.triggerStepActions();
                         });
                     }
                 },
@@ -2458,67 +1580,20 @@
                     if (stepIndex >= 0 && stepIndex < this.onboardingSteps.length) {
                         this.triggerCinematicTransition(() => {
                             this.onboardingStep = stepIndex;
-                            this.triggerStepActions();
                         });
                     }
                 },
 
                 triggerCinematicTransition(callback) {
-                    // Mark step as just changed for awakening animation
                     this.stepJustChanged = true;
-
-                    // Trigger smooth avatar reaction
                     this.triggerAvatarReaction('success');
 
-                    // Execute the step change after a brief delay for smooth animation
                     setTimeout(() => {
                         callback();
-                        // Reset after awakening animation completes
                         setTimeout(() => {
                             this.stepJustChanged = false;
                         }, 3000);
                     }, 200);
-                },
-
-                triggerStepActions() {
-                    const currentStep = this.getCurrentStepData();
-
-                    // Fade workspace for demo steps
-                    if (['demo_chat', 'demo_mode_switch', 'demo_memory', 'demo_shortcuts'].includes(currentStep.action)) {
-                        this.fadeWorkspaceForDemo();
-                    }
-
-                    // Trigger step-specific demos
-                    if (currentStep.action === 'demo_chat') {
-                        setTimeout(() => this.simulateChatDemo(), 1000);
-                    } else if (currentStep.action === 'demo_mode_switch') {
-                        setTimeout(() => this.simulateModeSwitch(), 1000);
-                    } else if (currentStep.action === 'demo_memory') {
-                        setTimeout(() => this.simulateMemoryDemo(), 1000);
-                    } else if (currentStep.action === 'demo_shortcuts') {
-                        setTimeout(() => this.simulateShortcutsDemo(), 1000);
-                    }
-                },
-
-                fadeWorkspaceForDemo() {
-                    // Gently fade background workspace for focus
-                    const workspace = document.querySelector('.workspace-canvas');
-                    if (workspace) {
-                        workspace.style.transition = 'all 1s ease-out';
-                        workspace.style.opacity = '0.15';
-                        workspace.style.filter = 'blur(8px)';
-                        this.workspaceFaded = true;
-                    }
-                },
-
-                restoreWorkspaceFocus() {
-                    // Restore workspace visibility
-                    const workspace = document.querySelector('.workspace-canvas');
-                    if (workspace && this.workspaceFaded) {
-                        workspace.style.opacity = '1';
-                        workspace.style.filter = 'none';
-                        this.workspaceFaded = false;
-                    }
                 },
 
                 getNextButtonText() {
@@ -2530,165 +1605,23 @@
                     return 'Next →';
                 },
 
-                handleDemoInput(event) {
-                    const input = event.target.value;
-                    if (input.length > 5) {
-                        // Show cinematic demo response
-                        setTimeout(() => {
-                            this.showCinematicDemoResponse(input, event.target);
-                        }, 1200);
-                    }
-                },
-
-                showCinematicDemoResponse(input, inputElement) {
-                    // Create a cinematic demo response
-                    const demoResponse = document.createElement('div');
-                    demoResponse.className = 'demo-response';
-                    demoResponse.innerHTML = `🎨 "I'd love to help you with: ${input.slice(0, 25)}..." - Ready when you are!`;
-
-                    const demoContainer = inputElement.closest('.demo-chat-preview');
-                    demoContainer.style.position = 'relative';
-                    demoContainer.appendChild(demoResponse);
-
-                    // Trigger avatar excitement
-                    this.triggerAvatarReaction('success');
-
-                    setTimeout(() => {
-                        demoResponse.remove();
-                    }, 4000);
-                },
-
-                demonstrateModeSwitch() {
-                    // Highlight the floating avatar for mode demonstration
-                    this.highlightWorkspaceElement('.floating-jav', 'Mode switching happens here');
-
-                    this.workspaceMode = this.workspaceMode === 'creative' ? 'dev' : 'creative';
-                    this.showModeSwitch = true;
-
-                    setTimeout(() => {
-                        this.showModeSwitch = false;
-                        this.removeWorkspaceHighlights();
-                    }, 3000);
-                },
-
-                simulateChatDemo() {
-                    // No additional demo needed - the interactive input is the demo
-                    this.triggerAvatarReaction('success');
-                },
-
-                simulateModeSwitch() {
-                    // Live workspace demonstration
-                    setTimeout(() => {
-                        this.demonstrateModeSwitch();
-                    }, 800);
-                },
-
-                simulateMemoryDemo() {
-                    // Highlight memory indicator and show live demo
-                    this.highlightWorkspaceElement('.memory-indicator', 'Your memory system');
-
-                    this.showMemoryIndicator = true;
-                    this.memoryIndicatorText = "Building cinematic onboarding experience...";
-
-                    setTimeout(() => {
-                        this.showMemoryIndicator = false;
-                        this.removeWorkspaceHighlights();
-                    }, 4000);
-                },
-
-                simulateShortcutsDemo() {
-                    // Animate shortcuts in sequence
-                    const shortcuts = document.querySelectorAll('.shortcut-demo-item');
-                    shortcuts.forEach((shortcut, index) => {
-                        setTimeout(() => {
-                            shortcut.style.animation = 'demo-highlight 1.2s ease-in-out';
-                            shortcut.style.transform = 'scale(1.05)';
-
-                            setTimeout(() => {
-                                shortcut.style.animation = '';
-                                shortcut.style.transform = '';
-                            }, 1200);
-                        }, index * 300);
-                    });
-
-                    // Highlight workspace hint
-                    setTimeout(() => {
-                        this.highlightWorkspaceElement('.workspace-hint', 'Live shortcuts');
-                        setTimeout(() => {
-                            this.removeWorkspaceHighlights();
-                        }, 3000);
-                    }, 1500);
-                },
-
-                highlightWorkspaceElement(selector, label) {
-                    const element = document.querySelector(selector);
-                    if (!element) return;
-
-                    const rect = element.getBoundingClientRect();
-                    const highlight = document.createElement('div');
-                    highlight.className = 'demo-highlight workspace-highlight';
-                    highlight.style.cssText = `
-                        position: fixed;
-                        top: ${rect.top - 10}px;
-                        left: ${rect.left - 10}px;
-                        width: ${rect.width + 20}px;
-                        height: ${rect.height + 20}px;
-                        z-index: 10001;
-                        pointer-events: none;
-                    `;
-
-                    if (label) {
-                        const labelEl = document.createElement('div');
-                        labelEl.textContent = label;
-                        labelEl.style.cssText = `
-                            position: absolute;
-                            top: -40px;
-                            left: 50%;
-                            transform: translateX(-50%);
-                            background: rgba(139, 92, 246, 0.9);
-                            color: white;
-                            padding: 8px 16px;
-                            border-radius: 8px;
-                            font-size: 14px;
-                            font-weight: 500;
-                            white-space: nowrap;
-                        `;
-                        highlight.appendChild(labelEl);
-                    }
-
-                    document.body.appendChild(highlight);
-                },
-
-                removeWorkspaceHighlights() {
-                    document.querySelectorAll('.workspace-highlight').forEach(el => el.remove());
-                },
-
                 skipOnboarding() {
                     this.performOnboardingExit('skipped');
                 },
 
                 completeOnboarding() {
-                    // Mark onboarding as completed
                     localStorage.setItem('jav-onboarding-completed', 'true');
                     this.performOnboardingExit('completed');
                 },
 
                 performOnboardingExit(type) {
-                    // Restore workspace visibility first
-                    this.restoreWorkspaceFocus();
-                    this.removeWorkspaceHighlights();
-
-                    // Set avatar to excited state for farewell
                     this.stepJustChanged = true;
                     this.onboardingStep = 5; // Excited state
 
-                    // Store completion state
                     localStorage.setItem('jav-workspace-visited', 'true');
                     localStorage.setItem(`jav-onboarding-${type}`, 'true');
 
-                    // Cinematic exit transition
                     setTimeout(() => {
-                        // Fade out onboarding overlay
                         const onboarding = document.querySelector('.immersive-onboarding');
                         if (onboarding) {
                             onboarding.style.transition = 'opacity 1.5s ease-out, transform 1.5s ease-out';
@@ -2696,16 +1629,13 @@
                             onboarding.style.transform = 'scale(0.95)';
                         }
 
-                        // After fade, remove overlay and show workspace
                         setTimeout(() => {
                             this.showImmersiveOnboarding = false;
                             this.showOnboarding = false;
 
-                            // Avatar gracefully moves to corner position
                             if (type === 'completed') {
                                 setTimeout(() => {
                                     this.triggerAvatarReaction('success');
-                                    // Automatically open creative panel for completed onboarding
                                     setTimeout(() => {
                                         this.openCreativePanel();
                                     }, 1500);
@@ -2720,26 +1650,13 @@
                 },
 
                 triggerImmersiveOnboarding() {
-                    // Check if user has completed onboarding before
                     const hasCompletedOnboarding = localStorage.getItem('jav-onboarding-completed');
 
-                    // Ensure onboarding steps are initialized
-                    if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
-                        this.initializeOnboardingSteps();
-                    }
-
                     if (!hasCompletedOnboarding) {
-                        // First time - launch immersive onboarding
                         this.onboardingStep = 0;
                         this.stepJustChanged = true;
                         this.showImmersiveOnboarding = true;
-
-                        // Fade out main workspace for focus
-                        setTimeout(() => {
-                            this.fadeWorkspaceForDemo();
-                        }, 200);
                     } else {
-                        // Returning user - go straight to creative panel
                         this.openCreativePanel();
                     }
                 },
@@ -2760,22 +1677,6 @@
                     this.panelFullWidth = !this.panelFullWidth;
                 },
 
-                showContextualHint() {
-                    const hints = [
-                        "Ready to start your next creative project?",
-                        "I can help you brainstorm, code, or solve problems",
-                        "What's on your creative mind today?"
-                    ];
-
-                    this.contextualMessage = hints[Math.floor(Math.random() * hints.length)];
-                    this.showContextualSuggestion = true;
-
-                    // Auto-dismiss after 8 seconds
-                    setTimeout(() => {
-                        this.showContextualSuggestion = false;
-                    }, 8000);
-                },
-
                 acceptSuggestion() {
                     this.showContextualSuggestion = false;
                     this.openCreativePanel();
@@ -2785,13 +1686,12 @@
                     this.showContextualSuggestion = false;
                 },
 
-               async sendMessage() {
+                async sendMessage() {
                     if (!this.chatMessage.trim() || this.javIsThinking) return;
 
                     const userMessage = this.chatMessage.trim();
                     this.chatMessage = '';
 
-                    // Add user message
                     this.conversationHistory.push({
                         id: Date.now(),
                         role: 'user',
@@ -2817,7 +1717,6 @@
 
                         const data = await response.json();
 
-                        // Handle different response types
                         if (data.status === 'success') {
                             this.conversationHistory.push({
                                 id: Date.now() + 1,
@@ -2826,16 +1725,9 @@
                                 timestamp: this.formatTimestamp()
                             });
 
-                            // Display memory integration info
                             if (data.memory_integration) {
                                 this.showMemoryIntegration(data.memory_integration);
                             }
-
-                            // Show provenance if available
-                            if (data.provenance) {
-                                this.updateMemoryProvenance(data.provenance);
-                            }
-
                         } else {
                             throw new Error(data.error || 'Something went wrong');
                         }
@@ -2848,36 +1740,19 @@
                             timestamp: this.formatTimestamp()
                         });
 
-                            // Avatar reacts to error
-                            this.triggerAvatarReaction('error');
-                        } finally {
+                        this.triggerAvatarReaction('error');
+                    } finally {
                         this.javIsThinking = false;
                         this.scrollToBottom();
                         await this.loadMemories();
-                        await this.loadMemoryTimeline();
-
-                        // Synchronize avatar state as thinking ends
-                        this.synchronizeAvatarStates();
-
-                        // Avatar celebrates successful interaction
                         this.triggerAvatarReaction('success');
                     }
-                },
-
-                synchronizeAvatarStates() {
-                    // This function would ideally communicate with other
-                    // avatar instances in different parts of the UI to ensure
-                    // they are all in sync (e.g., all pulsing when Jav is thinking).
-                    // In a more complex application, this might involve using a
-                    // shared state management system or a pub/sub mechanism.
-                    console.log('Avatar states synchronized (if other instances existed).');
                 },
 
                 triggerAvatarReaction(reactionType) {
                     this.avatarReaction = reactionType;
                     this.avatarReactionIcon = reactionType === 'success' ? '✨' : '⚠️';
 
-                    // Reset after a short delay
                     setTimeout(() => {
                         this.avatarReaction = null;
                     }, 1500);
@@ -2912,187 +1787,9 @@
                     });
                 },
 
-                // Memory Timeline Management
-                async loadMemoryTimeline() {
-                    try {
-                        const response = await fetch('/memory?limit=50');
-                        const data = await response.json();
-                        this.memoryHistory = data.memories || [];
-                        this.filteredMemories = this.memoryHistory;
-                    } catch (error) {
-                        console.error('Failed to load memory timeline:', error);
-                    }
-                },
-
-                toggleMemoryTimeline() {
-                    this.showMemoryTimeline = !this.showMemoryTimeline;
-                    if (this.showMemoryTimeline) {
-                        this.loadMemoryTimeline();
-                    }
-                },
-
-                filterMemories() {
-                    if (!this.memorySearchQuery.trim()) {
-                        this.filteredMemories = this.memoryHistory;
-                        return;
-                    }
-
-                    const query = this.memorySearchQuery.toLowerCase();
-                    this.filteredMemories = this.memoryHistory.filter(memory => 
-                        memory.topic?.toLowerCase().includes(query) ||
-                        memory.input?.toLowerCase().includes(query) ||
-                        memory.output?.toLowerCase().includes(query) ||
-                        memory.category?.toLowerCase().includes(query)
-                    );
-                },
-
-                insertMemoryIntoWorkspace(memory) {
-                    const memoryContent = `# Memory: ${memory.topic}\n\n**Input:** ${memory.input}\n\n**Output:** ${memory.output}\n\n**Category:** ${memory.category}`;
-                    this.chatMessage = memoryContent;
-                    this.showMemoryTimeline = false;
-                },
-
-                // Memory Search & Recall
-                toggleMemorySearch() {
-                    this.showMemorySearch = !this.showMemorySearch;
-                    if (this.showMemorySearch) {
-                        this.$nextTick(() => {
-                            const searchInput = document.querySelector('#memory-search-input');
-                            if (searchInput) searchInput.focus();
-                        });
-                    }
-                },
-
-                async performMemorySearch() {
-                    if (!this.memorySearchQuery.trim()) {
-                        this.searchResults = [];
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(`/memory?limit=20`);
-                        const data = await response.json();
-                        const memories = data.memories || [];
-
-                        const query = this.memorySearchQuery.toLowerCase();
-                        this.searchResults = memories.filter(memory => 
-                            memory.topic?.toLowerCase().includes(query) ||
-                            memory.input?.toLowerCase().includes(query) ||
-                            memory.output?.toLowerCase().includes(query)
-                        ).slice(0, 5);
-                    } catch (error) {
-                        console.error('Memory search failed:', error);
-                    }
-                },
-
-                insertSearchResult(result) {
-                    this.chatMessage = `Building on previous work: ${result.topic}\n\n${result.output}`;
-                    this.showMemorySearch = false;
-                    this.openCreativePanel();
-                },
-
-                // Smart Suggestions & Quick Actions
-                async initializeSmartSuggestions() {
-                    try {
-                        const response = await fetch('/jav/suggestions?task=General development');
-                        const data = await response.json();
-                        this.smartSuggestions = data.suggestions || [];
-                    } catch (error) {
-                        console.error('Failed to load smart suggestions:', error);
-                    }
-                },
-
-                toggleQuickActions() {
-                    this.showQuickActions = !this.showQuickActions;
-                    if (this.showQuickActions && this.quickActions.length === 0) {
-                        this.generateQuickActions();
-                    }
-                },
-
-                generateQuickActions() {
-                    this.quickActions = [
-                        {
-                            id: 'debug_current',
-                            title: 'Debug this',
-                            description: 'Analyze current code for issues',
-                            icon: '🔧',
-                            action: () => this.executeQuickAction('debug')
-                        },
-                        {
-                            id: 'suggest_improvement',
-                            title: 'Improve this',
-                            description: 'Get enhancement suggestions',
-                            icon: '⚡',
-                            action: () => this.executeQuickAction('improve')
-                        },
-                        {
-                            id: 'add_feature',
-                            title: 'Add feature',
-                            description: 'Brainstorm new functionality',
-                            icon: '✨',
-                            action: () => this.executeQuickAction('feature')
-                        },
-                        {
-                            id: 'memory_recall',
-                            title: 'Recall solutions',
-                            description: 'Find similar past solutions',
-                            icon: '🧠',
-                            action: () => this.executeQuickAction('recall')
-                        }
-                    ];
-                },
-
-                async executeQuickAction(type) {
-                    this.showQuickActions = false;
-                    this.openCreativePanel();
-
-                    const prompts = {
-                        debug: 'Please analyze my current code and help debug any issues you find.',
-                        improve: 'What improvements can you suggest for my current project?',
-                        feature: 'What new features would enhance this project? Help me brainstorm.',
-                        recall: 'Search my memory for similar problems I\'ve solved before.'
-                    };
-
-                    this.chatMessage = prompts[type];
-                    await this.sendMessage();
-                },
-
-                // Workspace Mode Management
-                switchWorkspaceMode() {
-                    const newMode = this.workspaceMode === 'creative' ? 'dev' : 'creative';
-                    this.workspaceMode = newMode;
-                    this.showModeSwitch = true;
-
-                    // Auto-hide mode switch notification
-                    setTimeout(() => {
-                        this.showModeSwitch = false;
-                    }, 3000);
-
-                    // Save preference
-                    localStorage.setItem('jav-workspace-mode', newMode);
-                },
-
-                loadWorkspacePreferences() {
-                    const savedMode = localStorage.getItem('jav-workspace-mode');
-                    if (savedMode) {
-                        this.workspaceMode = savedMode;
-                    }
-                },
-
-                getModeDescription() {
-                    return this.workspaceMode === 'creative' 
-                        ? 'Creative Mode: Jav builds collaboratively with you'
-                        : 'Dev Mode: Jav waits for commands and focuses on reviews';
-                },
-
-                // Unified overlay management
                 closeAllOverlays() {
                     this.panelOpen = false;
-                    this.showMemoryTimeline = false;
-                    this.showMemorySearch = false;
-                    this.showQuickActions = false;
                     this.showContextualSuggestion = false;
-                    this.showModeSwitch = false;
                 },
 
                 showMemoryIntegration(integrationData) {
@@ -3100,20 +1797,9 @@
                     this.memoryIndicatorText = integrationData.indicator_text;
                     this.showMemoryIndicator = true;
 
-                    // Reset after 8 seconds
                     setTimeout(() => {
                         this.showMemoryIndicator = false;
                     }, 8000);
-                },
-
-                updateMemoryProvenance(provenanceData) {
-                    this.currentProvenance = provenanceData;
-                    this.memoryProvenanceText = provenanceData.text;
-                },
-
-                viewMemoryProvenance() {
-                    // Display the full memory provenance details, perhaps in an overlay
-                    alert(this.memoryProvenanceText);
                 }
             };
         }
