@@ -779,8 +779,10 @@
             height: 100%;
             border-radius: 50%;
             background: linear-gradient(45deg, #6366f1, #8b5cf6);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
             transition: background 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+            z-index: 1;
         }
 
         .javlin-avatar.listening .orb-core {
@@ -957,9 +959,9 @@
         /* CENTER-STAGE ANIMATED AVATAR SECTION */
         .onboarding-avatar-stage {
             position: relative;
-            width: 400px;
-            height: 400px;
-            margin-bottom: 80px;
+            width: 350px;
+            height: 350px;
+            margin: 0 auto 60px auto;
             perspective: 1200px;
             animation: stage-emerge 2s ease-out 0.3s both;
             display: flex;
@@ -991,14 +993,15 @@
         }
 
         .stage-avatar {
-            width: 200px;
-            height: 200px;
+            width: 120px;
+            height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             transform: scale(2.5);
             transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 auto;
         }
 
         /* Enhanced Javlin Avatar for Center Stage */
@@ -1681,24 +1684,26 @@
         /* RESPONSIVE DESIGN */
         @media (max-width: 768px) {
             .onboarding-title {
-                font-size: 3.2rem;
+                font-size: 2.8rem;
+                line-height: 1.2;
             }
 
             .onboarding-subtitle {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
             }
 
             .onboarding-description {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
+                padding: 0 20px;
             }
 
             .stage-avatar {
-                transform: scale(2);
+                transform: scale(1.8);
             }
 
             .onboarding-content {
                 padding: 0 20px;
-                max-width: 500px;
+                max-width: 90%;
             }
 
             .shortcut-demo-grid {
@@ -1712,9 +1717,23 @@
             }
 
             .onboarding-avatar-stage {
-                width: 300px;
-                height: 300px;
-                margin-bottom: 60px;
+                width: 280px;
+                height: 280px;
+                margin-bottom: 50px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .onboarding-title {
+                font-size: 2.2rem;
+            }
+            
+            .onboarding-subtitle {
+                font-size: 1.4rem;
+            }
+            
+            .stage-avatar {
+                transform: scale(1.5);
             }
         }
 
@@ -1753,8 +1772,7 @@
                     'dev': onboardingStep === 3,
                     'excited': onboardingStep === 5
                  }">
-                <div class="javlin-avatar" 
-                     :class="getCurrentStepAvatarClass()">
+                <div class="javlin-avatar breathing">
                     <div class="avatar-orb">
                         <div class="orb-core"></div>
                         <div class="orb-glow"></div>
