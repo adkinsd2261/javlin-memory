@@ -1497,18 +1497,19 @@
         /* Skip Button */
         .onboarding-skip {
             position: absolute;
-            top: 50px;
-            right: 50px;
+            top: 20px;
+            left: 20px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
             color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            padding: 14px 24px;
-            border-radius: 15px;
+            padding: 12px 20px;
+            border-radius: 12px;
             transition: all 0.4s ease;
             backdrop-filter: blur(15px);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
+            z-index: 10002;
         }
 
         .onboarding-skip:hover {
@@ -1576,23 +1577,23 @@
             .onboarding-title {
                 font-size: 3rem;
             }
-            
+
             .onboarding-subtitle {
                 font-size: 1.5rem;
             }
-            
+
             .onboarding-description {
                 font-size: 1.1rem;
             }
-            
+
             .stage-avatar {
                 transform: scale(2);
             }
-            
+
             .onboarding-content {
                 padding: 0 20px;
             }
-            
+
             .shortcut-demo-grid {
                 grid-template-columns: 1fr;
                 max-width: 300px;
@@ -1654,12 +1655,12 @@
             <h1 class="onboarding-title" 
                 :class="{ 'typewriter': onboardingStep === 0 }"
                 x-text="getCurrentStepData().title || 'Welcome to Jav'"></h1>
-            
+
             <h2 class="onboarding-subtitle" 
                 x-text="getCurrentStepData().subtitle || 'Your AI creative partner'"></h2>
-            
+
             <p class="onboarding-description" 
-               x-text="getCurrentStepData().description || 'Let\\'s build something amazing together.'"></p>
+               x-text="getCurrentStepData().description || 'Let\'s build something amazing together.'"></p>
 
             <!-- Interactive Demo Areas -->
             <div x-show="onboardingStep === 1" class="mt-8">
@@ -1751,10 +1752,10 @@
         <!-- Feature Highlights (Contextual) -->
         <div x-show="onboardingStep === 2" class="demo-highlight" 
              style="bottom: 60px; right: 60px; width: 100px; height: 100px;"></div>
-        
+
         <div x-show="onboardingStep === 3" class="demo-highlight" 
              style="top: 60px; left: 60px; width: 200px; height: 50px;"></div>
-        
+
         <div x-show="onboardingStep === 4" class="demo-highlight" 
              style="bottom: 100px; left: 50%; transform: translateX(-50%); width: 400px; height: 60px;"></div>
     </div>
@@ -2053,10 +2054,6 @@
         </div>
     </div>
 
-    <!-- Immersive Onboarding -->
-    <div class="immersive-onboarding" x-show="showImmersiveOnboarding">
-        <button @click="showImmersiveOnboarding = false">Close Onboarding</button>
-    </div>
     <script>
         function javWorkspace() {
             return {
@@ -2333,10 +2330,10 @@
                 triggerCinematicTransition(callback) {
                     // Mark step as just changed for awakening animation
                     this.stepJustChanged = true;
-                    
+
                     // Trigger smooth avatar reaction
                     this.triggerAvatarReaction('success');
-                    
+
                     // Execute the step change after a brief delay for smooth animation
                     setTimeout(() => {
                         callback();
@@ -2349,12 +2346,12 @@
 
                 triggerStepActions() {
                     const currentStep = this.getCurrentStepData();
-                    
+
                     // Fade workspace for demo steps
                     if (['demo_chat', 'demo_mode_switch', 'demo_memory', 'demo_shortcuts'].includes(currentStep.action)) {
                         this.fadeWorkspaceForDemo();
                     }
-                    
+
                     // Trigger step-specific demos
                     if (currentStep.action === 'demo_chat') {
                         setTimeout(() => this.simulateChatDemo(), 1000);
@@ -2412,14 +2409,14 @@
                     const demoResponse = document.createElement('div');
                     demoResponse.className = 'demo-response';
                     demoResponse.innerHTML = `🎨 "I'd love to help you with: ${input.slice(0, 25)}..." - Ready when you are!`;
-                    
+
                     const demoContainer = inputElement.closest('.demo-chat-preview');
                     demoContainer.style.position = 'relative';
                     demoContainer.appendChild(demoResponse);
-                    
+
                     // Trigger avatar excitement
                     this.triggerAvatarReaction('success');
-                    
+
                     setTimeout(() => {
                         demoResponse.remove();
                     }, 4000);
@@ -2428,10 +2425,10 @@
                 demonstrateModeSwitch() {
                     // Highlight the floating avatar for mode demonstration
                     this.highlightWorkspaceElement('.floating-jav', 'Mode switching happens here');
-                    
+
                     this.workspaceMode = this.workspaceMode === 'creative' ? 'dev' : 'creative';
                     this.showModeSwitch = true;
-                    
+
                     setTimeout(() => {
                         this.showModeSwitch = false;
                         this.removeWorkspaceHighlights();
@@ -2453,10 +2450,10 @@
                 simulateMemoryDemo() {
                     // Highlight memory indicator and show live demo
                     this.highlightWorkspaceElement('.memory-indicator', 'Your memory system');
-                    
+
                     this.showMemoryIndicator = true;
                     this.memoryIndicatorText = "Building cinematic onboarding experience...";
-                    
+
                     setTimeout(() => {
                         this.showMemoryIndicator = false;
                         this.removeWorkspaceHighlights();
@@ -2470,14 +2467,14 @@
                         setTimeout(() => {
                             shortcut.style.animation = 'demo-highlight 1.2s ease-in-out';
                             shortcut.style.transform = 'scale(1.05)';
-                            
+
                             setTimeout(() => {
                                 shortcut.style.animation = '';
                                 shortcut.style.transform = '';
                             }, 1200);
                         }, index * 300);
                     });
-                    
+
                     // Highlight workspace hint
                     setTimeout(() => {
                         this.highlightWorkspaceElement('.workspace-hint', 'Live shortcuts');
@@ -2490,7 +2487,7 @@
                 highlightWorkspaceElement(selector, label) {
                     const element = document.querySelector(selector);
                     if (!element) return;
-                    
+
                     const rect = element.getBoundingClientRect();
                     const highlight = document.createElement('div');
                     highlight.className = 'demo-highlight workspace-highlight';
@@ -2503,7 +2500,7 @@
                         z-index: 10001;
                         pointer-events: none;
                     `;
-                    
+
                     if (label) {
                         const labelEl = document.createElement('div');
                         labelEl.textContent = label;
@@ -2522,7 +2519,7 @@
                         `;
                         highlight.appendChild(labelEl);
                     }
-                    
+
                     document.body.appendChild(highlight);
                 },
 
@@ -2544,15 +2541,15 @@
                     // Restore workspace visibility first
                     this.restoreWorkspaceFocus();
                     this.removeWorkspaceHighlights();
-                    
+
                     // Set avatar to excited state for farewell
                     this.stepJustChanged = true;
                     this.onboardingStep = 5; // Excited state
-                    
+
                     // Store completion state
                     localStorage.setItem('jav-workspace-visited', 'true');
                     localStorage.setItem(`jav-onboarding-${type}`, 'true');
-                    
+
                     // Cinematic exit transition
                     setTimeout(() => {
                         // Fade out onboarding overlay
@@ -2561,12 +2558,12 @@
                             onboarding.style.transition = 'opacity 1s ease-out';
                             onboarding.style.opacity = '0';
                         }
-                        
+
                         // After fade, remove overlay and show workspace
                         setTimeout(() => {
                             this.showImmersiveOnboarding = false;
                             this.showOnboarding = false;
-                            
+
                             // Avatar gracefully moves to corner position
                             if (type === 'completed') {
                                 setTimeout(() => {
@@ -2588,18 +2585,18 @@
                 triggerImmersiveOnboarding() {
                     // Check if user has completed onboarding before
                     const hasCompletedOnboarding = localStorage.getItem('jav-onboarding-completed');
-                    
+
                     // Ensure onboarding steps are initialized
                     if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
                         this.initializeOnboardingSteps();
                     }
-                    
+
                     if (!hasCompletedOnboarding) {
                         // First time - launch immersive onboarding
                         this.onboardingStep = 0;
                         this.stepJustChanged = true;
                         this.showImmersiveOnboarding = true;
-                        
+
                         // Fade out main workspace for focus
                         setTimeout(() => {
                             this.fadeWorkspaceForDemo();
