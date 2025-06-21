@@ -1,0 +1,103 @@
+Context
+The goal is a magical, cinematic onboarding event when users click “Start Creating” for the first time—not a sidebar, static text, or generic modal.
+
+The onboarding is our “Siri moment”: a full-canvas, animated introduction that wows new users, tells the story, and fits perfectly with our dark, minimal, neon-accented deep-work workspace.
+
+The Jav avatar must feel alive, expressive, and center-stage—not cropped, static, or generic.
+
+Onboarding is not just instruction—it’s a demonstration of our product’s vision, brand, and unique value (memory, dual mode, creative partner, etc).
+
+What’s Missing (Based on Current Build & Screenshot)
+The current onboarding is not immersive:
+
+Avatar is cropped, not center-stage, not animated in a meaningful way.
+
+Layout is generic with too much empty space, basic fonts, and no premium design cues.
+
+Progress indicators (dots) look unstyled, not part of our visual language.
+
+No demo/animation of core features (memory, mode switching, live avatar reactions).
+
+No clear brand DNA: onboarding doesn’t reflect the magic, creativity, or “living workspace” vision.
+
+What To Do (Step-by-Step Implementation Guide)
+1. Center-Stage Animated Avatar
+Avatar must be perfectly centered (both axes), scaled up (2.5x), and always fully visible—never cropped at the top.
+
+On start, avatar animates in (scale, glow, particle effects, breathing pulse).
+
+Avatar “reacts” to each onboarding step (e.g., happy for intro, focused for dev, sparkly for creative, animated for “memory” step).
+
+2. Cinematic Full-Canvas Overlay
+Use a full-viewport overlay (not a sidebar or generic modal).
+
+Background should:
+
+Fade out or blur the workspace beneath.
+
+Use deep, layered gradients—never flat purple or black.
+
+Subtle movement (animated noise, shimmer, glow, or light sweep).
+
+3. Premium Typography and Layout
+Headline is large, animated (typewriter or gradient reveal), in our chosen premium font, with on-brand color gradients.
+
+Body copy is clean, slightly larger, with increased line height—never generic browser styles.
+
+“Try saying hello” is interactive—avatar could wave or pulse on this step.
+
+No huge empty space—elements are visually balanced and connected.
+
+4. Branded Progress Indicators
+Progress steps are visually integrated (e.g., orbiting or beneath the avatar, with animated progress bar or glow).
+
+Each step’s transition animates smoothly (slide, fade, or scale in).
+
+5. Show, Don’t Tell
+For each major feature:
+
+Memory: show an animated “memory spark” flowing into a timeline or card (“Every idea becomes a memory!”).
+
+Creative/Dev Modes: avatar changes expression or color accent, quick demo of mode switch.
+
+Workspace Callouts: animate a “spotlight” to show where chat, memory, and quick actions live.
+
+Shortcuts: animate keyboard overlay or highlight relevant UI elements.
+
+Each onboarding step includes a live demo or animation, not just text.
+
+6. Seamless Exit & Integration
+Onboarding always ends with a smooth transition:
+
+Avatar “floats” to docked state or corner.
+
+Workspace fades in with a light sweep.
+
+“You’re ready to create!” message.
+
+Remember onboarding state so returning users skip the cinematic and land directly in their workspace.
+
+7. Polish & Brand Consistency
+Colors, gradients, fonts, and shadows must be from our style guide—never default or out-of-place.
+
+Avatar and onboarding animations use same visual system as main workspace.
+
+All micro-interactions are smooth (easing, not jumpy).
+
+Why This Matters
+First impressions define our brand—this is our chance to create delight and clarity from the first click.
+
+The onboarding should demonstrate (not just explain) our core product advantages: memory, creative/developer duality, and the living, supportive AI.
+
+Consistency with our site theme, color palette, and animation quality is essential—no generic elements.
+
+Call To Action
+Please review and reimplement the onboarding flow using this blueprint. Reference our Figma/style guide for typography, color, and component examples. Onboarding must feel like a cinematic event—centered, premium, expressive, and magical. If you need motion/animation examples, request a demo or reference the Siri/Apple onboarding inspiration.
+
+Avatar: Always full, centered, expressive, animated.
+
+Layout: Full-screen, immersive, on-brand gradients/blur/movement.
+
+Steps: Animate in/out, integrate progress, show features with live demos/callouts.
+
+Exit: Smooth transition, avatar floats to dock, workspace fades in.
