@@ -1598,6 +1598,11 @@
                 max-width: 300px;
             }
         }
+
+        /* Alpine.js cloak to prevent flash of unstyled content */
+        [x-cloak] { 
+            display: none !important; 
+        }
     </style>
 </head>
 <body x-data="javWorkspace()" x-init="init()" class="text-white">
@@ -1610,7 +1615,8 @@
          x-transition:leave="transition ease-out duration-800"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="immersive-onboarding">
+         class="immersive-onboarding"
+         x-cloak>
 
         <!-- Skip Button -->
         <button @click="skipOnboarding()" class="onboarding-skip">
@@ -1644,17 +1650,16 @@
         </div>
 
         <!-- Cinematic Content -->
-        <div class="onboarding-content">
+        <div class="onboarding-content" x-show="onboardingSteps && onboardingSteps.length > 0">
             <h1 class="onboarding-title" 
                 :class="{ 'typewriter': onboardingStep === 0 }"
-                x-text="getCurrentStepData().title"
-                :key="onboardingStep"></h1>
+                x-text="getCurrentStepData().title || 'Welcome to Jav'"></h1>
             
             <h2 class="onboarding-subtitle" 
-                x-text="getCurrentStepData().subtitle"></h2>
+                x-text="getCurrentStepData().subtitle || 'Your AI creative partner'"></h2>
             
             <p class="onboarding-description" 
-               x-text="getCurrentStepData().description"></p>
+               x-text="getCurrentStepData().description || 'Let\\'s build something amazing together.'"></p>
 
             <!-- Interactive Demo Areas -->
             <div x-show="onboardingStep === 1" class="mt-8">
@@ -1720,13 +1725,13 @@
                     ← Previous
                 </button>
 
-                <button x-show="onboardingStep < onboardingSteps.length - 1" 
+                <button x-show="onboardingStep < (onboardingSteps.length - 1)" 
                         @click="nextOnboardingStep()" 
                         class="onboarding-button">
                     <span x-text="getNextButtonText()"></span>
                 </button>
 
-                <button x-show="onboardingStep === onboardingSteps.length - 1" 
+                <button x-show="onboardingStep === (onboardingSteps.length - 1)" 
                         @click="completeOnboarding()" 
                         class="onboarding-button">
                     🚀 Start Creating!
@@ -1735,7 +1740,7 @@
         </div>
 
         <!-- Progress Indicators -->
-        <div class="onboarding-progress">
+        <div class="onboarding-progress" x-show="onboardingSteps && onboardingSteps.length > 0">
             <template x-for="(step, index) in onboardingSteps" :key="index">
                 <div class="progress-dot" 
                      :class="{ 'active': index <= onboardingStep }"
@@ -2158,6 +2163,11 @@
                 async init() {
                     console.log('🚀 Initializing Jav Workspace...');
 
+                    // Ensure onboarding steps are properly initialized
+                    if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
+                        this.initializeOnboardingSteps();
+                    }
+
                     // Mark that workspace has been visited (for analytics)
                     if (!localStorage.getItem('jav-workspace-visited')) {
                         localStorage.setItem('jav-workspace-visited', 'true');
@@ -2177,11 +2187,59 @@
                     await this.initializeSmartSuggestions();
 
                     // Show contextual suggestions for new users
-                    if (!isFirstVisit && this.conversationHistory.length === 0) {
+                    const hasVisited = localStorage.getItem('jav-workspace-visited');
+                    if (!hasVisited && this.conversationHistory.length === 0) {
                         setTimeout(() => {
                             this.showContextualHint();
                         }, 3000);
                     }
+                },
+
+                initializeOnboardingSteps() {
+                    this.onboardingSteps = [
+                        {
+                            title: "Welcome! I'm Jav. Ready to create together?",
+                            subtitle: "Your creative AI partner",
+                            description: "I'm here to help you build, ideate, and solve problems without getting in your way. Let's make something amazing.",
+                            action: "introduction",
+                            avatarState: "awakening"
+                        },
+                        {
+                            title: "Let's have a conversation",
+                            subtitle: "Try saying hello",
+                            description: "I understand natural language perfectly. Just tell me what you want to build, ask for help, or share your ideas.",
+                            action: "demo_chat",
+                            avatarState: "listening"
+                        },
+                        {
+                            title: "I adapt to your workflow",
+                            subtitle: "Creative & Dev modes",
+                            description: "Creative mode for collaboration and brainstorming. Dev mode for focused code reviews. Switch anytime with ⌘⇧M.",
+                            action: "demo_mode_switch",
+                            avatarState: "creative"
+                        },
+                        {
+                            title: "Everything builds on what came before",
+                            subtitle: "Your memory system",
+                            description: "I remember every solution, every creative decision, every breakthrough. Your workspace gets smarter with every interaction.",
+                            action: "demo_memory",
+                            avatarState: "dev"
+                        },
+                        {
+                            title: "Power at your fingertips",
+                            subtitle: "Quick actions & shortcuts",
+                            description: "⌘J opens me instantly, ⌘K searches all memories, ⌘M shows your timeline, ⌘Q reveals quick actions. Master these for lightning-fast workflow.",
+                            action: "demo_shortcuts",
+                            avatarState: "listening"
+                        },
+                        {
+                            title: "Let's build something amazing together!",
+                            subtitle: "Your workspace is ready",
+                            description: "Everything you need for deep creative work is here. I'll be floating nearby whenever inspiration strikes.",
+                            action: "complete",
+                            avatarState: "excited"
+                        }
+                    ];
                 },
 
                 setupKeyboardShortcuts() {
@@ -2228,12 +2286,21 @@
                 workspaceFaded: false,
 
                 getCurrentStepData() {
+                    if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
+                        return {
+                            title: "Welcome! I'm Jav. Ready to create together?",
+                            subtitle: "Your creative AI partner", 
+                            description: "I'm here to help you build, ideate, and solve problems without getting in your way. Let's make something amazing.",
+                            action: "introduction",
+                            avatarState: "awakening"
+                        };
+                    }
                     return this.onboardingSteps[this.onboardingStep] || this.onboardingSteps[0];
                 },
 
                 getCurrentStepAvatarClass() {
                     const step = this.getCurrentStepData();
-                    return step.avatarState || 'breathing';
+                    return step ? (step.avatarState || 'breathing') : 'breathing';
                 },
 
                 nextOnboardingStep() {
@@ -2522,11 +2589,16 @@
                     // Check if user has completed onboarding before
                     const hasCompletedOnboarding = localStorage.getItem('jav-onboarding-completed');
                     
+                    // Ensure onboarding steps are initialized
+                    if (!this.onboardingSteps || this.onboardingSteps.length === 0) {
+                        this.initializeOnboardingSteps();
+                    }
+                    
                     if (!hasCompletedOnboarding) {
                         // First time - launch immersive onboarding
-                        this.showImmersiveOnboarding = true;
                         this.onboardingStep = 0;
                         this.stepJustChanged = true;
+                        this.showImmersiveOnboarding = true;
                         
                         // Fade out main workspace for focus
                         setTimeout(() => {
