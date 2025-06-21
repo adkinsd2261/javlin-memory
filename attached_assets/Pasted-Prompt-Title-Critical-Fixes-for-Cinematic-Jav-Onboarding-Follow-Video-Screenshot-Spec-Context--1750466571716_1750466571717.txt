@@ -1,0 +1,95 @@
+Prompt Title:
+Critical Fixes for Cinematic Jav Onboarding – Follow Video & Screenshot Spec
+
+Context for Devs:
+We’re not looking for a basic full-screen message. This onboarding must wow users the first time: it’s a cinematic, animated, “Siri moment” where you meet Jav and learn what makes the workspace special.
+
+Reference: Demo Video Audit
+Reference Screenshot: (Paste your earlier screenshots here for context.)
+
+What’s Broken (from video):
+Avatar is static, cropped, not “alive.”
+
+Text overlaps and is cut off, especially with big avatar.
+
+No animated transitions, pulsing, or state changes.
+
+Progress and buttons are plain, not visually engaging.
+
+No real onboarding journey (no feature demos, no guided interaction).
+
+Visual polish and responsive design are not premium.
+
+What to Deliver:
+A. Cinematic, Animated Centerpiece
+Center the avatar, never cropped.
+
+Add breathing/pulse (smooth scale + glow), animated color gradient, and “avatar states” (excited, listening, etc).
+
+Avatar “awakens” with a bounce and glow on first load.
+
+B. Premium Text & Layout
+Headline never overlaps avatar.
+
+Large gradient title, responsive font scaling, premium letter spacing.
+
+Typewriter effect on first headline, then smooth fade for subtitles.
+
+C. Onboarding Steps with Feature Demos
+Each onboarding step = 1 clear, visually distinct screen (no text wall).
+
+Feature demos:
+
+Step 2: Show fake chat bubble with animated Jav response.
+
+Step 3: Show “dev/creative mode” toggle with animated panel or badge.
+
+Step 4: Memory system preview (timeline or sparkles).
+
+Step 5: Keyboard shortcut overlay, animated.
+
+Use overlays, callouts, or fake floating UI elements for the above.
+
+D. Animated Progress & Controls
+Animated glowing dots, premium-styled buttons.
+
+Back/Next/Skip always clear and visually polished.
+
+E. Brand & Theme Consistency
+All backgrounds use dark-to-purple gradient with a moving glow.
+
+Only neon colors are Jav and call-to-action (everything else muted).
+
+Keep deep work vibe—never visually “loud,” always smooth, elegant.
+
+F. Responsive & Robust
+Test all browser sizes: never cropped/cut off, always beautiful.
+
+Buttons, text, and avatar scale smoothly on mobile/tablet/desktop.
+
+Debugging Checklist (for Dev QA)
+No console errors, especially from Alpine.js (fix all expression/escaping bugs).
+
+Avatar always visible, animated, and never cropped.
+
+Headline/title always readable, never cut off.
+
+All onboarding steps advance smoothly with animations.
+
+Responsive at all common browser widths.
+
+“Connect the Dots” Implementation Advice
+Use a single x-data Alpine.js root for onboarding.
+
+Animate with CSS transitions, keyframes, or a library like GSAP if needed.
+
+Control avatar state with Alpine transitions, not just static class binding.
+
+Use “fake” panels for step demos (don’t need to hook into real backend—just show the magic!).
+
+Modularize: one “step” = one component/template for clarity.
+
+Summary for Devs
+This onboarding must create a “wow” moment that introduces Jav as an animated, creative, and alive companion—not just a chatbot. Follow the video audit and design blueprint to the letter: if it doesn’t look premium, alive, and magical on the first run, it’s not done.
+
+(Copy-paste above as your Replit handoff. If they need Figma/visual spec, offer to provide, or I can help generate one.)
