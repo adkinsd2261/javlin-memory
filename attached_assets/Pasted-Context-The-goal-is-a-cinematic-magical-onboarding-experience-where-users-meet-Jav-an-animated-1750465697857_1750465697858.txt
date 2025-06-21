@@ -1,0 +1,98 @@
+Context:
+The goal is a cinematic, magical onboarding experience where users “meet Jav” — an animated, living AI companion — with a full-canvas overlay, flawless center-stage avatar, and smooth, on-brand transitions.
+
+Current State (see screenshot):
+The avatar is not visible — just a cropped purple circle at the top.
+
+The title is truncated (“me! I’m Jav. Ready to create to”) and not premium/centered.
+
+Progress dots and “Next” button are low in the viewport, not visually integrated.
+
+No avatar animations or brand-defining magic is visible.
+
+No feature demos, mode-switching, or memory “spark” effects.
+
+Alpine.js/JS errors are causing rendering failures and broken layout.
+
+Skip/close buttons overlap the animation or appear unstyled.
+
+Visual hierarchy is weak; the screen feels unfinished and disconnected from our product's deep-work, premium vibe.
+
+Diagnosis:
+Avatar is not implemented as a true living, animated agent. The circle is static, off-center, and cropped.
+
+Text overflows or is truncated due to broken responsive sizing and line limits.
+
+Animations and transitions are missing or broken.
+
+Alpine.js/JS syntax errors in string expressions or rendering guards are halting onboarding logic.
+
+No demonstration of core features (memory, creative/dev mode, shortcut overlays, etc).
+
+How to Fix: Step-by-Step Implementation Guide
+Avatar:
+
+Center the avatar perfectly, scale up to 2.5x, and animate with breathing, pulse, and stateful color/particle effects.
+
+Use a <canvas>, SVG, or Lottie for rich animation if needed.
+
+Never crop the avatar — ensure it always fits and is visually “above” the UI.
+
+Typography & Layout:
+
+Use a large, animated title (typewriter or gradient reveal), with proper text wrapping and breakpoints so no overflow/truncation ever occurs.
+
+Center-align all onboarding elements. No crowding or off-center stacking.
+
+Use brand fonts, gradients, and smooth animation timing.
+
+Progress & Navigation:
+
+Place progress dots visually connected to the avatar — orbiting, glowing, or directly beneath, not floating in space.
+
+Animate dot progress, use branded colors/shadows, and synchronize with onboarding steps.
+
+“Next” and “Skip”/“Close” should be styled, non-intrusive, and never overlap the avatar or important content.
+
+Onboarding Steps/Demos:
+
+Each step should animate in smoothly, never “snap” into place.
+
+For each feature (memory, creative/dev mode, quick actions, shortcuts), show the feature with a small live demo/animation. (E.g., memory sparks animate into a timeline, avatar color shifts for mode changes, shortcut hints pop up with keypress animation.)
+
+Each step’s avatar state should match the message (e.g., excited, listening, thoughtful).
+
+Visual Polish & Brand Consistency:
+
+Overlay is full-viewport, with on-brand animated gradients and gentle blur/fade for background focus.
+
+Responsive on all devices: test scaling and stacking on laptop, desktop, and mobile.
+
+Use only our brand palette and spacing system. No generic or default browser styles.
+
+Remove all Alpine.js/JS errors and add defensive guards on step rendering, avatar loading, and text expression parsing.
+
+Onboarding Flow:
+
+Onboarding opens with a magical avatar “awakening” animation (scale, glow, color pulse).
+
+Each step flows into the next with smooth transitions.
+
+On completion, avatar floats to docked corner state, workspace fades in, and the user lands in the creative panel.
+
+Accessibility & QA:
+
+Test all text for truncation, overlap, and readability.
+
+Run onboarding in Chrome and Safari at 1200px, 1024px, 800px, 500px widths.
+
+Confirm all Alpine.js/JS state is clean and no console errors remain.
+
+Actionable To-Do:
+Audit your implementation with this checklist, using the attached screenshot as a “what NOT to do” example.
+
+Compare to the original onboarding design prompt.
+
+Fix the avatar, layout, animation, and error-handling as described above.
+
+Deliver a premium, on-brand, magical onboarding event that will wow users and truly showcase what makes this product unique.
