@@ -1,4 +1,3 @@
-
 """
 Bulletproof Startup Script for MemoryOS
 Ensures the system starts safely with all safeguards in place
@@ -9,6 +8,8 @@ import sys
 import json
 import subprocess
 import traceback
+import time
+import signal
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -135,8 +136,49 @@ class BulletproofStartup:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
     
+    def kill_processes_on_port(self, port=5000):
+        """Kill any processes using the specified port"""
+        try:
+            # Try to find and kill processes using the port
+            self.log(f"Attempting to free port {port}...", "INFO")
+            
+            # Kill any Python processes that might be running main.py
+            try:
+                subprocess.run(['pkill', '-f', 'python.*main.py'], 
+                             capture_output=True, timeout=5)
+                self.log("Killed existing Python processes", "INFO")
+            except subprocess.TimeoutExpired:
+                self.log("Timeout while killing processes", "WARNING")
+            except FileNotFoundError:
+                # pkill not available, try alternative approach
+                self.log("pkill not available, trying alternative approach", "INFO")
+                
+            # Try to find processes using lsof (if available)
+            try:
+                result = subprocess.run(['lsof', '-ti', f':{port}'], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.stdout.strip():
+                    pids = result.stdout.strip().split('\n')
+                    for pid in pids:
+                        try:
+                            os.kill(int(pid), signal.SIGTERM)
+                            self.log(f"Killed process {pid} using port {port}", "INFO")
+                        except (ValueError, ProcessLookupError, PermissionError) as e:
+                            self.log(f"Could not kill process {pid}: {e}", "WARNING")
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                self.log("lsof not available or timed out", "INFO")
+            
+            # Wait a moment for processes to clean up
+            time.sleep(2)
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"Error while trying to free port {port}: {e}", "WARNING")
+            return True  # Don't fail startup for this
+    
     def check_port_availability(self, port=5000):
-        """Check if the target port is available"""
+        """Check if the target port is available, attempt to free it if not"""
         try:
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -144,8 +186,23 @@ class BulletproofStartup:
             sock.close()
             
             if result == 0:
-                self.log(f"Port {port} is already in use", "ERROR")
-                return False
+                self.log(f"Port {port} is already in use", "WARNING")
+                
+                # Attempt to free the port
+                self.kill_processes_on_port(port)
+                
+                # Check again after attempting to free the port
+                time.sleep(1)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                result = sock.connect_ex(('127.0.0.1', port))
+                sock.close()
+                
+                if result == 0:
+                    self.log(f"Port {port} is still in use after cleanup attempt", "ERROR")
+                    return False
+                else:
+                    self.log(f"Port {port} successfully freed - OK", "INFO")
+                    return True
             else:
                 self.log(f"Port {port} is available - OK", "INFO")
                 return True
