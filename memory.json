@@ -444,5 +444,18 @@
     "score": 15,
     "maxScore": 25,
     "reviewed": false
+  },
+  {
+    "topic": "Test Memory Entry",
+    "type": "ManualTest",
+    "input": "This is a test input from Postman.",
+    "output": "Test output successful.",
+    "score": 10,
+    "maxScore": 10,
+    "success": true,
+    "category": "test",
+    "reviewed": false,
+    "timestamp": "2025-06-22T22:49:10.816788+00:00",
+    "tags": []
   }
 ]

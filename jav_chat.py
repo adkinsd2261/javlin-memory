@@ -5,8 +5,8 @@ Routes commands and integrates key features with frustration detection
 
 import logging
 from typing import Dict, Any, List
-from frustration_detector import init_frustration_detector
 from frustration_pattern import FrustrationPattern
+from frustration_detector import init_frustration_detector
 from datetime import datetime, timezone
 import requests
 
@@ -315,7 +315,7 @@ class JavChat:
         except Exception as e:
             return {
                 "type": "error",
-                "                "message": f"Failed to get deviations: {str(e)}"
+                "message": f"Failed to get deviations: {str(e)}"
             }
 
     def handle_bible_compliance(self) -> Dict[str, Any]:
