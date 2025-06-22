@@ -5,8 +5,8 @@ Integrates Claude with persistent memory system for context-aware conversations
 """
 
 import os
-import requests
-import anthropic
+import requests # type: ignore
+import anthropic # type: ignore
 import json
 import logging
 from datetime import datetime, timezone
@@ -14,8 +14,8 @@ from typing import Dict, List, Any, Optional
 
 # Configuration
 JAVLIN_API_URL = "http://0.0.0.0:5000"  # Replit-compatible URL
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
-JAVLIN_API_KEY = os.getenv('JAVLIN_API_KEY', 'javlin-claude-key')
+ANTHROPIC_API_KEY = os.getenv('JAVLIN_CLAUDE_KEY')  # <-- Updated to match your Vercel env var
+JAVLIN_API_KEY = os.getenv('JAVLIN_API_KEY')
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
