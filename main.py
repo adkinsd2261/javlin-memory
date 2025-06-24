@@ -1,6 +1,6 @@
 """
-MemoryOS Clean - Bulletproof Memory System
-A minimal, production-ready memory API with comprehensive error handling
+MemoryOS Clean - Bulletproof Memory System with Credit System
+A minimal, production-ready memory API with comprehensive error handling and credit management
 """
 
 import os
@@ -10,6 +10,9 @@ from datetime import datetime, timezone
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import traceback
+
+# Import credit system
+from credit_system import credit_system, require_credits, get_api_key_from_request
 
 # Configuration
 MEMORY_FILE = 'memory.json'
@@ -136,10 +139,13 @@ def index():
                 "endpoints": [
                     "GET / - This page",
                     "GET /health - Health check",
-                    "GET /memory - Get memories",
-                    "POST /memory - Add memory (requires API key)",
-                    "GET /stats - Statistics",
-                    "GET /gpt-status - GPT-friendly status"
+                    "GET /memory - Get memories (requires credits)",
+                    "POST /memory - Add memory (requires credits)",
+                    "GET /stats - Statistics (requires credits)",
+                    "GET /gpt-status - GPT-friendly status (requires credits)",
+                    "GET /credits - Check credit status",
+                    "POST /signup - Create account",
+                    "POST /login - Login (placeholder)"
                 ]
             })
     except Exception as e:
@@ -156,13 +162,15 @@ def health():
         checks = {
             "memory_file_accessible": False,
             "memory_file_writable": False,
-            "response_time_ok": True
+            "response_time_ok": True,
+            "credit_system_accessible": False
         }
         
         metrics = {
             "memory_entries": 0,
             "memory_file_exists": False,
-            "memory_file_size_bytes": 0
+            "memory_file_size_bytes": 0,
+            "total_users": 0
         }
         
         # Check memory file
@@ -193,6 +201,14 @@ def health():
         except Exception as e:
             logger.error(f"Health check memory error: {e}")
         
+        # Check credit system
+        try:
+            users = credit_system.load_users()
+            metrics["total_users"] = len(users)
+            checks["credit_system_accessible"] = True
+        except Exception as e:
+            logger.error(f"Health check credit system error: {e}")
+        
         # Calculate response time
         response_time_ms = (datetime.now() - start_time).total_seconds() * 1000
         checks["response_time_ok"] = response_time_ms < 1000
@@ -201,7 +217,7 @@ def health():
         if all(checks.values()):
             status = "healthy"
             status_code = 200
-        elif checks["memory_file_accessible"]:
+        elif checks["memory_file_accessible"] and checks["credit_system_accessible"]:
             status = "degraded"
             status_code = 200
         else:
@@ -232,9 +248,84 @@ def health():
             "bulletproof": True
         }), 503
 
+@app.route('/credits')
+def get_credits():
+    """Get credit status for the API key"""
+    try:
+        api_key = get_api_key_from_request()
+        
+        if not api_key:
+            return jsonify({'error': 'API key required'}), 401
+        
+        status = credit_system.get_credit_status(api_key)
+        
+        if 'error' in status:
+            return jsonify(status), 401
+        
+        return jsonify(status)
+        
+    except Exception as e:
+        logger.error(f"Error getting credits: {e}")
+        return jsonify({
+            "error": "Failed to retrieve credit status",
+            "details": str(e)
+        }), 500
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    """Create a new user account"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+        
+        api_key = data.get('api_key')
+        plan = data.get('plan', 'Free')
+        email = data.get('email')
+        
+        if not api_key:
+            return jsonify({"error": "API key required"}), 400
+        
+        # Check if user already exists
+        existing_user = credit_system.get_user(api_key)
+        if existing_user:
+            return jsonify({"error": "User already exists"}), 409
+        
+        # Create user
+        user = credit_system.create_user(api_key, plan, email)
+        
+        # Return user info (without sensitive data)
+        return jsonify({
+            "message": "Account created successfully",
+            "user": {
+                "plan": user['plan'],
+                "credits_remaining": user['credits_remaining'],
+                "reset_date": user['reset_date'],
+                "created_at": user['created_at']
+            }
+        }), 201
+        
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error creating user: {e}")
+        return jsonify({
+            "error": "Failed to create account",
+            "details": str(e)
+        }), 500
+
+@app.route('/login', methods=['POST'])
+def login():
+    """Login endpoint (placeholder for future authentication)"""
+    return jsonify({
+        "message": "Login endpoint placeholder",
+        "note": "Currently using API key authentication. Future versions will support email/password login."
+    })
+
 @app.route('/memory', methods=['GET'])
+@require_credits(cost=1)
 def get_memory():
-    """Get memory entries with pagination"""
+    """Get memory entries with pagination (requires 1 credit)"""
     try:
         memory = load_memory()
         
@@ -272,14 +363,10 @@ def get_memory():
         }), 500
 
 @app.route('/memory', methods=['POST'])
+@require_credits(cost=2)
 def add_memory():
-    """Add new memory entry (requires API key)"""
+    """Add new memory entry (requires 2 credits)"""
     try:
-        # Check API key
-        api_key = request.headers.get('X-API-KEY')
-        if api_key != API_KEY:
-            return jsonify({"error": "Invalid or missing API key"}), 401
-        
         # Get request data
         data = request.get_json()
         if not data:
@@ -322,8 +409,9 @@ def add_memory():
         }), 500
 
 @app.route('/stats')
+@require_credits(cost=1)
 def get_stats():
-    """Get memory statistics"""
+    """Get memory statistics (requires 1 credit)"""
     try:
         memory = load_memory()
         
@@ -380,8 +468,9 @@ def get_stats():
         }), 500
 
 @app.route('/gpt-status')
+@require_credits(cost=1)
 def gpt_status():
-    """GPT-friendly status endpoint"""
+    """GPT-friendly status endpoint (requires 1 credit)"""
     try:
         memory = load_memory()
         
@@ -408,12 +497,70 @@ def gpt_status():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
+# Admin endpoints (no credit cost)
+@app.route('/admin/users', methods=['GET'])
+def admin_get_users():
+    """Admin endpoint to view all users (no credit cost)"""
+    admin_key = request.headers.get('X-ADMIN-KEY')
+    if admin_key != os.getenv('ADMIN_KEY', 'admin-secret-key'):
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    try:
+        users = credit_system.load_users()
+        
+        # Remove sensitive data
+        safe_users = {}
+        for api_key, user in users.items():
+            safe_users[api_key[:8] + '...'] = {
+                'plan': user['plan'],
+                'credits_remaining': user['credits_remaining'],
+                'credits_used_this_cycle': user['credits_used_this_cycle'],
+                'total_credits_used': user['total_credits_used'],
+                'reset_date': user['reset_date'],
+                'created_at': user['created_at'],
+                'last_activity': user['last_activity']
+            }
+        
+        return jsonify({
+            'total_users': len(users),
+            'users': safe_users
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting users: {e}")
+        return jsonify({'error': 'Failed to retrieve users'}), 500
+
+@app.route('/admin/user/<api_key>/plan', methods=['PUT'])
+def admin_update_plan(api_key):
+    """Admin endpoint to update user plan (no credit cost)"""
+    admin_key = request.headers.get('X-ADMIN-KEY')
+    if admin_key != os.getenv('ADMIN_KEY', 'admin-secret-key'):
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    try:
+        data = request.get_json()
+        new_plan = data.get('plan')
+        
+        if not new_plan:
+            return jsonify({'error': 'Plan required'}), 400
+        
+        success = credit_system.update_user_plan(api_key, new_plan)
+        
+        if success:
+            return jsonify({'message': f'Plan updated to {new_plan}'})
+        else:
+            return jsonify({'error': 'Failed to update plan'}), 400
+            
+    except Exception as e:
+        logger.error(f"Error updating plan: {e}")
+        return jsonify({'error': 'Failed to update plan'}), 500
+
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({
         "error": "Endpoint not found",
-        "available_endpoints": ["/", "/health", "/memory", "/stats", "/gpt-status"]
+        "available_endpoints": ["/", "/health", "/memory", "/stats", "/gpt-status", "/credits", "/signup", "/login"]
     }), 404
 
 @app.errorhandler(500)
@@ -426,7 +573,7 @@ def internal_error(error):
 
 if __name__ == '__main__':
     # Startup checks
-    logger.info("Starting MemoryOS Clean...")
+    logger.info("Starting MemoryOS Clean with Credit System...")
     
     # Ensure memory file exists
     if not os.path.exists(MEMORY_FILE):
@@ -441,5 +588,12 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"Memory system initialization failed: {e}")
     
-    logger.info("MemoryOS Clean started successfully")
+    # Test credit system
+    try:
+        users = credit_system.load_users()
+        logger.info(f"Credit system initialized with {len(users)} users")
+    except Exception as e:
+        logger.error(f"Credit system initialization failed: {e}")
+    
+    logger.info("MemoryOS Clean with Credit System started successfully")
     app.run(host='0.0.0.0', port=5000, debug=False)

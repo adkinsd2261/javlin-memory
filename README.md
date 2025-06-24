@@ -1,17 +1,48 @@
+# MemoryOS Clean with Credit System
 
-# MemoryOS Clean
-
-A bulletproof, minimal memory system built for production reliability.
+A bulletproof, minimal memory system built for production reliability with comprehensive credit management for AI productivity SaaS.
 
 ## Features
 
-- ✅ Memory storage and retrieval
+- ✅ Memory storage and retrieval with credit tracking
+- ✅ User management with API key authentication
+- ✅ Flexible credit plans (Free, Pro, Premium)
+- ✅ Automatic monthly billing cycle resets
+- ✅ Credit usage warnings and limits
 - ✅ Comprehensive logging and monitoring
 - ✅ Health monitoring endpoints
 - ✅ Statistics tracking
-- ✅ API key authentication
 - ✅ GPT integration ready
 - ✅ Production-grade error handling
+
+## Credit System
+
+### Plans and Limits
+
+| Plan | Monthly Credits | Cost per API Call |
+|------|----------------|-------------------|
+| Free | 100 | 1-2 credits |
+| Pro | 10,000 | 1-2 credits |
+| Premium | 100,000 | 1-2 credits |
+
+### Credit Costs by Endpoint
+
+- `GET /memory` - 1 credit
+- `POST /memory` - 2 credits
+- `GET /stats` - 1 credit
+- `GET /gpt-status` - 1 credit
+- `GET /credits` - Free
+- `POST /signup` - Free
+- `POST /login` - Free
+- `GET /health` - Free
+
+### Credit Features
+
+- **Automatic Reset**: Credits reset monthly on billing cycle
+- **Low Credit Warnings**: Warnings when below 25% remaining
+- **Credit Blocking**: 402 error when out of credits
+- **Usage Tracking**: Track total and cycle usage
+- **Plan Upgrades**: Instant credit refresh on plan upgrade
 
 ## Quick Start
 
@@ -23,20 +54,112 @@ Server runs on port 5000 and is accessible at `https://your-repl-name.replit.app
 
 ## API Endpoints
 
-### Core Endpoints
-- `GET /` - Basic health check
-- `GET /health` - Comprehensive health monitoring (for UptimeRobot/Cronitor)
-- `GET /memory` - Get memories (paginated)
-- `POST /memory` - Add memory (requires API key)
-- `GET /stats` - Memory statistics
-- `GET /gpt-status` - GPT-friendly status
+### Authentication & Credits
+- `POST /signup` - Create new user account
+- `POST /login` - Login (placeholder)
+- `GET /credits` - Check credit status
 
-### Monitoring Endpoints
-- `GET /health` - **Primary monitoring endpoint** - Returns detailed system health
+### Core Endpoints (Require Credits)
+- `GET /memory` - Get memories (1 credit)
+- `POST /memory` - Add memory (2 credits)
+- `GET /stats` - Statistics (1 credit)
+- `GET /gpt-status` - GPT-friendly status (1 credit)
+
+### System Endpoints (Free)
+- `GET /` - Basic health check
+- `GET /health` - Comprehensive health monitoring
+
+### Admin Endpoints
+- `GET /admin/users` - View all users (requires admin key)
+- `PUT /admin/user/<api_key>/plan` - Update user plan (requires admin key)
 
 ## Environment Variables
 
-- `JAVLIN_API_KEY` - API key for memory creation (required for POST requests)
+- `JAVLIN_API_KEY` - Default API key for backward compatibility
+- `ADMIN_KEY` - Admin access key for user management
+
+## User Management
+
+### Creating a User
+
+```bash
+curl -X POST https://your-app.com/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "api_key": "your-unique-api-key",
+    "plan": "Pro",
+    "email": "user@example.com"
+  }'
+```
+
+### Checking Credits
+
+```bash
+curl -H "X-API-KEY: your-api-key" \
+  https://your-app.com/credits
+```
+
+Response:
+```json
+{
+  "api_key": "your-key...",
+  "plan": "Pro",
+  "credits_remaining": 8500,
+  "credits_limit": 10000,
+  "percent_remaining": 85.0,
+  "days_until_reset": 15,
+  "reset_date": "2025-02-01T00:00:00+00:00",
+  "warnings": [],
+  "credits_used_this_cycle": 1500,
+  "last_activity": "2025-01-15T10:30:00+00:00"
+}
+```
+
+### Using Protected Endpoints
+
+All protected endpoints require the `X-API-KEY` header:
+
+```bash
+curl -H "X-API-KEY: your-api-key" \
+  https://your-app.com/memory
+```
+
+## Credit System Architecture
+
+### Data Structure
+
+Users are stored in `users.json`:
+
+```json
+{
+  "api-key-123": {
+    "api_key": "api-key-123",
+    "plan": "Pro",
+    "credits_remaining": 8500,
+    "credits_used_this_cycle": 1500,
+    "reset_date": "2025-02-01T00:00:00+00:00",
+    "created_at": "2025-01-01T00:00:00+00:00",
+    "email": "user@example.com",
+    "last_activity": "2025-01-15T10:30:00+00:00",
+    "total_credits_used": 15000
+  }
+}
+```
+
+### Credit Flow
+
+1. **User makes API request** with `X-API-KEY` header
+2. **System validates** API key and loads user
+3. **Credit check** ensures sufficient credits available
+4. **Credit deduction** happens before endpoint execution
+5. **Response includes** credit info and warnings if needed
+6. **Monthly reset** automatically restores credits
+
+### Error Handling
+
+- **401 Unauthorized**: Invalid or missing API key
+- **402 Payment Required**: Out of credits
+- **409 Conflict**: User already exists (signup)
 
 ## Memory Structure
 
@@ -55,453 +178,112 @@ Server runs on port 5000 and is accessible at `https://your-repl-name.replit.app
 }
 ```
 
-## 📊 Monitoring & Logging
+## Testing
+
+Run the credit system tests:
+
+```bash
+python test_credit_system.py
+```
+
+Run the full test suite:
+
+```bash
+python -m pytest test_memoryos.py test_credit_system.py -v
+```
+
+## Monitoring & Logging
 
 ### Health Check Setup
 
-The `/health` endpoint provides comprehensive system monitoring and is designed for external monitoring services.
+The `/health` endpoint provides comprehensive system monitoring including credit system status.
 
 **Health Check URL:** `https://your-repl-name.replit.app/health`
 
-**Response Format:**
-```json
-{
-  "status": "healthy|degraded|unhealthy",
-  "timestamp": "2025-06-20T16:01:15.025469+00:00",
-  "response_time_ms": 45.2,
-  "checks": {
-    "memory_file_accessible": true,
-    "memory_file_writable": true,
-    "response_time_ok": true
-  },
-  "metrics": {
-    "memory_entries": 150,
-    "memory_file_exists": true,
-    "memory_file_size_bytes": 45032
-  },
-  "version": "2.0.0",
-  "service": "MemoryOS-Clean"
-}
-```
+### Credit System Monitoring
 
-### Setting Up External Monitoring
-
-#### UptimeRobot Setup
-1. Sign up at [UptimeRobot](https://uptimerobot.com/)
-2. Create new monitor:
-   - **Monitor Type:** HTTP(s)
-   - **URL:** `https://your-repl-name.replit.app/health`
-   - **Monitoring Interval:** 5 minutes
-   - **Monitor Timeout:** 30 seconds
-3. Add keyword monitoring: Set keyword to `"healthy"` to ensure JSON response is correct
-4. Configure alerts (email, SMS, webhook, etc.)
-
-#### Cronitor Setup
-1. Sign up at [Cronitor](https://cronitor.io/)
-2. Create new monitor:
-   - **Type:** HTTP Monitor
-   - **URL:** `https://your-repl-name.replit.app/health`
-   - **Frequency:** Every 5 minutes
-3. Set up assertions:
-   - Status code should be `200`
-   - Response should contain `"healthy"`
-   - Response time should be under `1000ms`
-4. Configure notification channels
-
-#### Other Monitoring Services
-The `/health` endpoint works with any monitoring service that supports:
-- HTTP GET requests
-- JSON response parsing
-- Status code monitoring (200 = healthy, 503 = unhealthy)
+Monitor these metrics:
+- Total users and their plans
+- Credit usage patterns
+- Monthly reset cycles
+- Low credit warnings
+- Out of credit blocks
 
 ### Logging
 
-All requests, responses, and errors are automatically logged to:
+All credit operations are logged:
+- User creation
+- Credit usage
+- Plan upgrades
+- Monthly resets
+- Credit warnings and blocks
 
-**Log File:** `memoryos.log` (in project root)
+## Admin Operations
 
-**Log Levels:**
-- `INFO`: Normal operations, requests, responses
-- `ERROR`: Exceptions, failures, critical issues
-
-**Sample Log Entries:**
-```
-2025-06-20 16:01:15,025 - MemoryOS - INFO - REQUEST: GET /health from 172.31.128.17
-2025-06-20 16:01:15,028 - MemoryOS - INFO - RESPONSE: 200 for GET /health (45.2ms)
-2025-06-20 16:01:20,150 - MemoryOS - ERROR - UNHANDLED EXCEPTION: Memory file corrupted
-```
-
-### Checking Logs
-
-**View recent logs:**
-```bash
-tail -f memoryos.log
-```
-
-**View last 50 log entries:**
-```bash
-tail -50 memoryos.log
-```
-
-**Search for errors:**
-```bash
-grep "ERROR" memoryos.log
-```
-
-**Search for specific timeframe:**
-```bash
-grep "2025-06-20 16:" memoryos.log
-```
-
-## 🚨 Troubleshooting
-
-### Health Check Failures
-
-#### Status: `degraded` or `unhealthy`
-
-**Common Causes:**
-1. **Memory file issues**
-   - File corrupted or locked
-   - Disk space full
-   - Permission issues
-
-2. **Performance issues**
-   - High response times (>1000ms)
-   - System resource constraints
-
-3. **API connectivity issues**
-   - Network problems
-   - Port binding issues
-
-#### Troubleshooting Steps
-
-**Step 1: Check System Status**
-```bash
-# Check if process is running
-ps aux | grep python
-
-# Check memory usage
-free -h
-
-# Check disk space
-df -h
-```
-
-**Step 2: Check Log Files**
-```bash
-# View recent errors
-tail -20 memoryos.log | grep ERROR
-
-# Check for specific issues
-grep -i "exception\|error\|fail" memoryos.log | tail -10
-```
-
-**Step 3: Test Memory File**
-```bash
-# Verify memory file exists and is readable
-ls -la memory.json
-
-# Test JSON validity
-python -m json.tool memory.json > /dev/null
-```
-
-**Step 4: Manual Health Check**
-```bash
-# Test health endpoint directly
-curl -s https://your-repl-name.replit.app/health | python -m json.tool
-```
-
-**Step 5: Restart Service**
-```bash
-# Stop current process
-pkill python
-
-# Restart MemoryOS
-python main.py
-```
-
-### Common Issues & Solutions
-
-#### Issue: "Connection refused"
-- **Cause:** Service not running or port issues
-- **Solution:** Restart the service and verify it's listening on port 5000
-
-#### Issue: "Memory file corrupted"
-- **Cause:** Invalid JSON in memory.json
-- **Solution:** Restore from backup or fix JSON syntax
-
-#### Issue: High response times
-- **Cause:** Resource constraints or large memory file
-- **Solution:** Monitor system resources, consider memory file rotation
-
-#### Issue: API key authentication failures
-- **Cause:** Missing or incorrect `JAVLIN_API_KEY` environment variable
-- **Solution:** Set the environment variable in Replit Secrets
-
-### Emergency Recovery
-
-**Backup Memory File:**
-```bash
-cp memory.json memory_backup_$(date +%Y%m%d_%H%M%S).json
-```
-
-**Reset Memory File (if corrupted):**
-```bash
-echo "[]" > memory.json
-```
-
-**View Process Information:**
-```bash
-ps aux | grep python
-netstat -tlnp | grep :5000
-```
-
-## 🎨 Frontend Components
-
-### Memory Timeline Component
-
-A React component for displaying memory entries in a user-friendly timeline format.
-
-**Features:**
-- Loading states with spinner
-- Empty state handling
-- Error state with retry functionality
-- Color-coded entry types
-- Responsive design
-- Real-time refresh capability
-
-**Usage:**
-```jsx
-import MemoryTimeline from './MemoryTimeline';
-
-function App() {
-  return <MemoryTimeline apiUrl="https://your-repl-name.replit.app" />;
-}
-```
-
-## 📈 Performance Monitoring
-
-**Key Metrics to Monitor:**
-- Response time (should be <1000ms)
-- Memory file size growth
-- Error rate from logs
-- API endpoint availability
-
-**Setting Up Alerts:**
-- Monitor `/health` endpoint every 5 minutes
-- Alert on status != "healthy"
-- Alert on response time >1000ms
-- Alert on HTTP status codes 5xx
-
-## 🔧 Production Deployment
-
-This system is designed to run reliably on Replit's production infrastructure:
-
-1. **Autoscale Deployment** recommended for production traffic
-2. **Always On** ensures 24/7 availability
-3. **Custom Domain** for professional monitoring URLs
-4. **Environment Variables** for secure API key management
-
-## 🛡️ BULLETPROOFING
-
-MemoryOS includes comprehensive bulletproofing to prevent crashes, loops, and deployment failures.
-
-### 🔧 Bulletproof Features
-
-1. **Enhanced Error Handling**
-   - All endpoints wrapped in try/catch with fallbacks
-   - Multiple levels of error logging (console, files, emergency logs)
-   - Errors never crash the system - always return responses
-
-2. **Bulletproof Health Endpoint**
-   - `/health` endpoint that NEVER fails
-   - Multiple fallback levels ensure it always responds
-   - Comprehensive system status reporting
-
-3. **Comprehensive Test Suite**
-   - Automated tests for all critical functions
-   - Health endpoint resilience testing
-   - Memory system integrity testing
-   - Performance and stress testing
-
-4. **Bulletproof Logging System**
-   - Multi-level logging with fallbacks
-   - Never fails even if file system has issues
-   - Automatic log rotation and error categorization
-
-5. **Safe Startup System**
-   - Pre-flight checks before starting server
-   - Automatic file integrity validation
-   - Port conflict detection and resolution
-   - Corrupted file recovery
-
-### 🧪 Testing Before Deploy
-
-**ALWAYS run tests before deploying:**
+### View All Users
 
 ```bash
-# Run full test suite
-python -m pytest test_memoryos.py -v
-
-# Run specific test categories
-python -m pytest test_memoryos.py::TestHealthEndpoint -v
-python -m pytest test_memoryos.py::TestMemoryOperations -v
-python -m pytest test_memoryos.py::TestSystemResilience -v
-
-# Quick health check
-python -c "import requests; print(requests.get('http://localhost:5000/health').json())"
+curl -H "X-ADMIN-KEY: your-admin-key" \
+  https://your-app.com/admin/users
 ```
 
-### 🚀 Safe Deployment Workflow
+### Update User Plan
 
-**NEVER use auto-restart or forever loops. Follow this manual process:**
-
-1. **Pre-Deploy Testing**
-   ```bash
-   # Run startup checks
-   python bulletproof_startup.py
-   
-   # Run full test suite
-   python -m pytest test_memoryos.py
-   
-   # Manual health check
-   curl http://localhost:5000/health
-   ```
-
-2. **Deploy Using Replit**
-   - Click the "Run" button (uses Bulletproof Start workflow)
-   - Monitor console output for any errors
-   - Test the `/health` endpoint after deploy
-   - Check logs for any warnings
-
-3. **Post-Deploy Verification**
-   ```bash
-   # Test all critical endpoints
-   curl https://your-repl.replit.app/health
-   curl https://your-repl.replit.app/memory
-   curl https://your-repl.replit.app/stats
-   ```
-
-### 📊 Monitoring & Logs
-
-**Log Locations:**
-- `memoryos.log` - Main application logs
-- `logs/errors.log` - Error-specific logs  
-- `logs/startup_report.json` - Startup check results
-- `emergency_startup_failure.log` - Critical startup failures
-- `emergency_errors.log` - Emergency error fallback
-
-**Monitoring Commands:**
 ```bash
-# View recent logs
-tail -f memoryos.log
-
-# Check for errors
-grep "ERROR" logs/errors.log
-
-# View startup report
-cat logs/startup_report.json
-
-# Monitor health endpoint
-watch -n 10 'curl -s http://localhost:5000/health | python -m json.tool'
+curl -X PUT \
+  -H "X-ADMIN-KEY: your-admin-key" \
+  -H "Content-Type: application/json" \
+  -d '{"plan": "Premium"}' \
+  https://your-app.com/admin/user/api-key-123/plan
 ```
 
-### 🔄 Rollback and Recovery
+## Production Deployment
 
-**If deployment fails:**
+### Security Considerations
 
-1. **Check Logs First**
-   ```bash
-   tail -20 logs/errors.log
-   cat logs/startup_report.json
-   ```
+1. **API Key Security**: Use strong, unique API keys
+2. **Admin Key**: Set secure `ADMIN_KEY` environment variable
+3. **HTTPS**: Always use HTTPS in production
+4. **Rate Limiting**: Consider adding rate limiting for additional protection
 
-2. **Rollback to Last Good Commit**
-   - Use Replit's Git sidebar
-   - Find last working commit
-   - Click "Revert to this commit"
-   - Or use command line:
-     ```bash
-     git log --oneline -10
-     git reset --hard <good-commit-hash>
-     ```
+### Scaling Considerations
 
-3. **Emergency Recovery**
-   ```bash
-   # Reset corrupted memory file
-   cp memory.json memory_backup_$(date +%Y%m%d_%H%M%S).json
-   echo "[]" > memory.json
-   
-   # Clear stuck processes
-   pkill -f "python.*main.py"
-   
-   # Fresh start
-   python bulletproof_startup.py
-   ```
+1. **File Storage**: For high-volume usage, consider migrating to a database
+2. **Credit Calculations**: Current system handles thousands of users efficiently
+3. **Backup Strategy**: Regularly backup `users.json` and `memory.json`
 
-### 🚨 Troubleshooting Bulletproof Issues
+### Monitoring Setup
 
-**Port Conflicts:**
+1. Monitor `/health` endpoint for system status
+2. Set up alerts for credit system failures
+3. Track user growth and credit usage patterns
+4. Monitor for unusual API usage patterns
+
+## Migration from Previous Version
+
+If upgrading from a version without credit system:
+
+1. **Backup** your existing `memory.json`
+2. **Deploy** new version with credit system
+3. **Create users** for existing API keys:
+
 ```bash
-# Kill stuck processes
-pkill -f "python.*main.py"
-
-# Check port usage
-lsof -ti:5000 | xargs kill -9 2>/dev/null || echo "Port clear"
-
-# Start fresh
-python bulletproof_startup.py
+curl -X POST https://your-app.com/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "api_key": "existing-api-key",
+    "plan": "Pro"
+  }'
 ```
-
-**Memory File Corruption:**
-```bash
-# Check JSON validity
-python -m json.tool memory.json
-
-# Auto-recovery (handled by startup script)
-python bulletproof_startup.py
-```
-
-**Test Failures:**
-```bash
-# Run specific failing test
-python -m pytest test_memoryos.py::TestHealthEndpoint::test_health_endpoint_always_responds -v
-
-# Run with more details
-python -m pytest test_memoryos.py -v --tb=long
-
-# Skip failing tests temporarily (NOT recommended for production)
-python -m pytest test_memoryos.py -k "not test_failing_function"
-```
-
-### 📋 Bulletproof Checklist
-
-Before every deployment:
-- [ ] Run `python -m pytest test_memoryos.py`
-- [ ] Run `python bulletproof_startup.py`
-- [ ] Check `logs/startup_report.json` shows "status": "success"
-- [ ] Test `/health` endpoint manually
-- [ ] Verify no port conflicts
-- [ ] Check memory.json is valid JSON
-- [ ] Review recent error logs
-- [ ] Commit working changes to Git
-
-**Emergency Contacts & Resources:**
-- Health endpoint: `/health` (always works)
-- Emergency logs: `emergency_*.log` files
-- Startup checks: `python bulletproof_startup.py`
-- Full test suite: `python -m pytest test_memoryos.py`
 
 ## Support
 
 For issues or questions:
-1. Check the bulletproofing troubleshooting guide above
-2. Review bulletproof logs in `logs/` directory
-3. Run the full test suite to identify specific issues
-4. Use the startup checks to validate system integrity
-5. Test health endpoint manually
-6. Use Git rollback if necessary
+1. Check the health endpoint for system status
+2. Review logs for credit system operations
+3. Use admin endpoints to manage users
+4. Test credit operations with the test suite
 
 ---
 
-**Built for Production • Bulletproof • Monitored • Reliable**
+**Built for Production • Credit-Managed • Monitored • Scalable**
