@@ -14,8 +14,8 @@ const Dashboard = ({ systemHealth }) => {
   const fetchDashboardData = async () => {
     try {
       const [statsRes, memoriesRes] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/memory?limit=5')
+        fetch('http://localhost:5000/stats'),
+        fetch('http://localhost:5000/memory?limit=5')
       ])
       
       const statsData = await statsRes.json()
