@@ -12,7 +12,7 @@ from flask_cors import CORS
 import traceback
 
 # Import credit system
-from credit_system import credit_system, require_credits, get_api_key_from_request
+from credit_system import credit_system, require_credits, require_memory_limit, get_api_key_from_request
 
 # Configuration
 MEMORY_FILE = 'memory.json'
@@ -300,6 +300,7 @@ def signup():
             "user": {
                 "plan": user['plan'],
                 "credits_remaining": user['credits_remaining'],
+                "memory_limit": user['memory_limit'],
                 "reset_date": user['reset_date'],
                 "created_at": user['created_at']
             }
@@ -327,7 +328,17 @@ def login():
 def get_memory():
     """Get memory entries with pagination (requires 1 credit)"""
     try:
+        # Get API key to filter memories
+        api_key = get_api_key_from_request()
+        
         memory = load_memory()
+        
+        # Filter memories for this user (if api_key field exists)
+        user_memories = []
+        for entry in memory:
+            # Include memories that belong to this user or have no api_key (legacy)
+            if entry.get('api_key') == api_key or 'api_key' not in entry:
+                user_memories.append(entry)
         
         # Pagination parameters
         page = int(request.args.get('page', 1))
@@ -335,7 +346,7 @@ def get_memory():
         offset = (page - 1) * limit
         
         # Apply pagination
-        paginated_memory = memory[offset:offset + limit]
+        paginated_memory = user_memories[offset:offset + limit]
         
         # Reverse for newest first
         paginated_memory.reverse()
@@ -345,8 +356,8 @@ def get_memory():
             "pagination": {
                 "page": page,
                 "limit": limit,
-                "total": len(memory),
-                "pages": (len(memory) + limit - 1) // limit
+                "total": len(user_memories),
+                "pages": (len(user_memories) + limit - 1) // limit
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -364,9 +375,13 @@ def get_memory():
 
 @app.route('/memory', methods=['POST'])
 @require_credits(cost=2)
+@require_memory_limit()
 def add_memory():
-    """Add new memory entry (requires 2 credits)"""
+    """Add new memory entry (requires 2 credits and memory limit check)"""
     try:
+        # Get API key
+        api_key = get_api_key_from_request()
+        
         # Get request data
         data = request.get_json()
         if not data:
@@ -380,6 +395,7 @@ def add_memory():
         # Add metadata
         data['timestamp'] = datetime.now(timezone.utc).isoformat()
         data['reviewed'] = data.get('reviewed', False)
+        data['api_key'] = api_key  # Tag with owner
         
         # Set defaults for optional fields
         data.setdefault('score', 15)
@@ -392,7 +408,7 @@ def add_memory():
         
         # Save updated memory
         if save_memory(memory):
-            logger.info(f"Added memory entry: {data.get('topic', 'Unknown')}")
+            logger.info(f"Added memory entry: {data.get('topic', 'Unknown')} for user {api_key[:8]}...")
             return jsonify({
                 "message": "Memory entry added successfully",
                 "entry": data,
@@ -413,9 +429,15 @@ def add_memory():
 def get_stats():
     """Get memory statistics (requires 1 credit)"""
     try:
+        # Get API key to filter stats
+        api_key = get_api_key_from_request()
+        
         memory = load_memory()
         
-        if not memory:
+        # Filter memories for this user
+        user_memories = [entry for entry in memory if entry.get('api_key') == api_key or 'api_key' not in entry]
+        
+        if not user_memories:
             return jsonify({
                 "total_memories": 0,
                 "success_rate": "0%",
@@ -425,26 +447,26 @@ def get_stats():
             })
         
         # Calculate statistics
-        total = len(memory)
-        successful = sum(1 for entry in memory if entry.get('success', False))
+        total = len(user_memories)
+        successful = sum(1 for entry in user_memories if entry.get('success', False))
         success_rate = f"{(successful/total*100):.1f}%" if total > 0 else "0%"
         
         # Count by category
         categories = {}
-        for entry in memory:
+        for entry in user_memories:
             cat = entry.get('category', 'unknown')
             categories[cat] = categories.get(cat, 0) + 1
         
         # Count by type
         types = {}
-        for entry in memory:
+        for entry in user_memories:
             type_val = entry.get('type', 'unknown')
             types[type_val] = types.get(type_val, 0) + 1
         
         # Recent activity
         recent_activity = "No recent activity"
-        if memory:
-            latest = memory[-1]
+        if user_memories:
+            latest = user_memories[-1]
             recent_activity = f"Latest: {latest.get('topic', 'Unknown')} ({latest.get('timestamp', 'Unknown time')})"
         
         return jsonify({
@@ -472,7 +494,11 @@ def get_stats():
 def gpt_status():
     """GPT-friendly status endpoint (requires 1 credit)"""
     try:
+        # Get API key to filter data
+        api_key = get_api_key_from_request()
+        
         memory = load_memory()
+        user_memories = [entry for entry in memory if entry.get('api_key') == api_key or 'api_key' not in entry]
         
         # Get health status
         health_response = health()
@@ -480,8 +506,8 @@ def gpt_status():
         
         return jsonify({
             "system_status": health_data.get('status', 'unknown'),
-            "memory_count": len(memory),
-            "last_activity": memory[-1].get('timestamp') if memory else None,
+            "memory_count": len(user_memories),
+            "last_activity": user_memories[-1].get('timestamp') if user_memories else None,
             "api_accessible": True,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": "MemoryOS is operational and ready for GPT integration"
@@ -516,6 +542,8 @@ def admin_get_users():
                 'credits_remaining': user['credits_remaining'],
                 'credits_used_this_cycle': user['credits_used_this_cycle'],
                 'total_credits_used': user['total_credits_used'],
+                'memory_count': user.get('memory_count', 0),
+                'memory_limit': user.get('memory_limit', 0),
                 'reset_date': user['reset_date'],
                 'created_at': user['created_at'],
                 'last_activity': user['last_activity']
@@ -554,6 +582,30 @@ def admin_update_plan(api_key):
     except Exception as e:
         logger.error(f"Error updating plan: {e}")
         return jsonify({'error': 'Failed to update plan'}), 500
+
+@app.route('/admin/sync-memory-counts', methods=['POST'])
+def admin_sync_memory_counts():
+    """Admin endpoint to sync memory counts from actual memory file"""
+    admin_key = request.headers.get('X-ADMIN-KEY')
+    if admin_key != os.getenv('ADMIN_KEY', 'admin-secret-key'):
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    try:
+        users = credit_system.load_users()
+        updated_count = 0
+        
+        for api_key in users.keys():
+            if credit_system.update_memory_count_from_file(api_key):
+                updated_count += 1
+        
+        return jsonify({
+            'message': f'Synced memory counts for {updated_count} users',
+            'total_users': len(users)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error syncing memory counts: {e}")
+        return jsonify({'error': 'Failed to sync memory counts'}), 500
 
 # Error handlers
 @app.errorhandler(404)

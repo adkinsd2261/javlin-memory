@@ -1,6 +1,6 @@
 """
 Credit System for AI Productivity SaaS
-Handles user credits, billing cycles, and API usage tracking
+Handles user credits, billing cycles, memory limits, and API usage tracking
 """
 
 import json
@@ -22,6 +22,11 @@ class CreditSystem:
             'Free': 100,
             'Pro': 10000,
             'Premium': 100000
+        }
+        self.memory_limits = {
+            'Free': 100,
+            'Pro': 2000,
+            'Premium': 1000000  # Unlimited (practical limit)
         }
         self.ensure_users_file()
     
@@ -73,7 +78,9 @@ class CreditSystem:
             'created_at': now.isoformat(),
             'email': email,
             'last_activity': now.isoformat(),
-            'total_credits_used': 0
+            'total_credits_used': 0,
+            'memory_count': 0,  # Track memory usage
+            'memory_limit': self.memory_limits[plan]
         }
         
         users = self.load_users()
@@ -142,6 +149,88 @@ class CreditSystem:
         
         return True, user
     
+    def check_memory_limit(self, api_key: str) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Check if user can add more memories
+        Returns (can_add, status_info)
+        """
+        users = self.load_users()
+        user = users.get(api_key)
+        
+        if not user:
+            return False, {'error': 'Invalid API key'}
+        
+        # Ensure user has memory tracking fields
+        if 'memory_count' not in user:
+            user['memory_count'] = 0
+        if 'memory_limit' not in user:
+            user['memory_limit'] = self.memory_limits[user['plan']]
+        
+        current_count = user['memory_count']
+        limit = user['memory_limit']
+        
+        if current_count >= limit:
+            return False, {
+                'error': 'Memory limit exceeded',
+                'current_count': current_count,
+                'limit': limit,
+                'plan': user['plan']
+            }
+        
+        return True, {
+            'current_count': current_count,
+            'limit': limit,
+            'remaining': limit - current_count
+        }
+    
+    def increment_memory_count(self, api_key: str) -> bool:
+        """Increment user's memory count"""
+        users = self.load_users()
+        user = users.get(api_key)
+        
+        if not user:
+            return False
+        
+        # Ensure user has memory tracking fields
+        if 'memory_count' not in user:
+            user['memory_count'] = 0
+        
+        user['memory_count'] += 1
+        user['last_activity'] = datetime.now(timezone.utc).isoformat()
+        
+        users[api_key] = user
+        self.save_users(users)
+        
+        logger.info(f"User {api_key[:8]}... memory count incremented to {user['memory_count']}")
+        return True
+    
+    def update_memory_count_from_file(self, api_key: str, memory_file: str = 'memory.json') -> bool:
+        """Update user's memory count based on actual memory file"""
+        try:
+            # Load memory file
+            with open(memory_file, 'r') as f:
+                memories = json.load(f)
+            
+            # Count memories for this user
+            user_memories = [m for m in memories if m.get('api_key') == api_key]
+            count = len(user_memories)
+            
+            # Update user
+            users = self.load_users()
+            user = users.get(api_key)
+            
+            if user:
+                user['memory_count'] = count
+                users[api_key] = user
+                self.save_users(users)
+                logger.info(f"Updated memory count for user {api_key[:8]}... to {count}")
+                return True
+            
+        except Exception as e:
+            logger.error(f"Error updating memory count: {e}")
+        
+        return False
+    
     def get_credit_status(self, api_key: str) -> Dict[str, Any]:
         """Get credit status for a user"""
         users = self.load_users()
@@ -152,12 +241,22 @@ class CreditSystem:
         
         # Check and reset credits if needed
         user = self.check_and_reset_credits(user)
+        
+        # Ensure memory tracking fields exist
+        if 'memory_count' not in user:
+            user['memory_count'] = 0
+        if 'memory_limit' not in user:
+            user['memory_limit'] = self.memory_limits[user['plan']]
+        
         users[api_key] = user
         self.save_users(users)
         
         # Calculate status
         plan_limit = self.plan_limits[user['plan']]
         percent_remaining = (user['credits_remaining'] / plan_limit) * 100
+        
+        # Calculate memory usage
+        memory_percent = (user['memory_count'] / user['memory_limit']) * 100
         
         # Calculate days until reset
         now = datetime.now(timezone.utc)
@@ -170,6 +269,10 @@ class CreditSystem:
             warnings.append('Low credits - less than 25% remaining')
         if user['credits_remaining'] == 0:
             warnings.append('Out of credits')
+        if memory_percent > 90:
+            warnings.append('Memory usage over 90% - consider upgrading plan')
+        if user['memory_count'] >= user['memory_limit']:
+            warnings.append('Memory limit reached - cannot add more memories')
         
         return {
             'api_key': api_key[:8] + '...',  # Masked for security
@@ -181,7 +284,13 @@ class CreditSystem:
             'reset_date': user['reset_date'],
             'warnings': warnings,
             'credits_used_this_cycle': user['credits_used_this_cycle'],
-            'last_activity': user['last_activity']
+            'last_activity': user['last_activity'],
+            'memory_usage': {
+                'current_count': user['memory_count'],
+                'limit': user['memory_limit'],
+                'percent_used': round(memory_percent, 1),
+                'remaining': user['memory_limit'] - user['memory_count']
+            }
         }
     
     def update_user_plan(self, api_key: str, new_plan: str) -> bool:
@@ -197,6 +306,9 @@ class CreditSystem:
         
         old_plan = user['plan']
         user['plan'] = new_plan
+        
+        # Update memory limit
+        user['memory_limit'] = self.memory_limits[new_plan]
         
         # If upgrading, give them the new plan's credits immediately
         if self.plan_limits[new_plan] > self.plan_limits[old_plan]:
@@ -270,6 +382,53 @@ def require_credits(cost: int = 1):
             # Add credit info to successful responses
             if hasattr(response, 'status_code') and 200 <= response.status_code < 300:
                 response = add_credit_info(response)
+            
+            return response
+        
+        return decorated_function
+    return decorator
+
+def require_memory_limit():
+    """
+    Decorator to check memory limits for memory creation endpoints
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Get API key from header
+            api_key = request.headers.get('X-API-KEY')
+            
+            if not api_key:
+                return jsonify({'error': 'API key required'}), 401
+            
+            # Check memory limit
+            can_add, status = credit_system.check_memory_limit(api_key)
+            
+            if not can_add:
+                return jsonify({
+                    'error': 'Memory limit exceeded',
+                    'message': f'Your {status["plan"]} plan allows {status["limit"]} memories. You currently have {status["current_count"]}. Please upgrade your plan to add more memories.',
+                    'current_count': status['current_count'],
+                    'limit': status['limit'],
+                    'plan': status['plan']
+                }), 402
+            
+            # Execute the original function
+            response = f(*args, **kwargs)
+            
+            # If successful, increment memory count
+            if hasattr(response, 'status_code') and 200 <= response.status_code < 300:
+                credit_system.increment_memory_count(api_key)
+                
+                # Add memory usage info to response
+                if hasattr(response, 'get_json') and response.get_json():
+                    data = response.get_json()
+                    data['memory_usage'] = {
+                        'current_count': status['current_count'] + 1,
+                        'limit': status['limit'],
+                        'remaining': status['remaining'] - 1
+                    }
+                    response.data = json.dumps(data)
             
             return response
         
