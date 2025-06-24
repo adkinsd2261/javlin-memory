@@ -1,11 +1,13 @@
 """
-MemoryOS Clean - Bulletproof Memory System with Credit System
-A minimal, production-ready memory API with comprehensive error handling and credit management
+MemoryOS Clean - Bulletproof Memory System with Credit System and API Key Management
+A minimal, production-ready memory API with comprehensive error handling, credit management, and API key generation
 """
 
 import os
 import json
 import logging
+import secrets
+import string
 from datetime import datetime, timezone
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -17,6 +19,7 @@ from credit_system import credit_system, require_credits, require_memory_limit, 
 # Configuration
 MEMORY_FILE = 'memory.json'
 API_KEY = os.getenv('JAVLIN_API_KEY', 'default-key-change-me')
+ADMIN_KEY = os.getenv('ADMIN_KEY', 'admin-secret-key')
 
 # Setup logging
 logging.basicConfig(
@@ -32,6 +35,12 @@ logger = logging.getLogger('MemoryOS')
 # Create Flask app
 app = Flask(__name__)
 CORS(app)
+
+def generate_secure_api_key(length: int = 32) -> str:
+    """Generate a cryptographically secure API key"""
+    # Use a mix of letters and numbers for readability
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 def load_memory():
     """Load memory entries from file with bulletproof error handling"""
@@ -125,6 +134,36 @@ def validate_memory_entry(data):
     
     return True, "Valid"
 
+def require_admin_auth():
+    """Check for admin authentication"""
+    admin_key = request.headers.get('X-ADMIN-KEY')
+    if admin_key != ADMIN_KEY:
+        return jsonify({'error': 'Admin access required'}), 403
+    return None
+
+def require_user_auth():
+    """Check for user authentication (API key or admin)"""
+    api_key = request.headers.get('X-API-KEY')
+    admin_key = request.headers.get('X-ADMIN-KEY')
+    
+    # Allow admin access
+    if admin_key == ADMIN_KEY:
+        return None
+    
+    # Check user API key
+    if not api_key:
+        return jsonify({'error': 'API key required'}), 401
+    
+    user = credit_system.get_user(api_key)
+    if not user:
+        return jsonify({'error': 'Invalid API key'}), 401
+    
+    # Check if key is active
+    if user.get('status') == 'inactive':
+        return jsonify({'error': 'API key has been revoked'}), 401
+    
+    return None
+
 @app.route('/')
 def index():
     """Serve the main page"""
@@ -135,7 +174,7 @@ def index():
             return jsonify({
                 "service": "MemoryOS-Clean",
                 "status": "healthy",
-                "version": "2.0.0",
+                "version": "2.1.0",
                 "endpoints": [
                     "GET / - This page",
                     "GET /health - Health check",
@@ -145,7 +184,10 @@ def index():
                     "GET /gpt-status - GPT-friendly status (requires credits)",
                     "GET /credits - Check credit status",
                     "POST /signup - Create account",
-                    "POST /login - Login (placeholder)"
+                    "POST /login - Login (placeholder)",
+                    "POST /apikey/new - Generate new API key",
+                    "GET /apikey/list - List API keys for account",
+                    "DELETE /apikey/<key> - Revoke API key"
                 ]
             })
     except Exception as e:
@@ -170,7 +212,8 @@ def health():
             "memory_entries": 0,
             "memory_file_exists": False,
             "memory_file_size_bytes": 0,
-            "total_users": 0
+            "total_users": 0,
+            "active_api_keys": 0
         }
         
         # Check memory file
@@ -205,6 +248,7 @@ def health():
         try:
             users = credit_system.load_users()
             metrics["total_users"] = len(users)
+            metrics["active_api_keys"] = len([u for u in users.values() if u.get('status') != 'inactive'])
             checks["credit_system_accessible"] = True
         except Exception as e:
             logger.error(f"Health check credit system error: {e}")
@@ -230,7 +274,7 @@ def health():
             "response_time_ms": round(response_time_ms, 2),
             "checks": checks,
             "metrics": metrics,
-            "version": "2.0.0",
+            "version": "2.1.0",
             "service": "MemoryOS-Clean",
             "bulletproof": True
         }
@@ -247,6 +291,246 @@ def health():
             "service": "MemoryOS-Clean",
             "bulletproof": True
         }), 503
+
+@app.route('/apikey/new', methods=['POST'])
+def generate_api_key():
+    """Generate a new API key for a user"""
+    try:
+        # Check authentication (admin or user with password)
+        auth_error = require_user_auth()
+        if auth_error:
+            return auth_error
+        
+        data = request.get_json() or {}
+        
+        # Get user identifier (email or existing API key)
+        email = data.get('email')
+        existing_api_key = request.headers.get('X-API-KEY')
+        admin_key = request.headers.get('X-ADMIN-KEY')
+        
+        # Determine the account to create key for
+        if admin_key == ADMIN_KEY:
+            # Admin creating key for user
+            if not email:
+                return jsonify({'error': 'Email required when admin creates API key'}), 400
+            account_id = email
+        elif existing_api_key:
+            # User creating additional key for their account
+            user = credit_system.get_user(existing_api_key)
+            if not user:
+                return jsonify({'error': 'Invalid API key'}), 401
+            account_id = user.get('email') or existing_api_key
+        else:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        # Generate new secure API key
+        new_api_key = generate_secure_api_key(32)
+        
+        # Get plan and other details
+        plan = data.get('plan', 'Free')
+        description = data.get('description', f'Generated on {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+        
+        # If this is for an existing account, use their plan
+        if existing_api_key and not admin_key:
+            existing_user = credit_system.get_user(existing_api_key)
+            plan = existing_user['plan']
+        
+        # Create user with new API key
+        try:
+            user = credit_system.create_user(new_api_key, plan, account_id)
+            
+            # Add API key specific metadata
+            users = credit_system.load_users()
+            users[new_api_key]['description'] = description
+            users[new_api_key]['created_by'] = existing_api_key or 'admin'
+            users[new_api_key]['status'] = 'active'
+            credit_system.save_users(users)
+            
+            logger.info(f"Generated new API key for account {account_id[:20]}...")
+            
+            # Return the new key (only time it's shown in full)
+            return jsonify({
+                'message': 'API key generated successfully',
+                'api_key': new_api_key,
+                'plan': plan,
+                'description': description,
+                'created_at': user['created_at'],
+                'warning': 'Save this API key now. You will not be able to see it again.',
+                'account_id': account_id
+            }), 201
+            
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
+            
+    except Exception as e:
+        logger.error(f"Error generating API key: {e}")
+        return jsonify({
+            'error': 'Failed to generate API key',
+            'details': str(e)
+        }), 500
+
+@app.route('/apikey/list', methods=['GET'])
+def list_api_keys():
+    """List all API keys for an account"""
+    try:
+        # Check authentication
+        auth_error = require_user_auth()
+        if auth_error:
+            return auth_error
+        
+        api_key = request.headers.get('X-API-KEY')
+        admin_key = request.headers.get('X-ADMIN-KEY')
+        
+        users = credit_system.load_users()
+        
+        if admin_key == ADMIN_KEY:
+            # Admin can see all keys (masked)
+            api_keys = []
+            for key, user in users.items():
+                if user.get('status') != 'inactive':
+                    api_keys.append({
+                        'api_key': key[:8] + '...' + key[-4:],
+                        'plan': user['plan'],
+                        'description': user.get('description', 'No description'),
+                        'created_at': user['created_at'],
+                        'last_activity': user['last_activity'],
+                        'status': user.get('status', 'active'),
+                        'account_id': user.get('email', 'Unknown')
+                    })
+            
+            return jsonify({
+                'total_keys': len(api_keys),
+                'api_keys': api_keys
+            })
+        
+        elif api_key:
+            # User can see their account's keys
+            current_user = credit_system.get_user(api_key)
+            if not current_user:
+                return jsonify({'error': 'Invalid API key'}), 401
+            
+            account_id = current_user.get('email') or api_key
+            
+            # Find all keys for this account
+            account_keys = []
+            for key, user in users.items():
+                if (user.get('email') == account_id or 
+                    user.get('created_by') == api_key or 
+                    key == api_key) and user.get('status') != 'inactive':
+                    
+                    is_current = (key == api_key)
+                    account_keys.append({
+                        'api_key': key[:8] + '...' + key[-4:],
+                        'plan': user['plan'],
+                        'description': user.get('description', 'No description'),
+                        'created_at': user['created_at'],
+                        'last_activity': user['last_activity'],
+                        'status': user.get('status', 'active'),
+                        'is_current': is_current,
+                        'credits_remaining': user['credits_remaining'],
+                        'memory_count': user.get('memory_count', 0)
+                    })
+            
+            return jsonify({
+                'account_id': account_id,
+                'total_keys': len(account_keys),
+                'api_keys': account_keys
+            })
+        
+        else:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+    except Exception as e:
+        logger.error(f"Error listing API keys: {e}")
+        return jsonify({
+            'error': 'Failed to list API keys',
+            'details': str(e)
+        }), 500
+
+@app.route('/apikey/<api_key_to_revoke>', methods=['DELETE'])
+def revoke_api_key(api_key_to_revoke):
+    """Revoke an API key (mark as inactive)"""
+    try:
+        # Check authentication
+        auth_error = require_user_auth()
+        if auth_error:
+            return auth_error
+        
+        current_api_key = request.headers.get('X-API-KEY')
+        admin_key = request.headers.get('X-ADMIN-KEY')
+        
+        users = credit_system.load_users()
+        
+        # Check if the key to revoke exists
+        if api_key_to_revoke not in users:
+            return jsonify({'error': 'API key not found'}), 404
+        
+        target_user = users[api_key_to_revoke]
+        
+        # Check permissions
+        if admin_key == ADMIN_KEY:
+            # Admin can revoke any key
+            pass
+        elif current_api_key:
+            # User can only revoke their own account's keys
+            current_user = credit_system.get_user(current_api_key)
+            if not current_user:
+                return jsonify({'error': 'Invalid API key'}), 401
+            
+            account_id = current_user.get('email') or current_api_key
+            target_account_id = target_user.get('email') or target_user.get('created_by')
+            
+            # Check if they own this key
+            if (target_account_id != account_id and 
+                target_user.get('created_by') != current_api_key and 
+                api_key_to_revoke != current_api_key):
+                return jsonify({'error': 'Permission denied - can only revoke your own API keys'}), 403
+        else:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        # Prevent revoking the last active key for an account
+        if current_api_key and api_key_to_revoke == current_api_key:
+            # Check if there are other active keys for this account
+            current_user = users[current_api_key]
+            account_id = current_user.get('email') or current_api_key
+            
+            active_keys = [
+                key for key, user in users.items() 
+                if (user.get('email') == account_id or 
+                    user.get('created_by') == current_api_key or 
+                    key == current_api_key) and 
+                user.get('status') != 'inactive' and 
+                key != api_key_to_revoke
+            ]
+            
+            if not active_keys and not admin_key:
+                return jsonify({
+                    'error': 'Cannot revoke your only active API key',
+                    'message': 'Generate a new API key before revoking this one'
+                }), 400
+        
+        # Mark as inactive (don't delete to preserve history)
+        users[api_key_to_revoke]['status'] = 'inactive'
+        users[api_key_to_revoke]['revoked_at'] = datetime.now(timezone.utc).isoformat()
+        users[api_key_to_revoke]['revoked_by'] = current_api_key or 'admin'
+        
+        credit_system.save_users(users)
+        
+        logger.info(f"Revoked API key {api_key_to_revoke[:8]}... by {(current_api_key or 'admin')[:8]}...")
+        
+        return jsonify({
+            'message': 'API key revoked successfully',
+            'revoked_key': api_key_to_revoke[:8] + '...' + api_key_to_revoke[-4:],
+            'revoked_at': users[api_key_to_revoke]['revoked_at'],
+            'note': 'Key is now inactive but usage history is preserved'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error revoking API key: {e}")
+        return jsonify({
+            'error': 'Failed to revoke API key',
+            'details': str(e)
+        }), 500
 
 @app.route('/credits')
 def get_credits():
@@ -284,7 +568,8 @@ def signup():
         email = data.get('email')
         
         if not api_key:
-            return jsonify({"error": "API key required"}), 400
+            # Generate a new API key if not provided
+            api_key = generate_secure_api_key(32)
         
         # Check if user already exists
         existing_user = credit_system.get_user(api_key)
@@ -294,16 +579,24 @@ def signup():
         # Create user
         user = credit_system.create_user(api_key, plan, email)
         
-        # Return user info (without sensitive data)
+        # Add status field
+        users = credit_system.load_users()
+        users[api_key]['status'] = 'active'
+        users[api_key]['description'] = 'Initial account creation'
+        credit_system.save_users(users)
+        
+        # Return user info (including API key for new accounts)
         return jsonify({
             "message": "Account created successfully",
+            "api_key": api_key,
             "user": {
                 "plan": user['plan'],
                 "credits_remaining": user['credits_remaining'],
                 "memory_limit": user['memory_limit'],
                 "reset_date": user['reset_date'],
                 "created_at": user['created_at']
-            }
+            },
+            "warning": "Save your API key securely. You will not be able to see it again."
         }), 201
         
     except ValueError as e:
@@ -320,7 +613,12 @@ def login():
     """Login endpoint (placeholder for future authentication)"""
     return jsonify({
         "message": "Login endpoint placeholder",
-        "note": "Currently using API key authentication. Future versions will support email/password login."
+        "note": "Currently using API key authentication. Future versions will support email/password login.",
+        "endpoints": {
+            "generate_key": "POST /apikey/new",
+            "list_keys": "GET /apikey/list",
+            "revoke_key": "DELETE /apikey/<key>"
+        }
     })
 
 @app.route('/memory', methods=['GET'])
@@ -528,7 +826,7 @@ def gpt_status():
 def admin_get_users():
     """Admin endpoint to view all users (no credit cost)"""
     admin_key = request.headers.get('X-ADMIN-KEY')
-    if admin_key != os.getenv('ADMIN_KEY', 'admin-secret-key'):
+    if admin_key != ADMIN_KEY:
         return jsonify({'error': 'Admin access required'}), 403
     
     try:
@@ -546,11 +844,15 @@ def admin_get_users():
                 'memory_limit': user.get('memory_limit', 0),
                 'reset_date': user['reset_date'],
                 'created_at': user['created_at'],
-                'last_activity': user['last_activity']
+                'last_activity': user['last_activity'],
+                'status': user.get('status', 'active'),
+                'description': user.get('description', 'No description'),
+                'email': user.get('email', 'No email')
             }
         
         return jsonify({
             'total_users': len(users),
+            'active_users': len([u for u in users.values() if u.get('status') != 'inactive']),
             'users': safe_users
         })
         
@@ -562,7 +864,7 @@ def admin_get_users():
 def admin_update_plan(api_key):
     """Admin endpoint to update user plan (no credit cost)"""
     admin_key = request.headers.get('X-ADMIN-KEY')
-    if admin_key != os.getenv('ADMIN_KEY', 'admin-secret-key'):
+    if admin_key != ADMIN_KEY:
         return jsonify({'error': 'Admin access required'}), 403
     
     try:
@@ -587,7 +889,7 @@ def admin_update_plan(api_key):
 def admin_sync_memory_counts():
     """Admin endpoint to sync memory counts from actual memory file"""
     admin_key = request.headers.get('X-ADMIN-KEY')
-    if admin_key != os.getenv('ADMIN_KEY', 'admin-secret-key'):
+    if admin_key != ADMIN_KEY:
         return jsonify({'error': 'Admin access required'}), 403
     
     try:
@@ -612,7 +914,7 @@ def admin_sync_memory_counts():
 def not_found(error):
     return jsonify({
         "error": "Endpoint not found",
-        "available_endpoints": ["/", "/health", "/memory", "/stats", "/gpt-status", "/credits", "/signup", "/login"]
+        "available_endpoints": ["/", "/health", "/memory", "/stats", "/gpt-status", "/credits", "/signup", "/login", "/apikey/new", "/apikey/list", "/apikey/<key>"]
     }), 404
 
 @app.errorhandler(500)
@@ -625,7 +927,7 @@ def internal_error(error):
 
 if __name__ == '__main__':
     # Startup checks
-    logger.info("Starting MemoryOS Clean with Credit System...")
+    logger.info("Starting MemoryOS Clean with Credit System and API Key Management...")
     
     # Ensure memory file exists
     if not os.path.exists(MEMORY_FILE):
@@ -647,5 +949,5 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"Credit system initialization failed: {e}")
     
-    logger.info("MemoryOS Clean with Credit System started successfully")
+    logger.info("MemoryOS Clean with Credit System and API Key Management started successfully")
     app.run(host='0.0.0.0', port=5000, debug=False)

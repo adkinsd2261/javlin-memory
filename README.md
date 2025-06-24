@@ -1,11 +1,13 @@
-# MemoryOS Clean with Credit System
+# MemoryOS Clean with Credit System and API Key Management
 
-A bulletproof, minimal memory system built for production reliability with comprehensive credit management for AI productivity SaaS.
+A bulletproof, minimal memory system built for production reliability with comprehensive credit management, memory limits, and secure API key generation for AI productivity SaaS.
 
 ## Features
 
 - ✅ Memory storage and retrieval with credit tracking
 - ✅ User management with API key authentication
+- ✅ **Secure API key generation and management**
+- ✅ **API key listing and revocation with security controls**
 - ✅ Flexible credit plans (Free, Pro, Premium)
 - ✅ Memory limits per plan with usage tracking
 - ✅ Automatic monthly billing cycle resets
@@ -16,6 +18,137 @@ A bulletproof, minimal memory system built for production reliability with compr
 - ✅ Statistics tracking
 - ✅ GPT integration ready
 - ✅ Production-grade error handling
+
+## API Key Management
+
+### Security Features
+
+- **Cryptographically Secure**: 32-character keys using `secrets` module
+- **One-Time Display**: API keys shown only once during generation
+- **Revocation Not Deletion**: Keys are marked inactive, preserving usage history
+- **Permission Controls**: Users can only manage their own account's keys
+- **Admin Override**: Admins can manage any user's keys
+- **Active Key Protection**: Cannot revoke your only active API key
+
+### API Key Endpoints
+
+#### Generate New API Key
+```bash
+# Admin creating key for user
+curl -X POST https://your-app.com/apikey/new \
+  -H "X-ADMIN-KEY: your-admin-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "plan": "Pro",
+    "description": "Mobile app access key"
+  }'
+
+# User creating additional key for their account
+curl -X POST https://your-app.com/apikey/new \
+  -H "X-API-KEY: existing-user-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Desktop app key"
+  }'
+```
+
+Response:
+```json
+{
+  "message": "API key generated successfully",
+  "api_key": "abcd1234efgh5678ijkl9012mnop3456",
+  "plan": "Pro",
+  "description": "Mobile app access key",
+  "created_at": "2025-01-20T10:30:00+00:00",
+  "warning": "Save this API key now. You will not be able to see it again.",
+  "account_id": "user@example.com"
+}
+```
+
+#### List API Keys
+```bash
+# User listing their account's keys
+curl -H "X-API-KEY: your-api-key" \
+  https://your-app.com/apikey/list
+
+# Admin listing all keys
+curl -H "X-ADMIN-KEY: your-admin-key" \
+  https://your-app.com/apikey/list
+```
+
+Response (User):
+```json
+{
+  "account_id": "user@example.com",
+  "total_keys": 3,
+  "api_keys": [
+    {
+      "api_key": "abcd1234...3456",
+      "plan": "Pro",
+      "description": "Main account key",
+      "created_at": "2025-01-15T10:00:00+00:00",
+      "last_activity": "2025-01-20T09:45:00+00:00",
+      "status": "active",
+      "is_current": true,
+      "credits_remaining": 8500,
+      "memory_count": 450
+    },
+    {
+      "api_key": "efgh5678...7890",
+      "plan": "Pro",
+      "description": "Mobile app key",
+      "created_at": "2025-01-18T14:30:00+00:00",
+      "last_activity": "2025-01-19T16:20:00+00:00",
+      "status": "active",
+      "is_current": false,
+      "credits_remaining": 9800,
+      "memory_count": 25
+    }
+  ]
+}
+```
+
+#### Revoke API Key
+```bash
+# User revoking their own key
+curl -X DELETE https://your-app.com/apikey/efgh5678ijkl9012mnop3456qrst7890 \
+  -H "X-API-KEY: your-main-key"
+
+# Admin revoking any key
+curl -X DELETE https://your-app.com/apikey/abcd1234efgh5678ijkl9012mnop3456 \
+  -H "X-ADMIN-KEY: your-admin-key"
+```
+
+Response:
+```json
+{
+  "message": "API key revoked successfully",
+  "revoked_key": "abcd1234...3456",
+  "revoked_at": "2025-01-20T10:45:00+00:00",
+  "note": "Key is now inactive but usage history is preserved"
+}
+```
+
+### API Key Security Model
+
+#### Permission Matrix
+
+| Action | User (Own Keys) | User (Other Keys) | Admin |
+|--------|----------------|-------------------|-------|
+| Generate Key | ✅ | ❌ | ✅ |
+| List Keys | ✅ (Own Account) | ❌ | ✅ (All) |
+| Revoke Key | ✅ (Own Account) | ❌ | ✅ (Any) |
+| View Full Key | ❌ (Only at creation) | ❌ | ❌ (Only at creation) |
+
+#### Security Protections
+
+1. **Key Masking**: API keys are always displayed as `abcd1234...3456` except during generation
+2. **One-Time Display**: Full API keys are shown only once when generated
+3. **Account Isolation**: Users can only see and manage keys for their own account
+4. **Revocation Safety**: Cannot revoke your only active API key (prevents lockout)
+5. **History Preservation**: Revoked keys are marked inactive, not deleted
+6. **Admin Oversight**: Admins can manage any user's keys for support purposes
 
 ## Credit System & Memory Limits
 
@@ -38,24 +171,10 @@ A bulletproof, minimal memory system built for production reliability with compr
 - `GET /credits` - Free
 - `POST /signup` - Free
 - `POST /login` - Free
+- `POST /apikey/new` - Free
+- `GET /apikey/list` - Free
+- `DELETE /apikey/<key>` - Free
 - `GET /health` - Free
-
-### Memory Limit Features
-
-- **Per-Plan Limits**: Each plan has specific memory storage limits
-- **Usage Tracking**: Real-time tracking of memory count per user
-- **Limit Enforcement**: 402 error when memory limit exceeded
-- **Usage Warnings**: Warnings when approaching memory limits (90%+)
-- **Plan Upgrades**: Instant memory limit increase on plan upgrade
-- **Memory Tagging**: All memories tagged with owner's API key
-
-### Credit Features
-
-- **Automatic Reset**: Credits reset monthly on billing cycle
-- **Low Credit Warnings**: Warnings when below 25% remaining
-- **Credit Blocking**: 402 error when out of credits
-- **Usage Tracking**: Track total and cycle usage
-- **Plan Upgrades**: Instant credit refresh on plan upgrade
 
 ## Quick Start
 
@@ -67,10 +186,13 @@ Server runs on port 5000 and is accessible at `https://your-repl-name.replit.app
 
 ## API Endpoints
 
-### Authentication & Credits
-- `POST /signup` - Create new user account
+### Authentication & API Key Management
+- `POST /signup` - Create new user account (returns API key)
 - `POST /login` - Login (placeholder)
 - `GET /credits` - Check credit status and memory usage
+- `POST /apikey/new` - Generate new API key (admin or user auth required)
+- `GET /apikey/list` - List API keys for account (admin or user auth required)
+- `DELETE /apikey/<key>` - Revoke API key (admin or user auth required)
 
 ### Core Endpoints (Require Credits)
 - `GET /memory` - Get memories (1 credit, filtered by user)
@@ -90,302 +212,160 @@ Server runs on port 5000 and is accessible at `https://your-repl-name.replit.app
 ## Environment Variables
 
 - `JAVLIN_API_KEY` - Default API key for backward compatibility
-- `ADMIN_KEY` - Admin access key for user management
+- `ADMIN_KEY` - Admin access key for user management (default: `admin-secret-key`)
 
-## User Management
+## User Management Workflows
 
-### Creating a User
+### Creating Your First Account
 
 ```bash
 curl -X POST https://your-app.com/signup \
   -H "Content-Type: application/json" \
   -d '{
-    "api_key": "your-unique-api-key",
     "plan": "Pro",
     "email": "user@example.com"
   }'
 ```
 
-### Checking Credits and Memory Usage
-
-```bash
-curl -H "X-API-KEY: your-api-key" \
-  https://your-app.com/credits
-```
-
-Response:
+Response includes your API key - **save it immediately**:
 ```json
 {
-  "api_key": "your-key...",
-  "plan": "Pro",
-  "credits_remaining": 8500,
-  "credits_limit": 10000,
-  "percent_remaining": 85.0,
-  "days_until_reset": 15,
-  "reset_date": "2025-02-01T00:00:00+00:00",
-  "warnings": [],
-  "credits_used_this_cycle": 1500,
-  "last_activity": "2025-01-15T10:30:00+00:00",
-  "memory_usage": {
-    "current_count": 450,
-    "limit": 2000,
-    "percent_used": 22.5,
-    "remaining": 1550
-  }
-}
-```
-
-### Using Protected Endpoints
-
-All protected endpoints require the `X-API-KEY` header:
-
-```bash
-curl -H "X-API-KEY: your-api-key" \
-  https://your-app.com/memory
-```
-
-## Memory Management
-
-### Memory Limits by Plan
-
-- **Free Plan**: 100 memories maximum
-- **Pro Plan**: 2,000 memories maximum  
-- **Premium Plan**: 1,000,000 memories (effectively unlimited)
-
-### Memory Limit Enforcement
-
-When attempting to create a memory:
-
-1. **Credit Check**: Ensures user has sufficient credits (2 credits required)
-2. **Memory Limit Check**: Verifies user hasn't exceeded their plan's memory limit
-3. **Memory Creation**: If both checks pass, memory is created and tagged with user's API key
-4. **Count Update**: User's memory count is automatically incremented
-
-### Memory Limit Errors
-
-When memory limit is exceeded:
-
-```json
-{
-  "error": "Memory limit exceeded",
-  "message": "Your Free plan allows 100 memories. You currently have 100. Please upgrade your plan to add more memories.",
-  "current_count": 100,
-  "limit": 100,
-  "plan": "Free"
-}
-```
-
-### Memory Usage Warnings
-
-Users receive warnings when:
-- Memory usage exceeds 90% of their limit
-- Memory limit is reached (cannot add more memories)
-
-## Credit System Architecture
-
-### Data Structure
-
-Users are stored in `users.json`:
-
-```json
-{
-  "api-key-123": {
-    "api_key": "api-key-123",
+  "message": "Account created successfully",
+  "api_key": "abcd1234efgh5678ijkl9012mnop3456",
+  "user": {
     "plan": "Pro",
-    "credits_remaining": 8500,
-    "credits_used_this_cycle": 1500,
-    "memory_count": 450,
-    "memory_limit": 2000,
-    "reset_date": "2025-02-01T00:00:00+00:00",
-    "created_at": "2025-01-01T00:00:00+00:00",
-    "email": "user@example.com",
-    "last_activity": "2025-01-15T10:30:00+00:00",
-    "total_credits_used": 15000
-  }
+    "credits_remaining": 10000,
+    "memory_limit": 2000
+  },
+  "warning": "Save your API key securely. You will not be able to see it again."
 }
 ```
 
-### Memory Storage
+### Generating Additional API Keys
 
-Memories in `memory.json` are tagged with the owner's API key:
-
-```json
-{
-  "topic": "User's memory entry",
-  "type": "UserInteraction",
-  "input": "User input",
-  "output": "System response",
-  "success": true,
-  "category": "conversation",
-  "api_key": "api-key-123",
-  "timestamp": "2025-01-15T10:30:00+00:00"
-}
-```
-
-### Credit & Memory Flow
-
-1. **User makes API request** with `X-API-KEY` header
-2. **System validates** API key and loads user
-3. **Credit check** ensures sufficient credits available
-4. **Memory limit check** (for POST /memory) ensures user can add more memories
-5. **Credit deduction** happens before endpoint execution
-6. **Memory count increment** (for successful memory creation)
-7. **Response includes** credit info, memory usage, and warnings if needed
-
-### Error Handling
-
-- **401 Unauthorized**: Invalid or missing API key
-- **402 Payment Required**: Out of credits OR memory limit exceeded
-- **409 Conflict**: User already exists (signup)
-
-## Testing
-
-Run the credit system tests including memory limits:
+For different applications or team members:
 
 ```bash
-python test_credit_system.py
+curl -X POST https://your-app.com/apikey/new \
+  -H "X-API-KEY: your-main-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Mobile app key"
+  }'
 ```
 
-Run the full test suite:
+### Managing Your API Keys
 
+List all keys for your account:
 ```bash
-python -m pytest test_memoryos.py test_credit_system.py -v
+curl -H "X-API-KEY: your-api-key" \
+  https://your-app.com/apikey/list
 ```
 
-## Monitoring & Logging
+Revoke a key you no longer need:
+```bash
+curl -X DELETE https://your-app.com/apikey/old-key-to-revoke \
+  -H "X-API-KEY: your-main-key"
+```
 
-### Health Check Setup
+### Admin User Management
 
-The `/health` endpoint provides comprehensive system monitoring including credit system and memory usage status.
+Admins can create keys for users:
+```bash
+curl -X POST https://your-app.com/apikey/new \
+  -H "X-ADMIN-KEY: your-admin-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newuser@example.com",
+    "plan": "Free",
+    "description": "Initial account setup"
+  }'
+```
 
-**Health Check URL:** `https://your-repl-name.replit.app/health`
-
-### Credit & Memory System Monitoring
-
-Monitor these metrics:
-- Total users and their plans
-- Credit usage patterns
-- Memory usage patterns per plan
-- Monthly reset cycles
-- Low credit warnings
-- Memory limit warnings
-- Out of credit/memory blocks
-
-### Logging
-
-All credit and memory operations are logged:
-- User creation
-- Credit usage
-- Memory limit checks
-- Memory count updates
-- Plan upgrades
-- Monthly resets
-- Credit and memory warnings
-
-## Admin Operations
-
-### View All Users with Memory Usage
-
+View all users and their API keys:
 ```bash
 curl -H "X-ADMIN-KEY: your-admin-key" \
   https://your-app.com/admin/users
 ```
 
-Response includes memory usage:
-```json
-{
-  "total_users": 150,
-  "users": {
-    "api-key...": {
-      "plan": "Pro",
-      "credits_remaining": 8500,
-      "memory_count": 450,
-      "memory_limit": 2000,
-      "reset_date": "2025-02-01T00:00:00+00:00"
-    }
-  }
-}
-```
+## API Key Best Practices
 
-### Update User Plan
+### For Users
+1. **Save Keys Immediately**: API keys are shown only once during generation
+2. **Use Descriptive Names**: Add meaningful descriptions to identify key purposes
+3. **Generate Separate Keys**: Use different keys for different applications/environments
+4. **Revoke Unused Keys**: Regularly audit and revoke keys you no longer need
+5. **Keep One Active**: Always maintain at least one active key for account access
 
-```bash
-curl -X PUT \
-  -H "X-ADMIN-KEY: your-admin-key" \
-  -H "Content-Type: application/json" \
-  -d '{"plan": "Premium"}' \
-  https://your-app.com/admin/user/api-key-123/plan
-```
+### For Developers
+1. **Environment Variables**: Store API keys in environment variables, never in code
+2. **Key Rotation**: Regularly generate new keys and revoke old ones
+3. **Least Privilege**: Use separate keys for different applications with appropriate plans
+4. **Monitor Usage**: Check credit usage and memory consumption regularly
+5. **Error Handling**: Handle 401 (invalid/revoked key) and 402 (out of credits) responses
 
-### Sync Memory Counts
+### For Admins
+1. **User Support**: Help users who lose access by generating new keys
+2. **Security Incidents**: Quickly revoke compromised keys
+3. **Account Management**: Create initial keys for new enterprise users
+4. **Monitoring**: Track API key usage patterns and security events
 
-Synchronize memory counts from the actual memory file:
+## Testing
+
+Run the API key management tests:
 
 ```bash
-curl -X POST \
-  -H "X-ADMIN-KEY: your-admin-key" \
-  https://your-app.com/admin/sync-memory-counts
+python test_api_key_management.py
 ```
 
-## Production Deployment
+Run the full test suite:
 
-### Security Considerations
+```bash
+python -m pytest test_memoryos.py test_credit_system.py test_api_key_management.py -v
+```
 
-1. **API Key Security**: Use strong, unique API keys
-2. **Admin Key**: Set secure `ADMIN_KEY` environment variable
-3. **HTTPS**: Always use HTTPS in production
-4. **Rate Limiting**: Consider adding rate limiting for additional protection
-5. **Memory Isolation**: Each user's memories are isolated by API key
+## Security Considerations
 
-### Scaling Considerations
+### API Key Security
+1. **Cryptographic Generation**: Keys use `secrets.choice()` for cryptographic security
+2. **Sufficient Length**: 32 characters provide adequate entropy
+3. **Alphanumeric Only**: Keys use letters and numbers for better compatibility
+4. **No Predictable Patterns**: Each key is completely random
 
-1. **File Storage**: For high-volume usage, consider migrating to a database
-2. **Memory Calculations**: Current system handles thousands of users efficiently
-3. **Memory File Size**: Monitor memory.json size with high memory usage
-4. **Backup Strategy**: Regularly backup `users.json` and `memory.json`
+### Access Control
+1. **Account Isolation**: Users can only access their own account's keys
+2. **Admin Oversight**: Admins can manage any user's keys for support
+3. **Revocation Safety**: System prevents users from locking themselves out
+4. **History Preservation**: Revoked keys maintain audit trail
 
-### Monitoring Setup
-
-1. Monitor `/health` endpoint for system status
-2. Set up alerts for credit system failures
-3. Track user growth and credit usage patterns
-4. Monitor memory usage patterns by plan
-5. Alert on unusual API usage patterns
-6. Monitor memory file size growth
+### Data Protection
+1. **Key Masking**: API keys are masked in all responses except generation
+2. **Secure Storage**: Keys are stored securely in the user database
+3. **No Key Recovery**: Lost keys cannot be recovered, only replaced
+4. **Audit Logging**: All key operations are logged for security monitoring
 
 ## Migration from Previous Version
 
-If upgrading from a version without credit system or memory limits:
+If upgrading from a version without API key management:
 
-1. **Backup** your existing `memory.json`
-2. **Deploy** new version with credit and memory limit system
-3. **Create users** for existing API keys:
+1. **Backup** your existing `users.json` and `memory.json`
+2. **Deploy** new version with API key management
+3. **Existing users** can continue using their current API keys
+4. **Generate additional keys** as needed using the new endpoints
 
-```bash
-curl -X POST https://your-app.com/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "api_key": "existing-api-key",
-    "plan": "Pro"
-  }'
-```
-
-4. **Sync memory counts** to update user memory usage:
-
-```bash
-curl -X POST \
-  -H "X-ADMIN-KEY: your-admin-key" \
-  https://your-app.com/admin/sync-memory-counts
-```
+Existing API keys will automatically have:
+- `status: "active"` added to their user record
+- `description: "Legacy API key"` for identification
+- Full access to the new API key management features
 
 ## Support
 
 For issues or questions:
 1. Check the health endpoint for system status
-2. Review logs for credit and memory system operations
-3. Use admin endpoints to manage users and sync memory counts
-4. Test credit and memory operations with the test suite
+2. Review logs for API key and credit system operations
+3. Use admin endpoints to manage users and API keys
+4. Test API key operations with the test suite
 
 ---
 
-**Built for Production • Credit-Managed • Memory-Limited • Monitored • Scalable**
+**Built for Production • Credit-Managed • Memory-Limited • Secure API Keys • Monitored • Scalable**

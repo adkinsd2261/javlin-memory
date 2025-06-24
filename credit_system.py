@@ -59,7 +59,13 @@ class CreditSystem:
     def get_user(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Get user by API key"""
         users = self.load_users()
-        return users.get(api_key)
+        user = users.get(api_key)
+        
+        # Check if user exists and is active
+        if user and user.get('status') == 'inactive':
+            return None  # Treat inactive users as non-existent for auth purposes
+        
+        return user
     
     def create_user(self, api_key: str, plan: str = 'Free', email: str = None) -> Dict[str, Any]:
         """Create a new user"""
@@ -80,7 +86,8 @@ class CreditSystem:
             'last_activity': now.isoformat(),
             'total_credits_used': 0,
             'memory_count': 0,  # Track memory usage
-            'memory_limit': self.memory_limits[plan]
+            'memory_limit': self.memory_limits[plan],
+            'status': 'active'  # Track API key status
         }
         
         users = self.load_users()
@@ -127,6 +134,10 @@ class CreditSystem:
         if not user:
             return False, {'error': 'Invalid API key'}
         
+        # Check if user is active
+        if user.get('status') == 'inactive':
+            return False, {'error': 'API key has been revoked'}
+        
         # Check and reset credits if needed
         user = self.check_and_reset_credits(user)
         
@@ -160,6 +171,10 @@ class CreditSystem:
         if not user:
             return False, {'error': 'Invalid API key'}
         
+        # Check if user is active
+        if user.get('status') == 'inactive':
+            return False, {'error': 'API key has been revoked'}
+        
         # Ensure user has memory tracking fields
         if 'memory_count' not in user:
             user['memory_count'] = 0
@@ -188,7 +203,7 @@ class CreditSystem:
         users = self.load_users()
         user = users.get(api_key)
         
-        if not user:
+        if not user or user.get('status') == 'inactive':
             return False
         
         # Ensure user has memory tracking fields
@@ -239,6 +254,10 @@ class CreditSystem:
         if not user:
             return {'error': 'Invalid API key'}
         
+        # Check if user is active
+        if user.get('status') == 'inactive':
+            return {'error': 'API key has been revoked'}
+        
         # Check and reset credits if needed
         user = self.check_and_reset_credits(user)
         
@@ -285,6 +304,7 @@ class CreditSystem:
             'warnings': warnings,
             'credits_used_this_cycle': user['credits_used_this_cycle'],
             'last_activity': user['last_activity'],
+            'status': user.get('status', 'active'),
             'memory_usage': {
                 'current_count': user['memory_count'],
                 'limit': user['memory_limit'],
@@ -336,10 +356,10 @@ def require_credits(cost: int = 1):
             if not api_key:
                 return jsonify({'error': 'API key required'}), 401
             
-            # Check if user exists
+            # Check if user exists and is active
             user = credit_system.get_user(api_key)
             if not user:
-                return jsonify({'error': 'Invalid API key'}), 401
+                return jsonify({'error': 'Invalid or inactive API key'}), 401
             
             # Try to use credits
             success, result = credit_system.use_credit(api_key, cost)
@@ -351,6 +371,11 @@ def require_credits(cost: int = 1):
                         'message': 'Your account has run out of credits. Please upgrade your plan or wait for your monthly reset.',
                         'credits_remaining': result.get('credits_remaining', 0)
                     }), 402
+                elif 'revoked' in result.get('error', ''):
+                    return jsonify({
+                        'error': 'API key revoked',
+                        'message': 'This API key has been revoked and is no longer valid.'
+                    }), 401
                 else:
                     return jsonify(result), 400
             
@@ -405,13 +430,19 @@ def require_memory_limit():
             can_add, status = credit_system.check_memory_limit(api_key)
             
             if not can_add:
-                return jsonify({
-                    'error': 'Memory limit exceeded',
-                    'message': f'Your {status["plan"]} plan allows {status["limit"]} memories. You currently have {status["current_count"]}. Please upgrade your plan to add more memories.',
-                    'current_count': status['current_count'],
-                    'limit': status['limit'],
-                    'plan': status['plan']
-                }), 402
+                if 'revoked' in status.get('error', ''):
+                    return jsonify({
+                        'error': 'API key revoked',
+                        'message': 'This API key has been revoked and is no longer valid.'
+                    }), 401
+                else:
+                    return jsonify({
+                        'error': 'Memory limit exceeded',
+                        'message': f'Your {status.get("plan", "current")} plan allows {status.get("limit", 0)} memories. You currently have {status.get("current_count", 0)}. Please upgrade your plan to add more memories.',
+                        'current_count': status.get('current_count', 0),
+                        'limit': status.get('limit', 0),
+                        'plan': status.get('plan', 'Unknown')
+                    }), 402
             
             # Execute the original function
             response = f(*args, **kwargs)
