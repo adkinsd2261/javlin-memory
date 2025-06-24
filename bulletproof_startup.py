@@ -283,6 +283,15 @@ def main():
             startup.save_startup_report()
             print("\n❌ STARTUP FAILED - Check errors above")
             print("📋 Full report saved to logs/startup_report.json")
+            
+            # Check if port availability was one of the failed checks
+            if any("Port 5000 is still in use" in error for error in startup.errors):
+                print("\n🔧 PORT CONFLICT DETECTED:")
+                print("   Port 5000 is already in use by another process.")
+                print("   To manually free the port, run this command:")
+                print("   lsof -ti :5000 | xargs kill -9")
+                print("   Then restart the application.")
+            
             sys.exit(1)
             
     except KeyboardInterrupt:
